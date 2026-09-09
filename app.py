@@ -1,5 +1,4 @@
-﻿
-from pathlib import Path
+﻿from pathlib import Path
 from datetime import datetime, timedelta, timezone
 import os
 import secrets
@@ -31,9 +30,9 @@ STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
 DATA_DIR = BASE_DIR / "level1000_data"
 
-STATIC_DIR.mkdir(exist_ok=True)
-TEMPLATES_DIR.mkdir(exist_ok=True)
-DATA_DIR.mkdir(exist_ok=True)
+STATIC_DIR.mkdir(parents=True, exist_ok=True)
+TEMPLATES_DIR.mkdir(parents=True, exist_ok=True)
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 DB_FILE = BASE_DIR / "level1000_users.db"
 LEVEL1000_FILE = BASE_DIR / "level1000.py"
@@ -179,7 +178,7 @@ init_db()
 
 app = FastAPI(
     title="LEVEL 1000 AI TRADING PRO",
-    version="7.4"
+    version="7.5"
 )
 
 app.mount(
@@ -204,28 +203,48 @@ oauth2_scheme = OAuth2PasswordBearer(
     auto_error=False
 )
 
+
+# Render'da mutlaka environment variable kullan.
+# Localde .level1000_secret kullanılabilir.
+
 SECRET_FILE = BASE_DIR / ".level1000_secret"
 
-if os.environ.get("LEVEL1000_SECRET_KEY"):
+ENV_SECRET = os.environ.get(
+    "LEVEL1000_SECRET_KEY"
+)
 
-    JWT_SECRET = os.environ["LEVEL1000_SECRET_KEY"]
+if ENV_SECRET:
+
+    JWT_SECRET = ENV_SECRET.strip()
 
 elif SECRET_FILE.exists():
 
-    JWT_SECRET = SECRET_FILE.read_text(
-        encoding="utf-8"
-    ).strip()
+    try:
+
+        JWT_SECRET = SECRET_FILE.read_text(
+            encoding="utf-8"
+        ).strip()
+
+    except Exception:
+
+        JWT_SECRET = secrets.token_hex(32)
 
 else:
 
     JWT_SECRET = secrets.token_hex(32)
 
-    SECRET_FILE.write_text(
-        JWT_SECRET,
-        encoding="utf-8"
-    )
+    try:
+
+        SECRET_FILE.write_text(
+            JWT_SECRET,
+            encoding="utf-8"
+        )
+    except Exception:
+        pass
+
 
 JWT_ALGORITHM = "HS256"
+
 TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 
@@ -364,6 +383,7 @@ def get_current_user(
 def get_plan_config(user):
 
     if bool(user["is_admin"]):
+
         return PLANS["MAX PRO"]
 
     plan = normalize_plan_name(
@@ -388,7 +408,9 @@ def user_dict(user):
     plan = (
         "MAX PRO"
         if bool(user["is_admin"])
-        else normalize_plan_name(user["plan"])
+        else normalize_plan_name(
+            user["plan"]
+        )
     )
 
     config = PLANS.get(
@@ -405,7 +427,9 @@ def user_dict(user):
         "created_at": user["created_at"],
         "plan_level": config["level"],
         "plan_features": config,
-        "scan_count": int(user["scan_count"]),
+        "scan_count": int(
+            user["scan_count"]
+        ),
     }
 
 
@@ -673,7 +697,10 @@ def find_signal_file():
 
     for path in candidates:
 
-        key = str(path.resolve())
+        try:
+            key = str(path.resolve())
+        except Exception:
+            key = str(path)
 
         if key in checked:
             continue
@@ -690,7 +717,9 @@ def find_signal_file():
                 low_memory=False
             )
 
-            normalized = normalize_signal_dataframe(df)
+            normalized = normalize_signal_dataframe(
+                df
+            )
 
             if normalized.empty:
                 continue
@@ -702,9 +731,11 @@ def find_signal_file():
             ]
 
             if len(valid):
+
                 return path, normalized
 
         except Exception:
+
             continue
 
     return None, pd.DataFrame()
@@ -827,24 +858,29 @@ def dataframe_to_records(df):
         for key, value in row.items():
 
             if value is None:
+
                 clean[key] = None
                 continue
 
             try:
 
                 if pd.isna(value):
+
                     clean[key] = None
                     continue
 
             except Exception:
+
                 pass
 
             if hasattr(value, "item"):
 
                 try:
+
                     clean[key] = value.item()
 
                 except Exception:
+
                     clean[key] = str(value)
 
             else:
@@ -854,6 +890,284 @@ def dataframe_to_records(df):
         result.append(clean)
 
     return result
+
+
+# ============================================================
+# ANA SAYFA
+# ============================================================
+
+def render_fallback_home():
+
+    return """
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="LEVEL 1000 AI finansal piyasa analiz ve yapay zeka platformu."
+    >
+
+    <title>LEVEL 1000 AI</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #0b1020;
+            color: #ffffff;
+        }
+
+        .box {
+            width: 100%;
+            max-width: 900px;
+
+            padding: 55px 35px;
+
+            text-align: center;
+
+            background: #121a2d;
+
+            border:
+                1px solid #27304a;
+
+            border-radius: 22px;
+
+            box-shadow:
+                0 20px 60px
+                rgba(0, 0, 0, 0.35);
+        }
+
+        .logo {
+            font-size: 40px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .logo span {
+            color: #7ea2ff;
+        }
+
+        h1 {
+            margin: 0 0 18px;
+            font-size: 30px;
+        }
+
+        p {
+            max-width: 680px;
+            margin: 0 auto;
+
+            color: #aeb8cc;
+
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .online {
+            display: inline-block;
+
+            margin-top: 28px;
+
+            padding: 10px 18px;
+
+            background: #17233d;
+
+            border-radius: 8px;
+
+            color: #8fe3a4;
+
+            font-weight: 700;
+        }
+
+        .buttons {
+            display: flex;
+
+            justify-content: center;
+
+            flex-wrap: wrap;
+
+            gap: 10px;
+
+            margin-top: 30px;
+        }
+
+        .buttons a {
+            display: inline-block;
+
+            padding:
+                11px 18px;
+
+            background: #263657;
+
+            color: #ffffff;
+
+            text-decoration: none;
+
+            border-radius: 9px;
+
+            font-weight: 700;
+        }
+
+        .buttons a:hover {
+            background: #34496f;
+        }
+
+        footer {
+            margin-top: 35px;
+
+            color: #69758c;
+
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+
+            .box {
+                padding:
+                    40px 20px;
+            }
+
+            .logo {
+                font-size: 31px;
+            }
+
+            h1 {
+                font-size: 25px;
+            }
+
+            p {
+                font-size: 15px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+    <div class="logo">
+        LEVEL <span>1000</span> AI
+    </div>
+
+    <h1>
+        Yapay Zeka Destekli Finansal Analiz
+    </h1>
+
+    <p>
+        LEVEL 1000 AI; finansal piyasaları,
+        yapay zeka ve makine öğrenmesi tabanlı
+        analizlerle değerlendiren karar destek platformudur.
+    </p>
+
+    <div class="online">
+        ● LEVEL 1000 AI ONLINE
+    </div>
+
+    <div class="buttons">
+
+        <a href="/about">
+            Hakkımızda
+        </a>
+
+        <a href="/guide">
+            Kullanım Rehberi
+        </a>
+
+        <a href="/risk">
+            Risk Açıklaması
+        </a>
+
+        <a href="/privacy">
+            Gizlilik
+        </a>
+
+        <a href="/contact">
+            İletişim
+        </a>
+
+        <a href="/api/health">
+            Sistem Durumu
+        </a>
+
+    </div>
+
+    <footer>
+        © 2026 LEVEL 1000 AI
+    </footer>
+
+</div>
+
+</body>
+
+</html>
+"""
+
+
+# ============================================================
+# ANA SAYFA ROUTE
+# ============================================================
+
+@app.get(
+    "/",
+    response_class=HTMLResponse
+)
+async def home(request: Request):
+
+    index_file = TEMPLATES_DIR / "index.html"
+
+    # Gerçek frontend mevcutsa onu aç
+    if index_file.exists():
+
+        try:
+
+            return templates.TemplateResponse(
+                "index.html",
+                {
+                    "request": request
+                }
+            )
+
+        except Exception as exc:
+
+            print(
+                "INDEX TEMPLATE HATASI:",
+                exc
+            )
+
+    # index.html yoksa bile ana sayfa 404 vermesin
+    return HTMLResponse(
+        content=render_fallback_home(),
+        status_code=200
+    )
 
 
 # ============================================================
@@ -870,11 +1184,15 @@ def render_public_page(page):
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <meta name="description"
-          content="LEVEL 1000 AI finansal piyasa analiz ve yapay zeka platformu.">
+    <meta
+        name="description"
+        content="LEVEL 1000 AI finansal piyasa analiz ve yapay zeka platformu."
+    >
 
     <title>{page["title"]}</title>
 
@@ -953,10 +1271,6 @@ def render_public_page(page):
             text-decoration: none;
 
             border-radius: 7px;
-
-            transition:
-                background 0.2s,
-                color 0.2s;
         }}
 
         nav a:hover {{
@@ -1309,6 +1623,37 @@ for public_path, public_data in PUBLIC_PAGES.items():
 
 
 # ============================================================
+# SITE BASE URL
+# ============================================================
+
+def get_base_url(request: Request):
+
+    forwarded_proto = request.headers.get(
+        "x-forwarded-proto"
+    )
+
+    forwarded_host = request.headers.get(
+        "x-forwarded-host"
+    )
+
+    if forwarded_host:
+
+        protocol = (
+            forwarded_proto
+            or "https"
+        )
+
+        return (
+            f"{protocol}://"
+            f"{forwarded_host}"
+        ).rstrip("/")
+
+    return str(
+        request.base_url
+    ).rstrip("/")
+
+
+# ============================================================
 # ROBOTS.TXT
 # ============================================================
 
@@ -1316,12 +1661,16 @@ for public_path, public_data in PUBLIC_PAGES.items():
     "/robots.txt",
     response_class=PlainTextResponse
 )
-async def robots_txt():
+async def robots_txt(
+    request: Request
+):
 
-    return """User-agent: *
+    base_url = get_base_url(request)
+
+    return f"""User-agent: *
 Allow: /
 
-Sitemap: http://127.0.0.1:8000/sitemap.xml
+Sitemap: {base_url}/sitemap.xml
 """
 
 
@@ -1332,7 +1681,9 @@ Sitemap: http://127.0.0.1:8000/sitemap.xml
 @app.get(
     "/sitemap.xml"
 )
-async def sitemap_xml():
+async def sitemap_xml(
+    request: Request
+):
 
     urls = [
         "/",
@@ -1345,7 +1696,7 @@ async def sitemap_xml():
         "/contact",
     ]
 
-    base_url = "http://127.0.0.1:8000"
+    base_url = get_base_url(request)
 
     xml_urls = []
 
@@ -1371,7 +1722,7 @@ async def sitemap_xml():
 
 
 # ============================================================
-# 404 PAGE
+# ERROR PAGE
 # ============================================================
 
 def render_error_page(
@@ -1502,9 +1853,6 @@ def render_error_page(
             border-radius: 9px;
 
             font-weight: 700;
-
-            transition:
-                background 0.2s;
         }}
 
         .button:hover {{
@@ -1517,23 +1865,6 @@ def render_error_page(
             color: #69758c;
 
             font-size: 13px;
-        }}
-
-        @media (max-width: 600px) {{
-
-            .error-box {{
-                padding:
-                    35px 22px;
-            }}
-
-            .code {{
-                font-size: 65px;
-            }}
-
-            h1 {{
-                font-size: 25px;
-            }}
-
         }}
 
     </style>
@@ -1666,7 +1997,9 @@ async def register(
             detail="Bu e-posta adresi zaten kayıtlı."
         )
 
-    hashed = password_hash.hash(password)
+    hashed = password_hash.hash(
+        password
+    )
 
     created_at = datetime.now(
         timezone.utc
@@ -1851,19 +2184,25 @@ async def status(
     historical_total = len(df)
 
     historical_buy = (
-        int((df["Signal"] == "BUY").sum())
+        int(
+            (df["Signal"] == "BUY").sum()
+        )
         if not df.empty
         else 0
     )
 
     historical_sell = (
-        int((df["Signal"] == "SELL").sum())
+        int(
+            (df["Signal"] == "SELL").sum()
+        )
         if not df.empty
         else 0
     )
 
     historical_hold = (
-        int((df["Signal"] == "HOLD").sum())
+        int(
+            (df["Signal"] == "HOLD").sum()
+        )
         if not df.empty
         else 0
     )
@@ -1888,19 +2227,25 @@ async def status(
     current_total = len(current_df)
 
     current_buy = (
-        int((current_df["Signal"] == "BUY").sum())
+        int(
+            (current_df["Signal"] == "BUY").sum()
+        )
         if not current_df.empty
         else 0
     )
 
     current_sell = (
-        int((current_df["Signal"] == "SELL").sum())
+        int(
+            (current_df["Signal"] == "SELL").sum()
+        )
         if not current_df.empty
         else 0
     )
 
     current_hold = (
-        int((current_df["Signal"] == "HOLD").sum())
+        int(
+            (current_df["Signal"] == "HOLD").sum()
+        )
         if not current_df.empty
         else 0
     )
@@ -2002,33 +2347,42 @@ async def signals(
     for row in raw_records:
 
         try:
+
             predicted = float(
                 row.get(
                     "AI_Predicted_Return",
                     0
                 )
             )
+
         except Exception:
+
             predicted = 0.0
 
         try:
+
             price = float(
                 row.get(
                     "Price",
                     0
                 )
             )
+
         except Exception:
+
             price = 0.0
 
         try:
+
             score = float(
                 row.get(
                     "AI_Probability",
                     0
                 )
             )
+
         except Exception:
+
             score = 0.0
 
         records.append({
@@ -2071,6 +2425,7 @@ async def signals(
         })
 
     return {
+
         "ok": True,
 
         "total": total,
@@ -2108,7 +2463,7 @@ async def signals(
 
 
 # ============================================================
-# PAPER - PRO
+# PAPER
 # ============================================================
 
 @app.get("/api/paper")
@@ -2134,7 +2489,8 @@ async def paper(
 
         return {
             "ok": True,
-            "paper": dataframe_to_records(df)
+            "paper":
+                dataframe_to_records(df)
         }
 
     except Exception as exc:
@@ -2156,9 +2512,11 @@ async def metrics(
 ):
 
     files = [
+
         BASE_DIR / "level1000_metrics.csv",
         BASE_DIR / "metrics.csv",
         DATA_DIR / "metrics.csv",
+
     ]
 
     for path in files:
@@ -2173,7 +2531,9 @@ async def metrics(
                 low_memory=False
             )
 
-            records = dataframe_to_records(df)
+            records = dataframe_to_records(
+                df
+            )
 
             return {
                 "ok": True,
@@ -2183,6 +2543,7 @@ async def metrics(
             }
 
         except Exception:
+
             continue
 
     return {
@@ -2194,7 +2555,7 @@ async def metrics(
 
 
 # ============================================================
-# BACKTEST - PRO
+# BACKTEST
 # ============================================================
 
 @app.get("/api/backtest")
@@ -2203,9 +2564,11 @@ async def backtest(
 ):
 
     files = [
+
         BASE_DIR / "level1000_backtest.csv",
         BASE_DIR / "backtest.csv",
         DATA_DIR / "backtest.csv",
+
     ]
 
     for path in files:
@@ -2220,7 +2583,9 @@ async def backtest(
                 low_memory=False
             )
 
-            records = dataframe_to_records(df)
+            records = dataframe_to_records(
+                df
+            )
 
             return {
                 "ok": True,
@@ -2229,6 +2594,7 @@ async def backtest(
             }
 
         except Exception:
+
             continue
 
     return {
@@ -2243,11 +2609,17 @@ async def backtest(
 # ============================================================
 
 run_state = {
+
     "running": False,
+
     "started_at": None,
+
     "finished_at": None,
+
     "error": None,
+
     "last_user": None,
+
 }
 
 run_lock = threading.Lock()
@@ -2281,9 +2653,13 @@ def get_scan_info(user):
         )
 
     return {
+
         "used": used,
+
         "limit": limit,
+
         "remaining": remaining,
+
     }
 
 
@@ -2296,10 +2672,15 @@ def consume_scan(user):
     if bool(user["is_admin"]):
 
         return {
+
             "ok": True,
+
             "used": 0,
+
             "limit": 999999,
+
             "remaining": 999999,
+
         }
 
     config = get_plan_config(user)
@@ -2355,10 +2736,15 @@ def consume_scan(user):
     )
 
     return {
+
         "ok": True,
+
         "used": used,
+
         "limit": limit,
+
         "remaining": remaining,
+
     }
 
 
@@ -2436,11 +2822,17 @@ async def run_analysis(
         if run_state["running"]:
 
             return {
+
                 "ok": False,
-                "error": "Analiz zaten çalışıyor."
+
+                "error":
+                    "Analiz zaten çalışıyor."
+
             }
 
-        scan_info = get_scan_info(user)
+        scan_info = get_scan_info(
+            user
+        )
 
         if (
             not bool(user["is_admin"])
@@ -2448,35 +2840,54 @@ async def run_analysis(
         ):
 
             raise HTTPException(
+
                 status_code=403,
+
                 detail=(
                     "Tarama hakkınız bitti. "
                     "FREE plan ile toplam 3 tarama "
                     "kullanabilirsiniz."
                 )
+
             )
 
-        consumed = consume_scan(user)
+        consumed = consume_scan(
+            user
+        )
 
         if not consumed["ok"]:
 
             raise HTTPException(
+
                 status_code=403,
-                detail="Tarama hakkınız kalmadı."
+
+                detail=
+                    "Tarama hakkınız kalmadı."
+
             )
 
-        run_state["last_user"] = user["email"]
+        run_state["last_user"] = (
+            user["email"]
+        )
 
         thread = threading.Thread(
-            target=run_level1000_process,
+
+            target=
+                run_level1000_process,
+
             daemon=True
+
         )
 
         thread.start()
 
     return {
+
         "ok": True,
-        "message": "Analiz başlatıldı."
+
+        "message":
+            "Analiz başlatıldı."
+
     }
 
 
@@ -2490,12 +2901,24 @@ async def run_status(
 ):
 
     return {
+
         "ok": True,
-        "running": run_state["running"],
-        "started_at": run_state["started_at"],
-        "finished_at": run_state["finished_at"],
-        "error": run_state["error"],
-        "last_user": run_state["last_user"],
+
+        "running":
+            run_state["running"],
+
+        "started_at":
+            run_state["started_at"],
+
+        "finished_at":
+            run_state["finished_at"],
+
+        "error":
+            run_state["error"],
+
+        "last_user":
+            run_state["last_user"],
+
     }
 
 
@@ -2503,7 +2926,9 @@ async def run_status(
 # MAKE ADMIN
 # ============================================================
 
-@app.post("/api/admin/make-admin/{email}")
+@app.post(
+    "/api/admin/make-admin/{email}"
+)
 async def make_admin(
     email: str,
     user=Depends(require_admin)
@@ -2533,14 +2958,21 @@ async def make_admin(
     if changed == 0:
 
         raise HTTPException(
+
             status_code=404,
-            detail="Kullanıcı bulunamadı."
+
+            detail=
+                "Kullanıcı bulunamadı."
+
         )
 
     return {
+
         "ok": True,
+
         "message":
             "Kullanıcı admin ve MAX PRO yapıldı."
+
     }
 
 
@@ -2578,20 +3010,30 @@ async def admin_users(
 
         item = user_dict(row)
 
-        config = get_plan_config(row)
+        config = get_plan_config(
+            row
+        )
 
-        used = int(row["scan_count"])
+        used = int(
+            row["scan_count"]
+        )
 
         if bool(row["is_admin"]):
 
             item["scan_count"] = used
+
             item["scan_limit"] = 999999
+
             item["scan_remaining"] = 999999
 
         else:
 
             item["scan_count"] = used
-            item["scan_limit"] = config["scan_limit"]
+
+            item["scan_limit"] = (
+                config["scan_limit"]
+            )
+
             item["scan_remaining"] = max(
                 0,
                 config["scan_limit"] - used
@@ -2600,8 +3042,11 @@ async def admin_users(
         result.append(item)
 
     return {
+
         "ok": True,
+
         "users": result
+
     }
 
 
@@ -2618,7 +3063,9 @@ async def set_plan(
     user=Depends(require_admin)
 ):
 
-    plan = normalize_plan_name(plan)
+    plan = normalize_plan_name(
+        plan
+    )
 
     if plan not in [
         "FREE",
@@ -2627,11 +3074,14 @@ async def set_plan(
     ]:
 
         raise HTTPException(
+
             status_code=400,
+
             detail=(
                 "Plan FREE, PRO veya MAX PRO "
                 "olmalıdır."
             )
+
         )
 
     email = email.lower().strip()
@@ -2659,15 +3109,23 @@ async def set_plan(
     if changed == 0:
 
         raise HTTPException(
+
             status_code=404,
-            detail="Kullanıcı bulunamadı."
+
+            detail=
+                "Kullanıcı bulunamadı."
+
         )
 
     return {
+
         "ok": True,
+
         "plan": plan,
+
         "message":
             f"Kullanıcı planı {plan} yapıldı."
+
     }
 
 
@@ -2681,16 +3139,28 @@ async def health():
     signal_file, df = find_signal_file()
 
     return {
+
         "ok": True,
-        "service": "LEVEL 1000",
-        "status": "ONLINE",
-        "signals_available": not df.empty,
-        "signal_file": (
-            signal_file.name
-            if signal_file
-            else None
-        ),
-        "signal_count": len(df),
+
+        "service":
+            "LEVEL 1000",
+
+        "status":
+            "ONLINE",
+
+        "signals_available":
+            not df.empty,
+
+        "signal_file":
+            (
+                signal_file.name
+                if signal_file
+                else None
+            ),
+
+        "signal_count":
+            len(df),
+
     }
 
 
@@ -2708,16 +3178,26 @@ async def debug_data(
     if df.empty:
 
         return {
+
             "ok": True,
+
             "file": None,
+
             "columns": [],
+
             "count": 0,
+
             "sample": [],
+
         }
 
-    normalized = normalize_signal_dataframe(df)
+    normalized = normalize_signal_dataframe(
+        df
+    )
 
-    config = get_plan_config(user)
+    config = get_plan_config(
+        user
+    )
 
     strong = prepare_display_dataframe(
         normalized,
@@ -2725,13 +3205,15 @@ async def debug_data(
     )
 
     return {
+
         "ok": True,
 
-        "file": (
-            signal_file.name
-            if signal_file
-            else None
-        ),
+        "file":
+            (
+                signal_file.name
+                if signal_file
+                else None
+            ),
 
         "columns":
             list(normalized.columns),
@@ -2779,6 +3261,7 @@ async def debug_data(
             dataframe_to_records(
                 strong.head(10)
             ),
+
     }
 
 
@@ -2790,9 +3273,25 @@ if __name__ == "__main__":
 
     import uvicorn
 
+    # Render PORT verir.
+    # Localde 8000 kullanılır.
+
+    port = int(
+        os.environ.get(
+            "PORT",
+            "8000"
+        )
+    )
+
+    host = (
+        "0.0.0.0"
+        if os.environ.get("PORT")
+        else "127.0.0.1"
+    )
+
     uvicorn.run(
         "app:app",
-        host="127.0.0.1",
-        port=8000,
+        host=host,
+        port=port,
         reload=False
     )
