@@ -6,36 +6,29 @@
 ============================================================ */
 
 :root {
-
-    /* BACKGROUND */
     --bg: #f4f7fb;
     --bg-soft: #eef3f8;
     --white: #ffffff;
 
-    /* PANELS */
     --panel: #ffffff;
     --panel-soft: #f8fafc;
     --panel-muted: #f1f5f9;
 
-    /* BORDERS */
     --border: #dce4ed;
     --border-soft: #e8edf3;
     --border-dark: #c9d4df;
 
-    /* TEXT */
     --text: #172033;
     --text-2: #344054;
     --muted: #667085;
     --muted-2: #98a2b3;
 
-    /* BRAND */
     --navy: #14213d;
     --navy-2: #20365e;
     --blue: #2563eb;
     --blue-dark: #1d4ed8;
     --blue-soft: #eff6ff;
 
-    /* STATES */
     --green: #16a34a;
     --green-dark: #15803d;
     --green-soft: #ecfdf3;
@@ -50,7 +43,6 @@
     --purple: #7c3aed;
     --purple-soft: #f5f3ff;
 
-    /* SHADOWS */
     --shadow-xs:
         0 1px 3px rgba(15, 23, 42, .035);
 
@@ -63,12 +55,10 @@
     --shadow-lg:
         0 18px 45px rgba(15, 23, 42, .10);
 
-    /* RADIUS */
     --radius-sm: 7px;
     --radius: 10px;
     --radius-lg: 14px;
 
-    /* TRANSITION */
     --transition: .16s ease;
 }
 
@@ -3172,20 +3162,4 @@ a {
     .system-panel {
         box-shadow: none;
     }
-}
-/* ============================================================
-   PRO / MAX PRO - ŞİMDİLİK GİZLİ
-   Backend ve plan sistemi çalışmaya devam eder.
-   Tekrar göstermek için bu bloğu kaldır.
-   ============================================================ */
-
-.plan-section,
-.plans-section,
-.pricing-section,
-.plan-cards,
-.pricing-cards,
-#plans,
-#planSection,
-#pricingSection {
-    display: none !important;
 }
