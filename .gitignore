@@ -1,0 +1,11 @@
+.level1000_secret
+level1000_users.db
+__pycache__/
+level1000_cache/
+level1000_output/
+level1000_data/
+turkiye_data/
+*.pyc
+*.pyo
+*.png
+*.html

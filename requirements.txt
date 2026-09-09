@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+jinja2
+pandas
+numpy
+yfinance
+scikit-learn
+PyJWT
+pwdlib[argon2]
+pydantic[email]
