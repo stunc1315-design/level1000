@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#07090d"
+    >
+
+    <meta
+        name="description"
+        content="LEVEL 1000 AI Terminal — yapay zekâ destekli piyasa analiz ve sinyal takip platformu."
+    >
+
+    <meta
+        name="robots"
+        content="index, follow"
+    >
+
+    <title>LEVEL 1000 AI TERMINAL</title>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=14"
+    >
+
+    <script
+        src="/static/script.js?v=14"
+        defer
+    ></script>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     AUTH SCREEN
+========================================================= -->
+
+<section
+    id="authScreen"
+    class="auth-screen"
+>
+
+    <div class="auth-background-grid"></div>
+
+    <div class="auth-terminal-glow"></div>
+
+
+    <div class="auth-container">
+
+
+        <!-- LOGO -->
+
+        <div class="auth-logo">
+
+            <div class="logo-mark">
+                L1K
+            </div>
+
+            <div class="logo-text">
+
+                <strong>
+                    LEVEL 1000
+                </strong>
+
+                <span>
+                    AI MARKET TERMINAL
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- LOGIN -->
+
+        <div
+            id="loginBox"
+            class="auth-box"
+        >
+
+            <div class="auth-header">
+
+                <div class="auth-kicker">
+                    SECURE ACCESS
+                </div>
+
+                <h1>
+                    Terminal'e Giriş
+                </h1>
+
+                <p>
+                    AI destekli piyasa analiz sistemine bağlanın.
+                </p>
+
+            </div>
+
+
+            <div class="auth-form">
+
+                <label>
+                    E-POSTA
+                </label>
+
+                <input
+                    id="loginEmail"
+                    type="email"
+                    autocomplete="email"
+                    placeholder="email@example.com"
+                >
+
+
+                <label>
+                    ŞİFRE
+                </label>
+
+                <input
+                    id="loginPassword"
+                    type="password"
+                    autocomplete="current-password"
+                    placeholder="••••••••"
+                >
+
+
+                <button
+                    type="button"
+                    class="auth-button"
+                    onclick="loginUser()"
+                >
+                    GİRİŞ YAP
+                </button>
+
+
+                <div
+                    id="authMessage"
+                    class="auth-message"
+                    style="display:none"
+                ></div>
+
+            </div>
+
+
+            <div class="auth-switch">
+
+                Hesabınız yok mu?
+
+                <button
+                    type="button"
+                    onclick="showRegister()"
+                >
+                    HESAP OLUŞTUR
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- REGISTER -->
+
+        <div
+            id="registerBox"
+            class="auth-box"
+            style="display:none"
+        >
+
+            <div class="auth-header">
+
+                <div class="auth-kicker">
+                    NEW TERMINAL USER
+                </div>
+
+                <h1>
+                    Hesap Oluştur
+                </h1>
+
+                <p>
+                    LEVEL 1000 terminaline katılın.
+                </p>
+
+            </div>
+
+
+            <div class="auth-form">
+
+                <label>
+                    E-POSTA
+                </label>
+
+                <input
+                    id="registerEmail"
+                    type="email"
+                    autocomplete="email"
+                    placeholder="email@example.com"
+                >
+
+
+                <label>
+                    ŞİFRE
+                </label>
+
+                <input
+                    id="registerPassword"
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder="En az 8 karakter"
+                >
+
+
+                <label>
+                    ŞİFRE TEKRAR
+                </label>
+
+                <input
+                    id="registerPassword2"
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder="Şifrenizi tekrar girin"
+                >
+
+
+                <button
+                    type="button"
+                    class="auth-button"
+                    onclick="registerUser()"
+                >
+                    HESAP OLUŞTUR
+                </button>
+
+            </div>
+
+
+            <div class="auth-switch">
+
+                Zaten hesabınız var mı?
+
+                <button
+                    type="button"
+                    onclick="showLogin()"
+                >
+                    GİRİŞ YAP
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- PUBLIC NAVIGATION -->
+
+        <div class="auth-public-content">
+
+            <div class="auth-public-kicker">
+                LEVEL 1000 AI MARKET INTELLIGENCE
+            </div>
+
+            <h2>
+                Yapay zekâ destekli piyasa analiz platformu
+            </h2>
+
+            <p>
+                LEVEL 1000; piyasa verilerini analiz etmek,
+                yapay zekâ destekli sinyalleri takip etmek ve
+                farklı analiz araçlarını tek bir terminal
+                üzerinden incelemek için geliştirilmiş bir
+                finansal analiz platformudur.
+            </p>
+
+            <div class="auth-public-links">
+
+                <a href="/about">
+                    Hakkımızda
+                </a>
+
+                <a href="/guide">
+                    Nasıl Çalışır?
+                </a>
+
+                <a href="/risk">
+                    Risk Bildirimi
+                </a>
+
+                <a href="/privacy">
+                    Gizlilik
+                </a>
+
+                <a href="/cookies">
+                    Çerezler
+                </a>
+
+                <a href="/terms">
+                    Kullanım Şartları
+                </a>
+
+                <a href="/contact">
+                    İletişim
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="auth-footer">
+
+            <span>
+                LEVEL 1000 AI
+            </span>
+
+            <span>
+                SYSTEM ONLINE
+            </span>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     APP SCREEN
+========================================================= -->
+
+<section
+    id="appScreen"
+    class="app-screen"
+    style="display:none"
+>
+
+
+    <!-- =====================================================
+         TOP HEADER
+    ====================================================== -->
+
+    <header class="top-header">
+
+
+        <div class="brand-area">
+
+            <div class="brand-symbol">
+                L1K
+            </div>
+
+
+            <div class="brand-copy">
+
+                <strong>
+                    LEVEL 1000
+                </strong>
+
+                <span>
+                    AI MARKET INTELLIGENCE
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="header-center">
+
+            <div class="terminal-status">
+
+                <span class="status-dot"></span>
+
+                <span>
+                    AI ENGINE ONLINE
+                </span>
+
+            </div>
+
+
+            <div class="market-status">
+
+                <span class="status-value">
+                    READY
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="header-right">
+
+            <div class="user-block">
+
+                <span class="user-email">
+                    Kullanıcı
+                </span>
+
+                <span class="user-plan">
+                    FREE
+                </span>
+
+            </div>
+
+
+            <button
+                class="admin-button"
+                style="display:none"
+                onclick="openAdmin()"
+            >
+                ADMIN
+            </button>
+
+
+            <button
+                class="logout-button"
+                onclick="logoutUser()"
+            >
+                ÇIKIŞ
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         TICKER BAR
+    ====================================================== -->
+
+    <div class="terminal-ticker">
+
+        <div class="ticker-left">
+
+            <span class="ticker-label">
+                LEVEL 1000
+            </span>
+
+            <span class="ticker-separator">
+                /
+            </span>
+
+            <span>
+                AI SIGNAL ENGINE
+            </span>
+
+        </div>
+
+
+        <div class="ticker-center">
+
+            <span>
+                MARKET DATA
+            </span>
+
+            <span class="ticker-green">
+                LIVE
+            </span>
+
+            <span>
+                •
+            </span>
+
+            <span>
+                AI SCANNER
+            </span>
+
+            <span class="ticker-green">
+                READY
+            </span>
+
+        </div>
+
+
+        <div class="ticker-right">
+
+            <span class="live-indicator">
+                ● LIVE
+            </span>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="main-container">
+
+
+        <!-- =================================================
+             HERO
+        ================================================== -->
+
+        <section class="terminal-hero">
+
+            <div>
+
+                <div class="section-kicker">
+                    AI MARKET INTELLIGENCE
+                </div>
+
+                <h1>
+                    LEVEL 1000
+                    <span>
+                        TERMINAL
+                    </span>
+                </h1>
+
+                <p>
+                    Yapay zekâ destekli piyasa sinyalleri,
+                    piyasa verileri ve gelişmiş analiz araçları.
+                </p>
+
+            </div>
+
+
+            <div class="hero-status">
+
+                <div class="hero-status-label">
+                    ENGINE
+                </div>
+
+                <div class="hero-status-value">
+                    ONLINE
+                </div>
+
+                <div class="hero-status-line"></div>
+
+                <div class="hero-status-small">
+                    AI / MARKET / SIGNAL
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PUBLIC INFORMATION
+        ================================================== -->
+
+        <section class="public-info-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="section-kicker">
+                        MARKET INTELLIGENCE
+                    </div>
+
+                    <h2>
+                        LEVEL 1000 NEDİR?
+                    </h2>
+
+                </div>
+
+                <span class="section-code">
+                    INFO / 001
+                </span>
+
+            </div>
+
+
+            <div class="public-info-grid">
+
+                <article class="public-info-card">
+
+                    <div class="public-info-number">
+                        01
+                    </div>
+
+                    <h3>
+                        Yapay Zekâ Analizi
+                    </h3>
+
+                    <p>
+                        LEVEL 1000, piyasa verilerini analiz ederek
+                        farklı sinyal türlerini ve model olasılıklarını
+                        kullanıcıların inceleyebileceği bir terminal
+                        yapısında sunar.
+                    </p>
+
+                </article>
+
+
+                <article class="public-info-card">
+
+                    <div class="public-info-number">
+                        02
+                    </div>
+
+                    <h3>
+                        Sinyal Takibi
+                    </h3>
+
+                    <p>
+                        BUY, SELL ve HOLD sinyalleri; analiz sonuçlarını
+                        daha kolay takip edebilmek için standart bir
+                        gösterim sistemiyle sunulur.
+                    </p>
+
+                </article>
+
+
+                <article class="public-info-card">
+
+                    <div class="public-info-number">
+                        03
+                    </div>
+
+                    <h3>
+                        Analiz Odaklı Terminal
+                    </h3>
+
+                    <p>
+                        Platformun amacı yatırım kararı vermek yerine
+                        kullanıcıya piyasa verilerini ve model sonuçlarını
+                        inceleyebileceği düzenli bir analiz ortamı
+                        sağlamaktır.
+                    </p>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             KPI
+        ================================================== -->
+
+        <section class="kpi-grid">
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-top">
+
+                    <span>
+                        BUY
+                    </span>
+
+                    <span class="kpi-icon buy">
+                        ▲
+                    </span>
+
+                </div>
+
+                <div
+                    id="buyCount"
+                    class="card-value"
+                >
+                    0
+                </div>
+
+                <div class="kpi-bottom">
+                    HISTORICAL BUY
+                </div>
+
+            </div>
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-top">
+
+                    <span>
+                        SELL
+                    </span>
+
+                    <span class="kpi-icon sell">
+                        ▼
+                    </span>
+
+                </div>
+
+                <div
+                    id="sellCount"
+                    class="card-value"
+                >
+                    0
+                </div>
+
+                <div class="kpi-bottom">
+                    HISTORICAL SELL
+                </div>
+
+            </div>
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-top">
+
+                    <span>
+                        HOLD
+                    </span>
+
+                    <span class="kpi-icon hold">
+                        ■
+                    </span>
+
+                </div>
+
+                <div
+                    id="holdCount"
+                    class="card-value"
+                >
+                    0
+                </div>
+
+                <div class="kpi-bottom">
+                    HISTORICAL HOLD
+                </div>
+
+            </div>
+
+
+            <div class="kpi-card highlight">
+
+                <div class="kpi-top">
+
+                    <span>
+                        TOP
+                    </span>
+
+                    <span class="kpi-icon top">
+                        ★
+                    </span>
+
+                </div>
+
+                <div
+                    id="topCount"
+                    class="card-value"
+                >
+                    0
+                </div>
+
+                <div class="kpi-bottom">
+                    TOP SIGNALS
+                </div>
+
+            </div>
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-top">
+
+                    <span>
+                        TOTAL
+                    </span>
+
+                    <span class="kpi-icon total">
+                        #
+                    </span>
+
+                </div>
+
+                <div
+                    id="totalCount"
+                    class="card-value"
+                >
+                    0
+                </div>
+
+                <div class="kpi-bottom">
+                    TOTAL AI RECORDS
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             PLAN BAR
+             GİZLİ - BACKEND SİSTEMİ DEVAM EDİYOR
+        ================================================== -->
+
+        <section
+            id="planInfoBar"
+            class="plan-info-bar"
+            style="display:none"
+        >
+
+            <div class="plan-info-left">
+
+                <span class="plan-terminal-icon">
+                    ◈
+                </span>
+
+                <div>
+
+                    <span class="plan-label">
+                        CURRENT PLAN
+                    </span>
+
+                    <strong id="currentPlanText">
+                        FREE
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <button
+                id="upgradePlanButton"
+                class="upgrade-button"
+                onclick="selectPlan('PRO')"
+            >
+                PRO'YA GEÇ
+            </button>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PLAN CARDS
+             ŞİMDİLİK GİZLİ
+             BACKEND PLAN SİSTEMİ KORUNUYOR
+        ================================================== -->
+
+        <section
+            class="plans-section"
+            style="display:none"
+        >
+
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="section-kicker">
+                        ACCESS LEVELS
+                    </div>
+
+                    <h2>
+                        TERMINAL PLANLARI
+                    </h2>
+
+                </div>
+
+                <span class="section-code">
+                    PLANS / 001
+                </span>
+
+            </div>
+
+
+            <div class="plan-grid">
+
+
+                <!-- FREE -->
+
+                <div
+                    id="planCardFree"
+                    class="plan-card"
+                    data-plan="FREE"
+                >
+
+                    <div class="plan-card-header">
+
+                        <span class="plan-name">
+                            FREE
+                        </span>
+
+                        <span class="plan-level">
+                            LVL 01
+                        </span>
+
+                    </div>
+
+
+                    <div class="plan-price">
+                        $0
+                        <small>
+                            / AY
+                        </small>
+                    </div>
+
+
+                    <div class="plan-description">
+                        Temel AI sinyalleri ve piyasa görünümü.
+                    </div>
+
+
+                    <div class="plan-features">
+
+                        <div>
+                            ✓ Temel sinyaller
+                        </div>
+
+                        <div>
+                            ✓ Sınırlı TOP liste
+                        </div>
+
+                        <div>
+                            ✓ Dashboard
+                        </div>
+
+                        <div class="feature-disabled">
+                            × Backtest
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        id="freePlanButton"
+                        class="plan-button"
+                        onclick="selectPlan('FREE')"
+                    >
+                        AKTİF
+                    </button>
+
+                </div>
+
+
+
+                <!-- PRO -->
+
+                <div
+                    id="planCardPro"
+                    class="plan-card"
+                    data-plan="PRO"
+                    data-required-plan="PRO"
+                >
+
+                    <div class="plan-card-header">
+
+                        <span class="plan-name">
+                            PRO
+                        </span>
+
+                        <span class="plan-level">
+                            LVL 02
+                        </span>
+
+                    </div>
+
+
+                    <div class="plan-price">
+                        $19
+                        <small>
+                            / AY
+                        </small>
+                    </div>
+
+
+                    <div class="plan-description">
+                        Daha fazla sinyal ve gelişmiş analiz araçları.
+                    </div>
+
+
+                    <div class="plan-features">
+
+                        <div>
+                            ✓ 100 AI sinyali
+                        </div>
+
+                        <div>
+                            ✓ Canlı fiyat
+                        </div>
+
+                        <div>
+                            ✓ Gelişmiş filtreler
+                        </div>
+
+                        <div>
+                            ✓ Backtest
+                        </div>
+
+                        <div>
+                            ✓ Paper Trading
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        id="proPlanButton"
+                        class="plan-button"
+                        onclick="selectPlan('PRO')"
+                    >
+                        PRO'YA GEÇ
+                    </button>
+
+                </div>
+
+
+
+                <!-- MAX PRO -->
+
+                <div
+                    id="planCardMaxPro"
+                    class="plan-card max-pro"
+                    data-plan="MAX PRO"
+                    data-required-plan="MAX PRO"
+                >
+
+                    <div class="plan-card-header">
+
+                        <span class="plan-name">
+                            MAX PRO
+                        </span>
+
+                        <span class="plan-level">
+                            LVL 03
+                        </span>
+
+                    </div>
+
+
+                    <div class="plan-price">
+                        $39
+                        <small>
+                            / AY
+                        </small>
+                    </div>
+
+
+                    <div class="plan-description">
+                        LEVEL 1000'ın tüm AI ve analiz gücü.
+                    </div>
+
+
+                    <div class="plan-features">
+
+                        <div>
+                            ✓ 300 AI sinyali
+                        </div>
+
+                        <div>
+                            ✓ Tüm sinyaller
+                        </div>
+
+                        <div>
+                            ✓ Gelişmiş AI
+                        </div>
+
+                        <div>
+                            ✓ Backtest
+                        </div>
+
+                        <div>
+                            ✓ Paper Trading
+                        </div>
+
+                        <div>
+                            ✓ Öncelikli özellikler
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        id="maxProPlanButton"
+                        class="plan-button"
+                        onclick="selectPlan('MAX PRO')"
+                    >
+                        MAX PRO'YA GEÇ
+                    </button>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             SIGNAL TERMINAL
+        ================================================== -->
+
+        <section class="signals-section">
+
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="section-kicker">
+                        AI SIGNAL ENGINE
+                    </div>
+
+                    <h2>
+                        PİYASA SİNYALLERİ
+                    </h2>
+
+                </div>
+
+
+                <div class="signals-heading-right">
+
+                    <span class="signal-status">
+
+                        <span class="status-dot"></span>
+
+                        ENGINE ACTIVE
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- TOOLBAR -->
+
+            <div class="signals-toolbar">
+
+
+                <div class="search-box">
+
+                    <span class="search-icon">
+                        /
+                    </span>
+
+                    <input
+                        id="searchInput"
+                        type="text"
+                        placeholder="Ticker veya sinyal ara..."
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="toolbar-info">
+
+                    <span>
+                        AUTO REFRESH
+                    </span>
+
+                    <strong>
+                        30 SEC
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- SIGNAL TABLE -->
+
+            <div class="table-wrapper">
+
+                <table class="signals-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="rank-header">
+                                #
+                            </th>
+
+                            <th>
+                                TICKER
+                            </th>
+
+                            <th>
+                                SIGNAL
+                            </th>
+
+                            <th>
+                                AI SCORE
+                            </th>
+
+                            <th>
+                                PRICE
+                            </th>
+
+                            <th>
+                                EXPECTED
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="signalsTableBody">
+
+                        <tr>
+
+                            <td
+                                colspan="6"
+                                class="empty"
+                            >
+                                SİNYALLER YÜKLENİYOR...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- SIGNAL FOOTER -->
+
+            <div class="signals-table-footer">
+
+                <span>
+                    0 SİNYAL
+                </span>
+
+                <span>
+                    BUY 0
+                </span>
+
+                <span>
+                    SELL 0
+                </span>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             AI SIGNAL EXPLANATION
+        ================================================== -->
+
+        <section class="public-info-section signal-explanation">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="section-kicker">
+                        SIGNAL GUIDE
+                    </div>
+
+                    <h2>
+                        SİNYALLER NASIL OKUNUR?
+                    </h2>
+
+                </div>
+
+                <span class="section-code">
+                    GUIDE / 002
+                </span>
+
+            </div>
+
+
+            <div class="public-info-grid">
+
+                <article class="public-info-card">
+
+                    <div class="public-info-number">
+                        BUY
+                    </div>
+
+                    <h3>
+                        AL Sinyali
+                    </h3>
+
+                    <p>
+                        Modelin mevcut veriler üzerinden olumlu
+                        yönde bir sinyal ürettiğini ifade eder.
+                        Bu sonuç yatırım garantisi değildir.
+                    </p>
+
+                </article>
+
+
+                <article class="public-info-card">
+
+                    <div class="public-info-number">
+                        SELL
+                    </div>
+
+                    <h3>
+                        SAT Sinyali
+                    </h3>
+
+                    <p>
+                        Modelin mevcut veriler üzerinden olumsuz
+                        yönde bir sinyal ürettiğini ifade eder.
+                        Sonuçlar yalnızca analiz amaçlıdır.
+                    </p>
+
+                </article>
+
+
+                <article class="public-info-card">
+
+                    <div class="public-info-number">
+                        HOLD
+                    </div>
+
+                    <h3>
+                        BEKLE Sinyali
+                    </h3>
+
+                    <p>
+                        Modelin mevcut koşullarda belirgin bir
+                        yön avantajı tespit etmediği durumları
+                        ifade eder.
+                    </p>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             ADVANCED FEATURES
+        ================================================== -->
+
+        <section class="advanced-section">
+
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="section-kicker">
+                        TERMINAL MODULES
+                    </div>
+
+                    <h2>
+                        GELİŞMİŞ ANALİZ
+                    </h2>
+
+                </div>
+
+
+                <span class="section-code">
+                    MODULES / 004
+                </span>
+
+            </div>
+
+
+
+            <div class="advanced-grid">
+
+
+                <!-- AI -->
+
+                <div
+                    class="advanced-card locked-feature"
+                    data-required-plan="PRO"
+                    onclick="requirePlan('PRO', 'Gelişmiş AI')"
+                >
+
+                    <div class="advanced-icon">
+                        AI
+                    </div>
+
+                    <div class="advanced-content">
+
+                        <span class="advanced-label">
+                            MACHINE LEARNING
+                        </span>
+
+                        <h3>
+                            Gelişmiş AI
+                        </h3>
+
+                        <p>
+                            Model destekli sinyal ve olasılık analizi.
+                        </p>
+
+                    </div>
+
+                    <div class="feature-lock">
+                        🔒
+                    </div>
+
+                    <div class="card-value">
+                        PRO
+                    </div>
+
+                </div>
+
+
+
+                <!-- BACKTEST -->
+
+                <div
+                    class="advanced-card locked-feature"
+                    data-required-plan="PRO"
+                    onclick="requirePlan('PRO', 'Backtest')"
+                >
+
+                    <div class="advanced-icon">
+                        BT
+                    </div>
+
+                    <div class="advanced-content">
+
+                        <span class="advanced-label">
+                            STRATEGY TEST
+                        </span>
+
+                        <h3>
+                            Backtest
+                        </h3>
+
+                        <p>
+                            Geçmiş veriler üzerinde strateji testi.
+                        </p>
+
+                    </div>
+
+                    <div class="feature-lock">
+                        🔒
+                    </div>
+
+                    <div class="card-value">
+                        PRO
+                    </div>
+
+                </div>
+
+
+
+                <!-- PAPER -->
+
+                <div
+                    class="advanced-card locked-feature"
+                    data-required-plan="PRO"
+                    onclick="requirePlan('PRO', 'Paper Trading')"
+                >
+
+                    <div class="advanced-icon">
+                        PT
+                    </div>
+
+                    <div class="advanced-content">
+
+                        <span class="advanced-label">
+                            SIMULATION
+                        </span>
+
+                        <h3>
+                            Paper Trading
+                        </h3>
+
+                        <p>
+                            Gerçek para kullanmadan sinyal takibi.
+                        </p>
+
+                    </div>
+
+                    <div class="feature-lock">
+                        🔒
+                    </div>
+
+                    <div class="card-value">
+                        PRO
+                    </div>
+
+                </div>
+
+
+
+                <!-- ALL AI -->
+
+                <div
+                    class="advanced-card locked-feature"
+                    data-required-plan="MAX PRO"
+                    onclick="requirePlan('MAX PRO', 'Tüm AI analizleri')"
+                >
+
+                    <div class="advanced-icon">
+                        ∞
+                    </div>
+
+                    <div class="advanced-content">
+
+                        <span class="advanced-label">
+                            FULL ACCESS
+                        </span>
+
+                        <h3>
+                            Tüm AI Analizleri
+                        </h3>
+
+                        <p>
+                            LEVEL 1000'ın tam analiz motoruna erişim.
+                        </p>
+
+                    </div>
+
+                    <div class="feature-lock">
+                        🔒
+                    </div>
+
+                    <div class="card-value">
+                        MAX PRO
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             RISK INFORMATION
+        ================================================== -->
+
+        <section class="public-info-section risk-info">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="section-kicker">
+                        IMPORTANT INFORMATION
+                    </div>
+
+                    <h2>
+                        RİSK VE ANALİZ UYARISI
+                    </h2>
+
+                </div>
+
+                <span class="section-code">
+                    RISK / 003
+                </span>
+
+            </div>
+
+
+            <div class="public-info-single">
+
+                <p>
+                    LEVEL 1000 tarafından üretilen yapay zekâ
+                    sinyalleri ve analiz sonuçları yatırım tavsiyesi
+                    değildir. Modeller geçmiş ve mevcut piyasa
+                    verilerini kullanarak olasılıksal sonuçlar
+                    üretir. Hiçbir sinyal gelecekte belirli bir
+                    fiyat hareketini veya kazancı garanti etmez.
+                </p>
+
+                <p>
+                    Finansal piyasalarda işlem yapmak sermaye
+                    kaybı riski içerir. Kullanıcılar herhangi bir
+                    yatırım kararı vermeden önce kendi araştırmalarını
+                    yapmalı ve gerektiğinde yetkili bir finansal
+                    danışmandan destek almalıdır.
+                </p>
+
+                <a
+                    href="/risk"
+                    class="public-info-button"
+                >
+                    TAM RİSK BİLDİRİMİNİ OKU
+                </a>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             SYSTEM PANEL
+        ================================================== -->
+
+        <section class="system-panel">
+
+
+            <div class="system-panel-left">
+
+                <div class="system-title">
+                    SYSTEM STATUS
+                </div>
+
+
+                <div class="system-line">
+
+                    <span>
+                        AI ENGINE
+                    </span>
+
+                    <strong class="system-online">
+                        ONLINE
+                    </strong>
+
+                </div>
+
+
+                <div class="system-line">
+
+                    <span>
+                        MARKET DATA
+                    </span>
+
+                    <strong class="system-online">
+                        CONNECTED
+                    </strong>
+
+                </div>
+
+
+                <div class="system-line">
+
+                    <span>
+                        SIGNAL ENGINE
+                    </span>
+
+                    <strong class="system-online">
+                        READY
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="system-panel-right">
+
+                <div class="system-big">
+                    L1K
+                </div>
+
+                <div class="system-version">
+                    LEVEL 1000 AI TERMINAL
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- =====================================================
+         MESSAGE
+    ====================================================== -->
+
+    <div
+        id="message"
+        class="message"
+        style="display:none"
+    ></div>
+
+
+
+    <!-- =====================================================
+         PLAN MODAL
+    ====================================================== -->
+
+    <div
+        id="planModal"
+        class="modal-overlay"
+        style="display:none"
+        onclick="closePlanModal(event)"
+    >
+
+        <div class="plan-modal">
+
+
+            <button
+                class="modal-close"
+                type="button"
+                onclick="closePlanModal()"
+            >
+                ×
+            </button>
+
+
+            <div
+                id="planModalIcon"
+                class="modal-icon"
+            >
+                ✦
+            </div>
+
+
+            <div class="modal-kicker">
+                ACCESS CONTROL
+            </div>
+
+
+            <h2 id="planModalTitle">
+                PRO ACCESS
+            </h2>
+
+
+            <p id="planModalDescription">
+                Bu özellik seçtiğiniz plana dahildir.
+            </p>
+
+
+            <div
+                id="planModalFeatures"
+                class="plan-modal-features"
+            >
+
+                <div class="plan-modal-feature">
+                    ✓ Gelişmiş AI
+                </div>
+
+                <div class="plan-modal-feature">
+                    ✓ Backtest
+                </div>
+
+                <div class="plan-modal-feature">
+                    ✓ Paper Trading
+                </div>
+
+            </div>
+
+
+            <button
+                id="planModalUpgrade"
+                class="modal-upgrade"
+                data-plan="PRO"
+                onclick="upgradeFromModal()"
+            >
+                PRO'YA GEÇ
+            </button>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="terminal-footer">
+
+        <div>
+            LEVEL 1000 AI TERMINAL
+        </div>
+
+
+        <nav class="footer-links">
+
+            <a href="/about">
+                Hakkımızda
+            </a>
+
+            <a href="/guide">
+                Nasıl Çalışır?
+            </a>
+
+            <a href="/risk">
+                Risk Bildirimi
+            </a>
+
+            <a href="/privacy">
+                Gizlilik Politikası
+            </a>
+
+            <a href="/cookies">
+                Çerez Politikası
+            </a>
+
+            <a href="/terms">
+                Kullanım Şartları
+            </a>
+
+            <a href="/contact">
+                İletişim
+            </a>
+
+        </nav>
+
+
+        <div>
+            MARKET INTELLIGENCE SYSTEM
+        </div>
+
+
+        <div>
+            v1.0.0
+        </div>
+
+    </footer>
+
+
+</section>
+
+
+</body>
+
+</html>
