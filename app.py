@@ -177,7 +177,7 @@ init_db()
 
 app = FastAPI(
     title="LEVEL 1000 AI TRADING PRO",
-    version="7.7"
+    version="8.0"
 )
 
 
@@ -243,6 +243,7 @@ else:
             JWT_SECRET,
             encoding="utf-8"
         )
+
     except Exception:
         pass
 
@@ -250,6 +251,142 @@ else:
 JWT_ALGORITHM = "HS256"
 
 TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
+
+
+# ============================================================
+# OTOMATIK ADMIN HESABI
+# ============================================================
+
+def ensure_admin_user():
+
+    admin_email = os.environ.get(
+        "LEVEL1000_ADMIN_EMAIL",
+        ""
+    ).strip().lower()
+
+    admin_password = os.environ.get(
+        "LEVEL1000_ADMIN_PASSWORD",
+        ""
+    )
+
+    if not admin_email or not admin_password:
+
+        print("========================================")
+        print("ADMIN ENV AYARLANMADI")
+        print("LEVEL1000_ADMIN_EMAIL veya")
+        print("LEVEL1000_ADMIN_PASSWORD eksik.")
+        print("========================================")
+
+        return
+
+    if len(admin_password) < 8:
+
+        print("========================================")
+        print("ADMIN SIFRESI EN AZ 8 KARAKTER OLMALI")
+        print("========================================")
+
+        return
+
+    try:
+
+        conn = get_db()
+
+        user = conn.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE email = ?
+            """,
+            (admin_email,)
+        ).fetchone()
+
+        hashed_password = password_hash.hash(
+            admin_password
+        )
+
+        created_at = datetime.now(
+            timezone.utc
+        ).isoformat()
+
+        if user:
+
+            conn.execute(
+                """
+                UPDATE users
+                SET
+                    password_hash = ?,
+                    plan = 'MAX PRO',
+                    is_admin = 1
+                WHERE email = ?
+                """,
+                (
+                    hashed_password,
+                    admin_email
+                )
+            )
+
+            conn.commit()
+            conn.close()
+
+            print("========================================")
+            print("ADMIN HESABI GUNCELLENDI")
+            print("ADMIN EMAIL:", admin_email)
+            print("ADMIN PLAN: MAX PRO")
+            print("ADMIN YETKI: AKTIF")
+            print("========================================")
+
+        else:
+
+            conn.execute(
+                """
+                INSERT INTO users
+                (
+                    name,
+                    email,
+                    password_hash,
+                    plan,
+                    is_admin,
+                    created_at,
+                    scan_count
+                )
+                VALUES
+                (
+                    ?,
+                    ?,
+                    ?,
+                    'MAX PRO',
+                    1,
+                    ?,
+                    0
+                )
+                """,
+                (
+                    "LEVEL 1000 Admin",
+                    admin_email,
+                    hashed_password,
+                    created_at
+                )
+            )
+
+            conn.commit()
+            conn.close()
+
+            print("========================================")
+            print("ADMIN HESABI OLUSTURULDU")
+            print("ADMIN EMAIL:", admin_email)
+            print("ADMIN PLAN: MAX PRO")
+            print("ADMIN YETKI: AKTIF")
+            print("========================================")
+
+    except Exception as exc:
+
+        print("========================================")
+        print("ADMIN OLUSTURMA HATASI:")
+        print(repr(exc))
+        print("========================================")
+
+
+ensure_admin_user()
 
 
 # ============================================================
@@ -735,11 +872,9 @@ def find_signal_file():
             ]
 
             if len(valid):
-
                 return path, normalized
 
         except Exception:
-
             continue
 
     return None, pd.DataFrame()
@@ -874,17 +1009,14 @@ def dataframe_to_records(df):
                     continue
 
             except Exception:
-
                 pass
 
             if hasattr(value, "item"):
 
                 try:
-
                     clean[key] = value.item()
 
                 except Exception:
-
                     clean[key] = str(value)
 
             else:
@@ -908,148 +1040,139 @@ def render_fallback_home():
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <meta
-        name="description"
-        content="LEVEL 1000 AI finansal piyasa analiz ve yapay zeka platformu."
-    >
+<title>LEVEL 1000 AI</title>
 
-    <title>LEVEL 1000 AI</title>
+<style>
 
-    <style>
+* {
+    box-sizing: border-box;
+}
 
-        * {
-            box-sizing: border-box;
-        }
+body {
+    margin: 0;
+    min-height: 100vh;
 
-        body {
-            margin: 0;
-            min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    padding: 20px;
 
-            padding: 20px;
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+    background: #0b1020;
+    color: #ffffff;
+}
 
-            background: #0b1020;
-            color: #ffffff;
-        }
+.box {
+    width: 100%;
+    max-width: 900px;
 
-        .box {
-            width: 100%;
-            max-width: 900px;
+    padding: 55px 35px;
 
-            padding: 55px 35px;
+    text-align: center;
 
-            text-align: center;
+    background: #121a2d;
 
-            background: #121a2d;
+    border:
+        1px solid #27304a;
 
-            border:
-                1px solid #27304a;
+    border-radius: 22px;
 
-            border-radius: 22px;
+    box-shadow:
+        0 20px 60px
+        rgba(0, 0, 0, 0.35);
+}
 
-            box-shadow:
-                0 20px 60px
-                rgba(0, 0, 0, 0.35);
-        }
+.logo {
+    font-size: 40px;
+    font-weight: 900;
+    margin-bottom: 20px;
+}
 
-        .logo {
-            font-size: 40px;
-            font-weight: 900;
-            margin-bottom: 20px;
-        }
+.logo span {
+    color: #7ea2ff;
+}
 
-        .logo span {
-            color: #7ea2ff;
-        }
+h1 {
+    margin: 0 0 18px;
+    font-size: 30px;
+}
 
-        h1 {
-            margin: 0 0 18px;
-            font-size: 30px;
-        }
+p {
+    max-width: 680px;
+    margin: 0 auto;
 
-        p {
-            max-width: 680px;
-            margin: 0 auto;
+    color: #aeb8cc;
 
-            color: #aeb8cc;
+    font-size: 17px;
+    line-height: 1.7;
+}
 
-            font-size: 17px;
-            line-height: 1.7;
-        }
+.online {
+    display: inline-block;
 
-        .online {
-            display: inline-block;
+    margin-top: 28px;
 
-            margin-top: 28px;
+    padding: 10px 18px;
 
-            padding: 10px 18px;
+    background: #17233d;
 
-            background: #17233d;
+    border-radius: 8px;
 
-            border-radius: 8px;
+    color: #8fe3a4;
 
-            color: #8fe3a4;
+    font-weight: 700;
+}
 
-            font-weight: 700;
-        }
+.buttons {
+    display: flex;
 
-        .buttons {
-            display: flex;
+    justify-content: center;
 
-            justify-content: center;
+    flex-wrap: wrap;
 
-            flex-wrap: wrap;
+    gap: 10px;
 
-            gap: 10px;
+    margin-top: 30px;
+}
 
-            margin-top: 30px;
-        }
+.buttons a {
+    display: inline-block;
 
-        .buttons a {
-            display: inline-block;
+    padding:
+        11px 18px;
 
-            padding:
-                11px 18px;
+    background: #263657;
 
-            background: #263657;
+    color: #ffffff;
 
-            color: #ffffff;
+    text-decoration: none;
 
-            text-decoration: none;
+    border-radius: 9px;
 
-            border-radius: 9px;
+    font-weight: 700;
+}
 
-            font-weight: 700;
-        }
+footer {
+    margin-top: 35px;
 
-        .buttons a:hover {
-            background: #34496f;
-        }
+    color: #69758c;
 
-        footer {
-            margin-top: 35px;
+    font-size: 13px;
+}
 
-            color: #69758c;
-
-            font-size: 13px;
-        }
-
-    </style>
+</style>
 
 </head>
 
@@ -1057,38 +1180,38 @@ def render_fallback_home():
 
 <div class="box">
 
-    <div class="logo">
-        LEVEL <span>1000</span> AI
-    </div>
+<div class="logo">
+LEVEL <span>1000</span> AI
+</div>
 
-    <h1>
-        Yapay Zeka Destekli Finansal Analiz
-    </h1>
+<h1>
+Yapay Zeka Destekli Finansal Analiz
+</h1>
 
-    <p>
-        LEVEL 1000 AI; finansal piyasaları,
-        yapay zeka ve makine öğrenmesi tabanlı
-        analizlerle değerlendiren karar destek platformudur.
-    </p>
+<p>
+LEVEL 1000 AI; finansal piyasaları,
+yapay zeka ve makine öğrenmesi tabanlı
+analizlerle değerlendiren karar destek platformudur.
+</p>
 
-    <div class="online">
-        ● LEVEL 1000 AI ONLINE
-    </div>
+<div class="online">
+● LEVEL 1000 AI ONLINE
+</div>
 
-    <div class="buttons">
+<div class="buttons">
 
-        <a href="/about">Hakkımızda</a>
-        <a href="/guide">Kullanım Rehberi</a>
-        <a href="/risk">Risk Açıklaması</a>
-        <a href="/privacy">Gizlilik</a>
-        <a href="/contact">İletişim</a>
-        <a href="/api/health">Sistem Durumu</a>
+<a href="/about">Hakkımızda</a>
+<a href="/guide">Kullanım Rehberi</a>
+<a href="/risk">Risk Açıklaması</a>
+<a href="/privacy">Gizlilik</a>
+<a href="/contact">İletişim</a>
+<a href="/api/health">Sistem Durumu</a>
 
-    </div>
+</div>
 
-    <footer>
-        © 2026 LEVEL 1000 AI
-    </footer>
+<footer>
+© 2026 LEVEL 1000 AI
+</footer>
 
 </div>
 
@@ -1177,217 +1300,197 @@ def render_public_page(page):
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <meta
-        name="description"
-        content="LEVEL 1000 AI finansal piyasa analiz ve yapay zeka platformu."
-    >
+<meta
+    name="description"
+    content="LEVEL 1000 AI finansal piyasa analiz ve yapay zeka platformu."
+>
 
-    <title>{page["title"]}</title>
+<title>{page["title"]}</title>
 
-    <style>
+<style>
 
-        * {{
-            box-sizing: border-box;
-        }}
+* {{
+    box-sizing: border-box;
+}}
 
-        html {{
-            scroll-behavior: smooth;
-        }}
+html {{
+    scroll-behavior: smooth;
+}}
 
-        body {{
-            margin: 0;
-            padding: 0;
+body {{
+    margin: 0;
+    padding: 0;
 
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 
-            background: #0b1020;
-            color: #e8ecf5;
+    background: #0b1020;
+    color: #e8ecf5;
 
-            line-height: 1.7;
-        }}
+    line-height: 1.7;
+}}
 
-        .container {{
-            width: 100%;
-            max-width: 1000px;
+.container {{
+    width: 100%;
+    max-width: 1000px;
 
-            margin: 0 auto;
+    margin: 0 auto;
 
-            padding:
-                30px 20px 50px;
-        }}
+    padding:
+        30px 20px 50px;
+}}
 
-        header {{
-            padding-bottom: 25px;
-            margin-bottom: 30px;
+header {{
+    padding-bottom: 25px;
+    margin-bottom: 30px;
 
-            border-bottom:
-                1px solid #27304a;
-        }}
+    border-bottom:
+        1px solid #27304a;
+}}
 
-        .logo {{
-            font-size: 25px;
-            font-weight: 800;
+.logo {{
+    font-size: 25px;
+    font-weight: 800;
 
-            letter-spacing: 0.5px;
-        }}
+    letter-spacing: 0.5px;
+}}
 
-        .logo span {{
-            color: #7ea2ff;
-        }}
+.logo span {{
+    color: #7ea2ff;
+}}
 
-        nav {{
-            display: flex;
+nav {{
+    display: flex;
 
-            flex-wrap: wrap;
+    flex-wrap: wrap;
 
-            gap: 10px;
+    gap: 10px;
 
-            margin-top: 20px;
-        }}
+    margin-top: 20px;
+}}
 
-        nav a {{
-            display: inline-block;
+nav a {{
+    display: inline-block;
 
-            padding:
-                7px 11px;
+    padding:
+        7px 11px;
 
-            color: #aebfff;
+    color: #aebfff;
 
-            text-decoration: none;
+    text-decoration: none;
 
-            border-radius: 7px;
-        }}
+    border-radius: 7px;
+}}
 
-        nav a:hover {{
-            background: #1b2640;
-            color: #ffffff;
-        }}
+nav a:hover {{
+    background: #1b2640;
+    color: #ffffff;
+}}
 
-        main {{
-            background: #121a2d;
+main {{
+    background: #121a2d;
 
-            border:
-                1px solid #27304a;
+    border:
+        1px solid #27304a;
 
-            border-radius: 16px;
+    border-radius: 16px;
 
-            padding: 40px;
+    padding: 40px;
 
-            box-shadow:
-                0 15px 45px
-                rgba(0, 0, 0, 0.25);
-        }}
+    box-shadow:
+        0 15px 45px
+        rgba(0, 0, 0, 0.25);
+}}
 
-        h1 {{
-            margin-top: 0;
-            margin-bottom: 25px;
+h1 {{
+    margin-top: 0;
+    margin-bottom: 25px;
 
-            font-size: 34px;
+    font-size: 34px;
 
-            line-height: 1.25;
+    line-height: 1.25;
 
-            color: #ffffff;
-        }}
+    color: #ffffff;
+}}
 
-        p {{
-            margin: 0;
+p {{
+    margin: 0;
 
-            white-space: pre-line;
+    white-space: pre-line;
 
-            color: #cbd3e5;
+    color: #cbd3e5;
 
-            font-size: 16px;
-        }}
+    font-size: 16px;
+}}
 
-        .back {{
-            display: inline-block;
+.back {{
+    display: inline-block;
 
-            margin-top: 30px;
+    margin-top: 30px;
 
-            padding:
-                10px 16px;
+    padding:
+        10px 16px;
 
-            background: #1b2640;
+    background: #1b2640;
 
-            color: #ffffff;
+    color: #ffffff;
 
-            border-radius: 8px;
+    border-radius: 8px;
 
-            text-decoration: none;
-        }}
+    text-decoration: none;
+}}
 
-        .back:hover {{
-            background: #263657;
-        }}
+footer {{
+    margin-top: 35px;
 
-        footer {{
-            margin-top: 35px;
+    padding-top: 25px;
 
-            padding-top: 25px;
+    border-top:
+        1px solid #27304a;
 
-            border-top:
-                1px solid #27304a;
+    color: #8993aa;
 
-            color: #8993aa;
+    font-size: 14px;
+}}
 
-            font-size: 14px;
-        }}
+footer a {{
+    display: inline-block;
 
-        footer a {{
-            display: inline-block;
+    margin-right: 15px;
+    margin-bottom: 8px;
 
-            margin-right: 15px;
-            margin-bottom: 8px;
+    color: #9db7ff;
 
-            color: #9db7ff;
+    text-decoration: none;
+}}
 
-            text-decoration: none;
-        }}
+@media (max-width: 600px) {{
 
-        footer a:hover {{
-            text-decoration: underline;
-        }}
+    .container {{
+        padding:
+            20px 12px 35px;
+    }}
 
-        @media (max-width: 600px) {{
+    main {{
+        padding: 25px 20px;
+    }}
 
-            .container {{
-                padding:
-                    20px 12px 35px;
-            }}
+    h1 {{
+        font-size: 27px;
+    }}
 
-            main {{
-                padding: 25px 20px;
-            }}
+}}
 
-            h1 {{
-                font-size: 27px;
-            }}
-
-            p {{
-                font-size: 15px;
-            }}
-
-            nav {{
-                gap: 5px;
-            }}
-
-            nav a {{
-                font-size: 14px;
-            }}
-
-        }}
-
-    </style>
+</style>
 
 </head>
 
@@ -1395,58 +1498,58 @@ def render_public_page(page):
 
 <div class="container">
 
-    <header>
+<header>
 
-        <div class="logo">
-            LEVEL <span>1000</span> AI
-        </div>
+<div class="logo">
+LEVEL <span>1000</span> AI
+</div>
 
-        <nav>
+<nav>
 
-            <a href="/">Ana Sayfa</a>
-            <a href="/about">Hakkımızda</a>
-            <a href="/guide">Rehber</a>
-            <a href="/risk">Risk</a>
-            <a href="/privacy">Gizlilik</a>
-            <a href="/cookies">Çerezler</a>
-            <a href="/terms">Şartlar</a>
-            <a href="/contact">İletişim</a>
+<a href="/">Ana Sayfa</a>
+<a href="/about">Hakkımızda</a>
+<a href="/guide">Rehber</a>
+<a href="/risk">Risk</a>
+<a href="/privacy">Gizlilik</a>
+<a href="/cookies">Çerezler</a>
+<a href="/terms">Şartlar</a>
+<a href="/contact">İletişim</a>
 
-        </nav>
+</nav>
 
-    </header>
+</header>
 
-    <main>
+<main>
 
-        <h1>{page["heading"]}</h1>
+<h1>{page["heading"]}</h1>
 
-        <p>{page["text"]}</p>
+<p>{page["text"]}</p>
 
-        <a
-            class="back"
-            href="/"
-        >
-            ← Ana Sayfaya Dön
-        </a>
+<a
+    class="back"
+    href="/"
+>
+← Ana Sayfaya Dön
+</a>
 
-    </main>
+</main>
 
-    <footer>
+<footer>
 
-        <a href="/about">Hakkımızda</a>
-        <a href="/guide">Kullanım Rehberi</a>
-        <a href="/privacy">Gizlilik</a>
-        <a href="/cookies">Çerezler</a>
-        <a href="/terms">Kullanım Şartları</a>
-        <a href="/risk">Risk Açıklaması</a>
-        <a href="/contact">İletişim</a>
+<a href="/about">Hakkımızda</a>
+<a href="/guide">Kullanım Rehberi</a>
+<a href="/privacy">Gizlilik</a>
+<a href="/cookies">Çerezler</a>
+<a href="/terms">Kullanım Şartları</a>
+<a href="/risk">Risk Açıklaması</a>
+<a href="/contact">İletişim</a>
 
-        <br>
-        <br>
+<br>
+<br>
 
-        © 2026 LEVEL 1000 AI
+© 2026 LEVEL 1000 AI
 
-    </footer>
+</footer>
 
 </div>
 
@@ -1674,9 +1777,7 @@ Sitemap: {base_url}/sitemap.xml
 # SITEMAP
 # ============================================================
 
-@app.get(
-    "/sitemap.xml"
-)
+@app.get("/sitemap.xml")
 async def sitemap_xml(
     request: Request
 ):
@@ -1733,172 +1834,117 @@ def render_error_page(
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <meta
-        name="robots"
-        content="noindex, nofollow"
-    >
+<title>{code} - LEVEL 1000 AI</title>
 
-    <title>{code} - LEVEL 1000 AI</title>
+<style>
 
-    <style>
+body {{
+    margin: 0;
+    min-height: 100vh;
 
-        * {{
-            box-sizing: border-box;
-        }}
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-        body {{
-            margin: 0;
-            min-height: 100vh;
+    padding: 20px;
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 
-            padding: 20px;
+    background: #0b1020;
+    color: #ffffff;
+}}
 
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+.error-box {{
+    width: 100%;
+    max-width: 620px;
 
-            background: #0b1020;
-            color: #ffffff;
-        }}
+    padding: 45px 35px;
 
-        .error-box {{
-            width: 100%;
-            max-width: 620px;
+    text-align: center;
 
-            padding: 45px 35px;
+    background: #121a2d;
 
-            text-align: center;
+    border:
+        1px solid #27304a;
 
-            background: #121a2d;
+    border-radius: 20px;
+}}
 
-            border:
-                1px solid #27304a;
+.code {{
+    font-size: 82px;
+    font-weight: 900;
 
-            border-radius: 20px;
+    color: #7ea2ff;
 
-            box-shadow:
-                0 20px 60px
-                rgba(0, 0, 0, 0.35);
-        }}
+    margin-bottom: 20px;
+}}
 
-        .logo {{
-            font-size: 23px;
-            font-weight: 800;
+h1 {{
+    margin: 0 0 15px;
+}}
 
-            margin-bottom: 30px;
-        }}
+p {{
+    color: #aeb8cc;
+    line-height: 1.7;
+}}
 
-        .logo span {{
-            color: #7ea2ff;
-        }}
+.button {{
+    display: inline-block;
 
-        .code {{
-            font-size: 82px;
-            font-weight: 900;
+    margin-top: 30px;
 
-            line-height: 1;
+    padding:
+        12px 22px;
 
-            color: #7ea2ff;
+    background: #263657;
 
-            margin-bottom: 20px;
-        }}
+    color: #ffffff;
 
-        h1 {{
-            margin: 0 0 15px;
+    text-decoration: none;
 
-            font-size: 30px;
-        }}
+    border-radius: 9px;
 
-        p {{
-            margin: 0 auto;
+    font-weight: 700;
+}}
 
-            max-width: 500px;
-
-            color: #aeb8cc;
-
-            font-size: 16px;
-
-            line-height: 1.7;
-        }}
-
-        .button {{
-            display: inline-block;
-
-            margin-top: 30px;
-
-            padding:
-                12px 22px;
-
-            background: #263657;
-
-            color: #ffffff;
-
-            text-decoration: none;
-
-            border-radius: 9px;
-
-            font-weight: 700;
-        }}
-
-        .button:hover {{
-            background: #34496f;
-        }}
-
-        .footer {{
-            margin-top: 25px;
-
-            color: #69758c;
-
-            font-size: 13px;
-        }}
-
-    </style>
+</style>
 
 </head>
 
 <body>
 
-    <div class="error-box">
+<div class="error-box">
 
-        <div class="logo">
-            LEVEL <span>1000</span> AI
-        </div>
+<div class="code">
+{code}
+</div>
 
-        <div class="code">
-            {code}
-        </div>
+<h1>
+{title}
+</h1>
 
-        <h1>
-            {title}
-        </h1>
+<p>
+{message}
+</p>
 
-        <p>
-            {message}
-        </p>
+<a
+    class="button"
+    href="/"
+>
+← Ana Sayfaya Dön
+</a>
 
-        <a
-            class="button"
-            href="/"
-        >
-            ← Ana Sayfaya Dön
-        </a>
-
-        <div class="footer">
-            LEVEL 1000 AI
-        </div>
-
-    </div>
+</div>
 
 </body>
 
@@ -2539,7 +2585,6 @@ async def metrics(
             }
 
         except Exception:
-
             continue
 
     return {
@@ -2590,7 +2635,6 @@ async def backtest(
             }
 
         except Exception:
-
             continue
 
     return {
@@ -2954,12 +2998,8 @@ async def make_admin(
     if changed == 0:
 
         raise HTTPException(
-
             status_code=404,
-
-            detail=
-                "Kullanıcı bulunamadı."
-
+            detail="Kullanıcı bulunamadı."
         )
 
     return {
