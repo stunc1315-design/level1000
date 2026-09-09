@@ -13,7 +13,6 @@ import jwt
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from fastapi.security import OAuth2PasswordBearer
 
 from pydantic import BaseModel, EmailStr
@@ -178,17 +177,18 @@ init_db()
 
 app = FastAPI(
     title="LEVEL 1000 AI TRADING PRO",
-    version="7.5"
+    version="7.7"
 )
+
+
+# ============================================================
+# STATIC
+# ============================================================
 
 app.mount(
     "/static",
     StaticFiles(directory=str(STATIC_DIR)),
     name="static"
-)
-
-templates = Jinja2Templates(
-    directory=str(TEMPLATES_DIR)
 )
 
 
@@ -204,8 +204,9 @@ oauth2_scheme = OAuth2PasswordBearer(
 )
 
 
-# Render'da mutlaka environment variable kullan.
-# Localde .level1000_secret kullanılabilir.
+# ============================================================
+# JWT SECRET
+# ============================================================
 
 SECRET_FILE = BASE_DIR / ".level1000_secret"
 
@@ -224,6 +225,9 @@ elif SECRET_FILE.exists():
         JWT_SECRET = SECRET_FILE.read_text(
             encoding="utf-8"
         ).strip()
+
+        if not JWT_SECRET:
+            raise ValueError("Boş secret")
 
     except Exception:
 
@@ -893,7 +897,7 @@ def dataframe_to_records(df):
 
 
 # ============================================================
-# ANA SAYFA
+# FALLBACK ANA SAYFA
 # ============================================================
 
 def render_fallback_home():
@@ -1045,27 +1049,6 @@ def render_fallback_home():
             font-size: 13px;
         }
 
-        @media (max-width: 600px) {
-
-            .box {
-                padding:
-                    40px 20px;
-            }
-
-            .logo {
-                font-size: 31px;
-            }
-
-            h1 {
-                font-size: 25px;
-            }
-
-            p {
-                font-size: 15px;
-            }
-
-        }
-
     </style>
 
 </head>
@@ -1094,29 +1077,12 @@ def render_fallback_home():
 
     <div class="buttons">
 
-        <a href="/about">
-            Hakkımızda
-        </a>
-
-        <a href="/guide">
-            Kullanım Rehberi
-        </a>
-
-        <a href="/risk">
-            Risk Açıklaması
-        </a>
-
-        <a href="/privacy">
-            Gizlilik
-        </a>
-
-        <a href="/contact">
-            İletişim
-        </a>
-
-        <a href="/api/health">
-            Sistem Durumu
-        </a>
+        <a href="/about">Hakkımızda</a>
+        <a href="/guide">Kullanım Rehberi</a>
+        <a href="/risk">Risk Açıklaması</a>
+        <a href="/privacy">Gizlilik</a>
+        <a href="/contact">İletişim</a>
+        <a href="/api/health">Sistem Durumu</a>
 
     </div>
 
@@ -1133,40 +1099,69 @@ def render_fallback_home():
 
 
 # ============================================================
-# ANA SAYFA ROUTE
+# ANA SAYFA
 # ============================================================
 
 @app.get(
     "/",
     response_class=HTMLResponse
 )
-async def home(request: Request):
+async def home():
 
     index_file = TEMPLATES_DIR / "index.html"
 
-    # Gerçek frontend mevcutsa onu aç
-    if index_file.exists():
+    print("========================================")
+    print("LEVEL 1000 ANA SAYFA KONTROL")
+    print("INDEX DOSYASI:", str(index_file))
+    print("INDEX VAR MI:", index_file.is_file())
+    print("========================================")
+
+    if index_file.is_file():
 
         try:
 
-            return templates.TemplateResponse(
-                "index.html",
-                {
-                    "request": request
+            html = index_file.read_text(
+                encoding="utf-8"
+            )
+
+            print(
+                "INDEX OKUNDU:",
+                len(html),
+                "karakter"
+            )
+
+            return HTMLResponse(
+                content=html,
+                status_code=200,
+                headers={
+                    "Cache-Control":
+                        "no-store, no-cache, must-revalidate, max-age=0",
+                    "Pragma": "no-cache",
+                    "Expires": "0",
                 }
             )
 
         except Exception as exc:
 
             print(
-                "INDEX TEMPLATE HATASI:",
-                exc
+                "INDEX OKUMA HATASI:",
+                repr(exc)
             )
 
-    # index.html yoksa bile ana sayfa 404 vermesin
+    print(
+        "INDEX BULUNAMADI:",
+        str(index_file)
+    )
+
     return HTMLResponse(
         content=render_fallback_home(),
-        status_code=200
+        status_code=200,
+        headers={
+            "Cache-Control":
+                "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
     )
 
 
@@ -1597,7 +1592,8 @@ def create_public_route(
     async def public_page():
 
         return HTMLResponse(
-            content=render_public_page(data)
+            content=render_public_page(data),
+            status_code=200
         )
 
     app.add_api_route(
@@ -1654,7 +1650,7 @@ def get_base_url(request: Request):
 
 
 # ============================================================
-# ROBOTS.TXT
+# ROBOTS
 # ============================================================
 
 @app.get(
@@ -1675,7 +1671,7 @@ Sitemap: {base_url}/sitemap.xml
 
 
 # ============================================================
-# SITEMAP.XML
+# SITEMAP
 # ============================================================
 
 @app.get(
@@ -1911,7 +1907,7 @@ def render_error_page(
 
 
 # ============================================================
-# 404 HANDLER
+# 404
 # ============================================================
 
 @app.exception_handler(404)
@@ -1931,7 +1927,7 @@ async def not_found_handler(
 
 
 # ============================================================
-# 500 HANDLER
+# 500
 # ============================================================
 
 @app.exception_handler(500)
@@ -3272,9 +3268,6 @@ async def debug_data(
 if __name__ == "__main__":
 
     import uvicorn
-
-    # Render PORT verir.
-    # Localde 8000 kullanılır.
 
     port = int(
         os.environ.get(
