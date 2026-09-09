@@ -1,9 +1,9 @@
+```javascript
 // ============================================================
 // LEVEL 1000 AI TERMINAL
 // SCRIPT.JS
 // AUTH + JWT + PLAN + DASHBOARD + SIGNALS
-// FREE 3 SCAN SYSTEM
-// BLOOMBERG / MODERN AI UI
+// FREE / PRO / MAX PRO
 // ============================================================
 
 "use strict";
@@ -19,6 +19,7 @@ let currentPlan = "FREE";
 let currentPlanData = null;
 
 let scanRunning = false;
+
 let scanUsed = 0;
 let scanLimit = 3;
 let scanRemaining = 3;
@@ -63,7 +64,8 @@ function getSavedUser() {
 
     try {
 
-        const raw = localStorage.getItem(USER_KEY);
+        const raw =
+            localStorage.getItem(USER_KEY);
 
         if (!raw) {
             return null;
@@ -73,7 +75,10 @@ function getSavedUser() {
 
     } catch (error) {
 
-        console.error("USER STORAGE:", error);
+        console.error(
+            "USER STORAGE:",
+            error
+        );
 
         return null;
     }
@@ -83,7 +88,11 @@ function getSavedUser() {
 function saveUser(user) {
 
     if (!user) {
-        localStorage.removeItem(USER_KEY);
+
+        localStorage.removeItem(
+            USER_KEY
+        );
+
         return;
     }
 
@@ -108,7 +117,8 @@ async function apiFetch(url, options = {}) {
         ...(requestOptions.headers || {})
     };
 
-    const token = getToken();
+    const token =
+        getToken();
 
     if (token) {
 
@@ -130,7 +140,8 @@ async function apiFetch(url, options = {}) {
             );
     }
 
-    requestOptions.headers = headers;
+    requestOptions.headers =
+        headers;
 
     let response;
 
@@ -168,15 +179,10 @@ async function apiFetch(url, options = {}) {
 
     if (response.status === 401) {
 
-        console.warn(
-            "401 UNAUTHORIZED:",
-            url,
-            data
-        );
-
         if (url !== "/api/login") {
 
             clearSession();
+
             showAuthScreen();
             showLogin();
         }
@@ -184,7 +190,7 @@ async function apiFetch(url, options = {}) {
         throw new Error(
             data?.detail ||
             data?.message ||
-            "Oturum geçersiz. Lütfen tekrar giriş yapın."
+            "Oturum geçersiz."
         );
     }
 
@@ -198,8 +204,11 @@ async function apiFetch(url, options = {}) {
                 `API hatası: ${response.status}`
             );
 
-        error.status = response.status;
-        error.data = data;
+        error.status =
+            response.status;
+
+        error.data =
+            data;
 
         throw error;
     }
@@ -214,30 +223,40 @@ async function apiFetch(url, options = {}) {
 
 function showAuthScreen() {
 
-    const auth = $("authScreen");
-    const app = $("appScreen");
+    const auth =
+        $("authScreen");
+
+    const app =
+        $("appScreen");
 
     if (auth) {
-        auth.style.display = "flex";
+        auth.style.display =
+            "flex";
     }
 
     if (app) {
-        app.style.display = "none";
+        app.style.display =
+            "none";
     }
 }
 
 
 function showAppScreen() {
 
-    const auth = $("authScreen");
-    const app = $("appScreen");
+    const auth =
+        $("authScreen");
+
+    const app =
+        $("appScreen");
 
     if (auth) {
-        auth.style.display = "none";
+        auth.style.display =
+            "none";
     }
 
     if (app) {
-        app.style.display = "block";
+        app.style.display =
+            "block";
     }
 }
 
@@ -248,15 +267,20 @@ function showAppScreen() {
 
 function showLogin() {
 
-    const login = $("loginBox");
-    const register = $("registerBox");
+    const login =
+        $("loginBox");
+
+    const register =
+        $("registerBox");
 
     if (login) {
-        login.style.display = "block";
+        login.style.display =
+            "block";
     }
 
     if (register) {
-        register.style.display = "none";
+        register.style.display =
+            "none";
     }
 
     clearAuthMessage();
@@ -265,15 +289,20 @@ function showLogin() {
 
 function showRegister() {
 
-    const login = $("loginBox");
-    const register = $("registerBox");
+    const login =
+        $("loginBox");
+
+    const register =
+        $("registerBox");
 
     if (login) {
-        login.style.display = "none";
+        login.style.display =
+            "none";
     }
 
     if (register) {
-        register.style.display = "block";
+        register.style.display =
+            "block";
     }
 
     clearAuthMessage();
@@ -289,14 +318,19 @@ function showAuthMessage(
     type = "error"
 ) {
 
-    const box = $("authMessage");
+    const box =
+        $("authMessage");
 
     if (!box) {
         return;
     }
 
-    box.innerText = text;
-    box.style.display = "block";
+    box.innerText =
+        text;
+
+    box.style.display =
+        "block";
+
     box.className =
         "auth-message " + type;
 }
@@ -304,14 +338,18 @@ function showAuthMessage(
 
 function clearAuthMessage() {
 
-    const box = $("authMessage");
+    const box =
+        $("authMessage");
 
     if (!box) {
         return;
     }
 
-    box.innerText = "";
-    box.style.display = "none";
+    box.innerText =
+        "";
+
+    box.style.display =
+        "none";
 }
 
 
@@ -320,22 +358,31 @@ function showMessage(
     type = "info"
 ) {
 
-    const box = $("message");
+    const box =
+        $("message");
 
     if (!box) {
         return;
     }
 
-    box.innerText = text;
-    box.style.display = "block";
+    box.innerText =
+        text;
+
+    box.style.display =
+        "block";
+
     box.className =
         "message " + type;
 
-    setTimeout(() => {
+    setTimeout(
+        () => {
 
-        box.style.display = "none";
+            box.style.display =
+                "none";
 
-    }, 5000);
+        },
+        5000
+    );
 }
 
 
@@ -347,8 +394,11 @@ async function loginUser() {
 
     clearAuthMessage();
 
-    const emailInput = $("loginEmail");
-    const passwordInput = $("loginPassword");
+    const emailInput =
+        $("loginEmail");
+
+    const passwordInput =
+        $("loginPassword");
 
     const email =
         emailInput
@@ -385,7 +435,9 @@ async function loginUser() {
 
     if (button) {
 
-        button.disabled = true;
+        button.disabled =
+            true;
+
         button.innerText =
             "GİRİŞ YAPILIYOR...";
     }
@@ -439,31 +491,21 @@ async function loginUser() {
 
         } else {
 
-            try {
+            const me =
+                await apiFetch(
+                    "/api/me"
+                );
 
-                const me =
-                    await apiFetch(
-                        "/api/me"
-                    );
+            if (
+                me?.ok &&
+                me?.user
+            ) {
 
-                if (
-                    me?.ok &&
-                    me?.user
-                ) {
+                currentUser =
+                    me.user;
 
-                    currentUser =
-                        me.user;
-
-                    saveUser(
-                        me.user
-                    );
-                }
-
-            } catch (error) {
-
-                console.warn(
-                    "ME AFTER LOGIN:",
-                    error
+                saveUser(
+                    me.user
                 );
             }
         }
@@ -499,8 +541,11 @@ async function loginUser() {
 
         if (button) {
 
-            button.disabled = false;
-            button.innerText = "GİRİŞ YAP";
+            button.disabled =
+                false;
+
+            button.innerText =
+                "GİRİŞ YAP";
         }
     }
 }
@@ -577,7 +622,8 @@ async function registerUser() {
 
     if (button) {
 
-        button.disabled = true;
+        button.disabled =
+            true;
 
         button.innerText =
             "HESAP OLUŞTURULUYOR...";
@@ -633,31 +679,21 @@ async function registerUser() {
 
         } else {
 
-            try {
+            const me =
+                await apiFetch(
+                    "/api/me"
+                );
 
-                const me =
-                    await apiFetch(
-                        "/api/me"
-                    );
+            if (
+                me?.ok &&
+                me?.user
+            ) {
 
-                if (
-                    me?.ok &&
-                    me?.user
-                ) {
+                currentUser =
+                    me.user;
 
-                    currentUser =
-                        me.user;
-
-                    saveUser(
-                        me.user
-                    );
-                }
-
-            } catch (error) {
-
-                console.warn(
-                    "ME AFTER REGISTER:",
-                    error
+                saveUser(
+                    me.user
                 );
             }
         }
@@ -693,7 +729,9 @@ async function registerUser() {
 
         if (button) {
 
-            button.disabled = false;
+            button.disabled =
+                false;
+
             button.innerText =
                 "HESAP OLUŞTUR";
         }
@@ -738,7 +776,6 @@ async function logoutUser() {
         clearSession();
 
         showAuthScreen();
-
         showLogin();
     }
 }
@@ -762,14 +799,23 @@ function clearSession() {
 
     currentUser = null;
 
-    currentPlan = "FREE";
+    currentPlan =
+        "FREE";
 
-    currentPlanData = null;
+    currentPlanData =
+        null;
 
-    scanRunning = false;
-    scanUsed = 0;
-    scanLimit = 3;
-    scanRemaining = 3;
+    scanRunning =
+        false;
+
+    scanUsed =
+        0;
+
+    scanLimit =
+        3;
+
+    scanRemaining =
+        3;
 
     updateScanUI();
 }
@@ -785,7 +831,8 @@ function updateUserUI(user) {
         return;
     }
 
-    currentUser = user;
+    currentUser =
+        user;
 
     const emailElement =
         document.querySelector(
@@ -804,12 +851,15 @@ function updateUserUI(user) {
             "Kullanıcı";
     }
 
+    const plan =
+        normalizePlan(
+            user.plan
+        );
+
     if (planElement) {
 
         planElement.innerText =
-            normalizePlan(
-                user.plan
-            );
+            plan;
     }
 
     const adminButton =
@@ -826,9 +876,7 @@ function updateUserUI(user) {
     }
 
     updatePlanUI(
-        normalizePlan(
-            user.plan
-        )
+        plan
     );
 
     updateScanUI();
@@ -841,7 +889,7 @@ function updateUserUI(user) {
 
 function normalizePlan(plan) {
 
-    let value =
+    const value =
         String(
             plan || "FREE"
         )
@@ -860,10 +908,12 @@ function normalizePlan(plan) {
         value === "MAX PRO" ||
         value === "MAXPRO"
     ) {
+
         return "MAX PRO";
     }
 
     if (value === "PRO") {
+
         return "PRO";
     }
 
@@ -893,6 +943,47 @@ function getPlanLevel(plan) {
 
 
 // ============================================================
+// PLAN CONFIG - FRONTEND
+// ============================================================
+
+function getFrontendPlanConfig(plan) {
+
+    plan =
+        normalizePlan(plan);
+
+    if (plan === "MAX PRO") {
+
+        return {
+            name: "MAX PRO",
+            level: 3,
+            displayLimit: 300,
+            scanLimit: Infinity,
+            scanText: "SINIRSIZ"
+        };
+    }
+
+    if (plan === "PRO") {
+
+        return {
+            name: "PRO",
+            level: 2,
+            displayLimit: 100,
+            scanLimit: 30,
+            scanText: "30"
+        };
+    }
+
+    return {
+        name: "FREE",
+        level: 1,
+        displayLimit: 20,
+        scanLimit: 3,
+        scanText: "3"
+    };
+}
+
+
+// ============================================================
 // PLAN API
 // ============================================================
 
@@ -914,16 +1005,16 @@ async function loadPlan() {
                 data.plan ||
                 data.name ||
                 data.current_plan ||
-                currentUser?.plan
+                currentUser?.plan ||
+                "FREE"
             );
 
         currentPlanData =
             data;
 
-        /*
-         * SCAN BİLGİLERİ
-         */
-        updateScanData(data);
+        updateScanData(
+            data
+        );
 
         if (currentUser) {
 
@@ -974,13 +1065,6 @@ async function loadPlan() {
                 "FREE"
             );
 
-        if (savedUser) {
-
-            updateScanData(
-                savedUser
-            );
-        }
-
         updatePlanUI(
             currentPlan
         );
@@ -1007,23 +1091,90 @@ function updateScanData(data) {
             currentPlan
         );
 
-    /*
-     * PRO / MAX PRO
-     * sınırsız
-     */
-    if (
-        plan === "PRO" ||
-        plan === "MAX PRO"
-    ) {
+    currentPlan =
+        plan;
 
-        scanLimit = Infinity;
+    /*
+     * MAX PRO
+     */
+    if (plan === "MAX PRO") {
+
+        scanLimit =
+            Infinity;
+
         scanUsed =
             Number(
                 data.scans_used ??
                 0
             );
 
-        scanRemaining = Infinity;
+        scanRemaining =
+            Infinity;
+
+        updateScanUI();
+
+        return;
+    }
+
+    /*
+     * PRO
+     *
+     * Backend:
+     * scan_limit = 30
+     */
+    if (plan === "PRO") {
+
+        scanLimit =
+            Number(
+                data.scan_limit ??
+                30
+            );
+
+        if (
+            !Number.isFinite(scanLimit) ||
+            scanLimit < 0
+        ) {
+
+            scanLimit =
+                30;
+        }
+
+        scanUsed =
+            Number(
+                data.scans_used ??
+                data.scan_count ??
+                0
+            );
+
+        if (
+            !Number.isFinite(scanUsed) ||
+            scanUsed < 0
+        ) {
+
+            scanUsed =
+                0;
+        }
+
+        scanRemaining =
+            data.scans_remaining !== undefined
+                ? Number(
+                    data.scans_remaining
+                )
+                : Math.max(
+                    0,
+                    scanLimit - scanUsed
+                );
+
+        if (
+            !Number.isFinite(scanRemaining)
+        ) {
+
+            scanRemaining =
+                Math.max(
+                    0,
+                    scanLimit - scanUsed
+                );
+        }
 
         updateScanUI();
 
@@ -1045,7 +1196,8 @@ function updateScanData(data) {
         scanLimit < 0
     ) {
 
-        scanLimit = 3;
+        scanLimit =
+            3;
     }
 
     scanUsed =
@@ -1060,7 +1212,8 @@ function updateScanData(data) {
         scanUsed < 0
     ) {
 
-        scanUsed = 0;
+        scanUsed =
+            0;
     }
 
     scanRemaining =
@@ -1099,9 +1252,6 @@ function updateScanUI() {
             currentPlan
         );
 
-    /*
-     * Olası HTML ID'leri
-     */
     const remainingElements = [
         $("scanRemaining"),
         $("scansRemaining"),
@@ -1127,15 +1277,13 @@ function updateScanUI() {
         $("runAnalysisButton");
 
     /*
-     * PRO / MAX PRO
+     * MAX PRO
      */
-    if (
-        plan === "PRO" ||
-        plan === "MAX PRO"
-    ) {
+    if (plan === "MAX PRO") {
 
         remainingElements.forEach(
             element => {
+
                 element.innerText =
                     "SINIRSIZ";
             }
@@ -1143,6 +1291,7 @@ function updateScanUI() {
 
         usedElements.forEach(
             element => {
+
                 element.innerText =
                     formatInteger(
                         scanUsed
@@ -1152,6 +1301,7 @@ function updateScanUI() {
 
         limitElements.forEach(
             element => {
+
                 element.innerText =
                     "SINIRSIZ";
             }
@@ -1170,6 +1320,76 @@ function updateScanUI() {
                 scanRunning
                     ? "ANALİZ ÇALIŞIYOR..."
                     : "ANALİZİ BAŞLAT";
+        }
+
+        return;
+    }
+
+    /*
+     * PRO
+     */
+    if (plan === "PRO") {
+
+        remainingElements.forEach(
+            element => {
+
+                element.innerText =
+                    formatInteger(
+                        Math.max(
+                            0,
+                            scanRemaining
+                        )
+                    );
+            }
+        );
+
+        usedElements.forEach(
+            element => {
+
+                element.innerText =
+                    formatInteger(
+                        scanUsed
+                    );
+            }
+        );
+
+        limitElements.forEach(
+            element => {
+
+                element.innerText =
+                    "30";
+            }
+        );
+
+        if (scanButton) {
+
+            const noScanLeft =
+                scanRemaining <= 0;
+
+            scanButton.disabled =
+                scanRunning ||
+                noScanLeft;
+
+            scanButton.classList.toggle(
+                "scan-limit-reached",
+                noScanLeft
+            );
+
+            if (scanRunning) {
+
+                scanButton.innerText =
+                    "ANALİZ ÇALIŞIYOR...";
+
+            } else if (noScanLeft) {
+
+                scanButton.innerText =
+                    "TARAMA HAKKI BİTTİ";
+
+            } else {
+
+                scanButton.innerText =
+                    `ANALİZİ BAŞLAT (${scanRemaining} HAK)`;
+            }
         }
 
         return;
@@ -1277,32 +1497,38 @@ async function runAnalysis() {
             currentPlan
         );
 
-    /*
-     * FREE hak kontrolü
-     */
     if (
-        plan === "FREE" &&
+        plan !== "MAX PRO" &&
         scanRemaining <= 0
     ) {
 
         showMessage(
-            "FREE planındaki 3 tarama hakkınız bitti.",
+            `${plan} planındaki tarama hakkınız bitti.`,
             "error"
         );
+
+        if (plan === "FREE") {
+
+            openPlanModal(
+                "PRO",
+                "Daha fazla tarama"
+            );
+        }
 
         updateScanUI();
 
         return;
     }
 
-    scanRunning = true;
+    scanRunning =
+        true;
 
     updateScanUI();
 
     showMessage(
-        plan === "FREE"
-            ? `Analiz başlatılıyor... Kalan hak: ${Math.max(0, scanRemaining - 1)}`
-            : "Analiz başlatılıyor...",
+        plan === "MAX PRO"
+            ? "Analiz başlatılıyor..."
+            : `Analiz başlatılıyor... Kalan hak: ${Math.max(0, scanRemaining - 1)}`,
         "info"
     );
 
@@ -1329,9 +1555,6 @@ async function runAnalysis() {
             );
         }
 
-        /*
-         * Backend kalan hakkı döndürürse
-         */
         if (
             data.scans_used !== undefined ||
             data.scans_remaining !== undefined
@@ -1339,16 +1562,15 @@ async function runAnalysis() {
 
             updateScanData({
                 ...data,
-                plan: currentPlan
+                plan:
+                    data.plan ||
+                    currentPlan
             });
+
         } else if (
-            plan === "FREE"
+            plan !== "MAX PRO"
         ) {
 
-            /*
-             * Backend eski sürümse
-             * frontend görünümünü de güncelle.
-             */
             scanUsed += 1;
 
             scanRemaining =
@@ -1366,9 +1588,6 @@ async function runAnalysis() {
             "success"
         );
 
-        /*
-         * Durumu takip et
-         */
         await monitorRunStatus();
 
     } catch (error) {
@@ -1378,12 +1597,7 @@ async function runAnalysis() {
             error
         );
 
-        /*
-         * 403 = FREE hakkı bitti
-         */
-        if (
-            error.status === 403
-        ) {
+        if (error.status === 403) {
 
             const message =
                 error.data?.detail ||
@@ -1395,17 +1609,26 @@ async function runAnalysis() {
                 "error"
             );
 
-            /*
-             * Backend gerçek sayıyı döndürmüşse
-             */
             if (
                 error.data?.scans_remaining !== undefined
             ) {
 
                 updateScanData({
                     ...error.data,
-                    plan: currentPlan
+                    plan:
+                        currentPlan
                 });
+            }
+
+            if (
+                normalizePlan(currentPlan) ===
+                "FREE"
+            ) {
+
+                openPlanModal(
+                    "PRO",
+                    "Daha fazla tarama"
+                );
             }
 
         } else {
@@ -1419,14 +1642,11 @@ async function runAnalysis() {
 
     } finally {
 
-        scanRunning = false;
+        scanRunning =
+            false;
 
         updateScanUI();
 
-        /*
-         * Analiz tamamlandıysa
-         * yeni verileri getir.
-         */
         setTimeout(
             () => {
                 refreshData();
@@ -1467,8 +1687,11 @@ async function getRunStatus() {
 
 async function monitorRunStatus() {
 
-    const maxChecks = 360;
-    let checks = 0;
+    const maxChecks =
+        360;
+
+    let checks =
+        0;
 
     while (
         checks < maxChecks
@@ -1494,9 +1717,6 @@ async function monitorRunStatus() {
 
         if (!running) {
 
-            /*
-             * Backend scan bilgisi
-             */
             if (
                 data.scans_used !== undefined ||
                 data.scans_remaining !== undefined
@@ -1510,18 +1730,11 @@ async function monitorRunStatus() {
                 });
             }
 
-            /*
-             * Analiz bittikten sonra
-             * dashboard yenile.
-             */
             await refreshData();
 
             return data;
         }
 
-        /*
-         * Durum yazısı
-         */
         const statusElements =
             document.querySelectorAll(
                 ".status-value"
@@ -1597,6 +1810,35 @@ function updatePlanUI(plan) {
             plan;
     }
 
+    /*
+     * PLAN BAR
+     */
+    const planInfoBar =
+        $("planInfoBar");
+
+    if (planInfoBar) {
+
+        planInfoBar.style.display =
+            "flex";
+    }
+
+    /*
+     * PLAN SECTION
+     */
+    const plansSection =
+        document.querySelector(
+            ".plans-section"
+        );
+
+    if (plansSection) {
+
+        plansSection.style.display =
+            "block";
+    }
+
+    /*
+     * BUTTONS
+     */
     const freeButton =
         $("freePlanButton");
 
@@ -1630,6 +1872,9 @@ function updatePlanUI(plan) {
                 : "MAX PRO'YA GEÇ";
     }
 
+    /*
+     * UPGRADE BAR
+     */
     const upgrade =
         $("upgradePlanButton");
 
@@ -1643,6 +1888,9 @@ function updatePlanUI(plan) {
             upgrade.style.display =
                 "inline-block";
 
+            upgrade.onclick =
+                () => selectPlan("PRO");
+
         } else if (plan === "PRO") {
 
             upgrade.innerText =
@@ -1651,6 +1899,9 @@ function updatePlanUI(plan) {
             upgrade.style.display =
                 "inline-block";
 
+            upgrade.onclick =
+                () => selectPlan("MAX PRO");
+
         } else {
 
             upgrade.style.display =
@@ -1658,23 +1909,28 @@ function updatePlanUI(plan) {
         }
     }
 
+    /*
+     * PLAN CARDS
+     */
     const cards = [
         $("planCardFree"),
         $("planCardPro"),
         $("planCardMaxPro")
     ];
 
-    cards.forEach(card => {
+    cards.forEach(
+        card => {
 
-        if (!card) {
-            return;
+            if (!card) {
+                return;
+            }
+
+            card.classList.remove(
+                "active-plan",
+                "active"
+            );
         }
-
-        card.classList.remove(
-            "active-plan",
-            "active"
-        );
-    });
+    );
 
     if (
         plan === "FREE" &&
@@ -1707,6 +1963,7 @@ function updatePlanUI(plan) {
     }
 
     updateLockedFeatures();
+
     updateScanUI();
 }
 
@@ -1727,56 +1984,82 @@ function updateLockedFeatures() {
             currentPlan
         );
 
-    elements.forEach(element => {
+    elements.forEach(
+        element => {
 
-        const requiredPlan =
-            normalizePlan(
-                element.dataset.requiredPlan
-            );
+            const requiredPlan =
+                normalizePlan(
+                    element.dataset.requiredPlan
+                );
 
-        const requiredLevel =
-            getPlanLevel(
-                requiredPlan
-            );
+            const requiredLevel =
+                getPlanLevel(
+                    requiredPlan
+                );
 
-        const allowed =
-            userLevel >= requiredLevel;
-
-        if (allowed) {
-
-            element.classList.remove(
-                "locked",
-                "locked-feature"
-            );
-
-        } else {
-
-            element.classList.add(
-                "locked",
-                "locked-feature"
-            );
-        }
-
-        const value =
-            element.querySelector(
-                ".card-value"
-            );
-
-        if (value) {
+            const allowed =
+                userLevel >=
+                requiredLevel;
 
             if (allowed) {
 
-                value.innerText =
-                    "AKTİF";
+                element.classList.remove(
+                    "locked"
+                );
+
+                /*
+                 * locked-feature sınıfını
+                 * kartın yapısını bozmamak için
+                 * tamamen kaldırmıyoruz.
+                 */
+                if (
+                    element.dataset.originalLocked ===
+                    "true"
+                ) {
+
+                    element.classList.remove(
+                        "locked-feature"
+                    );
+                }
 
             } else {
 
+                element.classList.add(
+                    "locked",
+                    "locked-feature"
+                );
+
+                element.dataset.originalLocked =
+                    "true";
+            }
+
+            const value =
+                element.querySelector(
+                    ".card-value"
+                );
+
+            if (value) {
+
                 value.innerText =
-                    "🔒 " +
-                    requiredPlan;
+                    allowed
+                        ? "AKTİF"
+                        : "🔒 " + requiredPlan;
+            }
+
+            const lock =
+                element.querySelector(
+                    ".feature-lock"
+                );
+
+            if (lock) {
+
+                lock.innerText =
+                    allowed
+                        ? "✓"
+                        : "🔒";
             }
         }
-    });
+    );
 }
 
 
@@ -1788,6 +2071,11 @@ function requirePlan(
     requiredPlan,
     featureName = "Bu özellik"
 ) {
+
+    requiredPlan =
+        normalizePlan(
+            requiredPlan
+        );
 
     const userLevel =
         getPlanLevel(
@@ -1866,7 +2154,11 @@ function openPlanModal(
         $("planModalIcon");
 
     if (icon) {
-        icon.innerText = "✦";
+
+        icon.innerText =
+            requiredPlan === "MAX PRO"
+                ? "∞"
+                : "✦";
     }
 
     if (title) {
@@ -1880,13 +2172,8 @@ function openPlanModal(
 
         description.innerText =
             featureName
-                ? featureName +
-                  " özelliği " +
-                  requiredPlan +
-                  " planında kullanılabilir."
-                : "Bu özellik " +
-                  requiredPlan +
-                  " planına dahildir.";
+                ? `${featureName} özelliği ${requiredPlan} planında kullanılabilir.`
+                : `Bu özellik ${requiredPlan} planına dahildir.`;
     }
 
     if (features) {
@@ -1918,6 +2205,10 @@ function openPlanModal(
                     ✓ Paper Trading
                 </div>
 
+                <div class="plan-modal-feature">
+                    ✓ Tam terminal erişimi
+                </div>
+
             `;
 
         } else {
@@ -1926,6 +2217,10 @@ function openPlanModal(
 
                 <div class="plan-modal-feature">
                     ✓ 100 AI sinyali
+                </div>
+
+                <div class="plan-modal-feature">
+                    ✓ 30 tarama hakkı
                 </div>
 
                 <div class="plan-modal-feature">
@@ -1947,8 +2242,7 @@ function openPlanModal(
     if (upgrade) {
 
         upgrade.innerText =
-            requiredPlan ===
-            "MAX PRO"
+            requiredPlan === "MAX PRO"
                 ? "MAX PRO'YA GEÇ"
                 : "PRO'YA GEÇ";
 
@@ -1976,6 +2270,7 @@ function closePlanModal(event) {
         event.target.id !==
         "planModal"
     ) {
+
         return;
     }
 
@@ -2031,7 +2326,9 @@ function selectPlan(plan) {
         );
 
     const selectedLevel =
-        getPlanLevel(plan);
+        getPlanLevel(
+            plan
+        );
 
     if (
         selectedLevel <=
@@ -2048,6 +2345,12 @@ function selectPlan(plan) {
         return;
     }
 
+    /*
+     * Henüz ödeme sistemi bağlı değil.
+     *
+     * Gerçek satın alma butonu yerine
+     * güvenli şekilde plan modalını açıyoruz.
+     */
     openPlanModal(
         plan,
         plan + " planı"
@@ -2179,6 +2482,7 @@ function formatChange(value) {
     if (
         Math.abs(number) <= 1
     ) {
+
         number *= 100;
     }
 
@@ -2243,6 +2547,7 @@ function formatScore(value) {
     if (
         Math.abs(number) <= 1
     ) {
+
         number *= 100;
     }
 
@@ -2275,6 +2580,7 @@ function getScorePercent(value) {
     if (
         Math.abs(number) <= 1
     ) {
+
         number *= 100;
     }
 
@@ -2299,10 +2605,9 @@ async function loadStatus() {
             return;
         }
 
-        /*
-         * SCAN BİLGİLERİ
-         */
-        updateScanData(data);
+        updateScanData(
+            data
+        );
 
         const statusElements =
             document.querySelectorAll(
@@ -2362,59 +2667,13 @@ async function loadStatus() {
             )
         );
 
-        const cards =
-            document.querySelectorAll(
-                ".card-value"
-            );
-
-        const values = [
-            data.historical_buy ??
-            data.current_buy ??
-            0,
-
-            data.historical_sell ??
-            data.current_sell ??
-            0,
-
-            data.historical_hold ??
-            data.current_hold ??
-            0,
-
-            data.top ?? 0,
-
-            data.historical_total ??
-            data.current_total ??
-            0
-        ];
-
-        cards.forEach(
-            (card, index) => {
-
-                if (
-                    index < values.length
-                ) {
-
-                    if (
-                        card.closest(
-                            ".kpi-card"
-                        )
-                    ) {
-
-                        card.innerText =
-                            formatInteger(
-                                values[index]
-                            );
-                    }
-                }
-            }
-        );
-
         const live =
             document.querySelector(
                 ".live-indicator"
             );
 
         if (live) {
+
             live.innerText =
                 "● LIVE";
         }
@@ -2457,10 +2716,9 @@ async function loadSignals() {
             );
         }
 
-        /*
-         * SCAN BİLGİSİ
-         */
-        updateScanData(data);
+        updateScanData(
+            data
+        );
 
         allSignals =
             Array.isArray(
@@ -2493,14 +2751,14 @@ async function loadSignals() {
                         colspan="6"
                         class="empty"
                     >
-                        ${getToken()
-                            ? "SİNYALLER YÜKLENEMEDİ"
-                            : "OTURUM GEREKLİ"}
-
+                        ${
+                            getToken()
+                                ? "SİNYALLER YÜKLENEMEDİ"
+                                : "OTURUM GEREKLİ"
+                        }
                     </td>
 
                 </tr>
-
             `;
         }
     }
@@ -2522,7 +2780,8 @@ function renderSignals(
         return;
     }
 
-    tbody.innerHTML = "";
+    tbody.innerHTML =
+        "";
 
     if (
         !Array.isArray(signals) ||
@@ -2541,7 +2800,6 @@ function renderSignals(
                 </td>
 
             </tr>
-
         `;
 
         updateSignalFooter([]);
@@ -2616,21 +2874,24 @@ function renderSignals(
                     0
                 );
 
-            let signalClass = "hold";
+            let signalClass =
+                "hold";
 
             if (
                 signal === "BUY" ||
                 signal === "AL"
             ) {
 
-                signalClass = "buy";
+                signalClass =
+                    "buy";
 
             } else if (
                 signal === "SELL" ||
                 signal === "SAT"
             ) {
 
-                signalClass = "sell";
+                signalClass =
+                    "sell";
             }
 
             const strongBuy =
@@ -2665,7 +2926,9 @@ function renderSignals(
             }
 
             const changeCls =
-                changeClass(change);
+                changeClass(
+                    change
+                );
 
             const scoreWidth =
                 Math.max(
@@ -2694,18 +2957,21 @@ function renderSignals(
                 signal;
 
             if (strongBuy) {
+
                 row.classList.add(
                     "strong-buy"
                 );
             }
 
             if (mediumBuy) {
+
                 row.classList.add(
                     "medium-buy"
                 );
             }
 
             if (weakBuy) {
+
                 row.classList.add(
                     "weak-buy"
                 );
@@ -2757,10 +3023,11 @@ function renderSignals(
                 <td class="${changeCls}">
                     ${formatChange(change)}
                 </td>
-
             `;
 
-            tbody.appendChild(row);
+            tbody.appendChild(
+                row
+            );
         }
     );
 
@@ -2836,7 +3103,6 @@ function updateSignalFooter(
         <span class="sell">
             SELL ${sellCount}
         </span>
-
     `;
 }
 
@@ -2938,9 +3204,6 @@ async function refreshData() {
 
     try {
 
-        /*
-         * Üç API isteğini paralel çalıştır.
-         */
         await Promise.allSettled(
             [
                 loadPlan(),
@@ -2949,7 +3212,12 @@ async function refreshData() {
             ]
         );
 
+        updatePlanUI(
+            currentPlan
+        );
+
         updateLockedFeatures();
+
         updateScanUI();
 
     } catch (error) {
@@ -2975,7 +3243,9 @@ function setText(
         $(id);
 
     if (element) {
-        element.innerText = value;
+
+        element.innerText =
+            value;
     }
 }
 
@@ -2990,6 +3260,7 @@ function escapeHtml(value) {
         value === null ||
         value === undefined
     ) {
+
         return "";
     }
 
@@ -3150,7 +3421,7 @@ function setupKeyboard() {
     );
 
     /*
-     * "/" = SEARCH
+     * "/" SEARCH
      */
     document.addEventListener(
         "keydown",
@@ -3168,6 +3439,7 @@ function setupKeyboard() {
                     $("searchInput");
 
                 if (search) {
+
                     search.focus();
                 }
             }
@@ -3175,7 +3447,7 @@ function setupKeyboard() {
     );
 
     /*
-     * SEARCH LISTENER
+     * SEARCH
      */
     const search =
         $("searchInput");
@@ -3189,7 +3461,7 @@ function setupKeyboard() {
     }
 
     /*
-     * SCAN BUTONLARI
+     * SCAN BUTTONS
      */
     const scanButtons = [
         $("runScanButton"),
@@ -3227,14 +3499,8 @@ document.addEventListener(
 
         updateScanUI();
 
-        /*
-         * Session
-         */
         await checkSession();
 
-        /*
-         * 30 saniyede bir yenile.
-         */
         setInterval(
             () => {
 
@@ -3249,3 +3515,4 @@ document.addEventListener(
         );
     }
 );
+```
