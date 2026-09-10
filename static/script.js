@@ -1,8 +1,10 @@
+```javascript
 // ============================================================
 // LEVEL 1000 AI TERMINAL
 // SCRIPT.JS
 // AUTH + JWT + PLAN + DASHBOARD + SIGNALS
 // FREE / PRO / MAX PRO
+// CANLI FİYAT + GERÇEK GÜNLÜK DEĞİŞİM
 // ============================================================
 
 "use strict";
@@ -42,10 +44,16 @@ function getToken() {
 }
 
 function setToken(token) {
+
     if (token) {
-        localStorage.setItem(TOKEN_KEY, token);
+        localStorage.setItem(
+            TOKEN_KEY,
+            token
+        );
     } else {
-        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(
+            TOKEN_KEY
+        );
     }
 }
 
@@ -54,8 +62,13 @@ function setToken(token) {
 // ============================================================
 
 function getSavedUser() {
+
     try {
-        const raw = localStorage.getItem(USER_KEY);
+
+        const raw =
+            localStorage.getItem(
+                USER_KEY
+            );
 
         if (!raw) {
             return null;
@@ -64,14 +77,24 @@ function getSavedUser() {
         return JSON.parse(raw);
 
     } catch (error) {
-        console.error("USER STORAGE:", error);
+
+        console.error(
+            "USER STORAGE:",
+            error
+        );
+
         return null;
     }
 }
 
 function saveUser(user) {
+
     if (!user) {
-        localStorage.removeItem(USER_KEY);
+
+        localStorage.removeItem(
+            USER_KEY
+        );
+
         return;
     }
 
@@ -85,7 +108,10 @@ function saveUser(user) {
 // API
 // ============================================================
 
-async function apiFetch(url, options = {}) {
+async function apiFetch(
+    url,
+    options = {}
+) {
 
     const requestOptions = {
         ...options
@@ -98,25 +124,32 @@ async function apiFetch(url, options = {}) {
     const token = getToken();
 
     if (token) {
-        headers["Authorization"] = "Bearer " + token;
+
+        headers["Authorization"] =
+            "Bearer " + token;
     }
 
     if (
         requestOptions.body &&
         typeof requestOptions.body !== "string"
     ) {
-        headers["Content-Type"] = "application/json";
 
-        requestOptions.body = JSON.stringify(
-            requestOptions.body
-        );
+        headers["Content-Type"] =
+            "application/json";
+
+        requestOptions.body =
+            JSON.stringify(
+                requestOptions.body
+            );
     }
 
-    requestOptions.headers = headers;
+    requestOptions.headers =
+        headers;
 
     let response;
 
     try {
+
         response = await fetch(
             url,
             requestOptions
@@ -137,8 +170,12 @@ async function apiFetch(url, options = {}) {
     let data = null;
 
     try {
-        data = await response.json();
+
+        data =
+            await response.json();
+
     } catch {
+
         data = null;
     }
 
@@ -160,14 +197,17 @@ async function apiFetch(url, options = {}) {
 
     if (!response.ok) {
 
-        const error = new Error(
-            data?.detail ||
-            data?.error ||
-            data?.message ||
-            `API hatası: ${response.status}`
-        );
+        const error =
+            new Error(
+                data?.detail ||
+                data?.error ||
+                data?.message ||
+                `API hatası: ${response.status}`
+            );
 
-        error.status = response.status;
+        error.status =
+            response.status;
+
         error.data = data;
 
         throw error;
@@ -182,8 +222,11 @@ async function apiFetch(url, options = {}) {
 
 function showAuthScreen() {
 
-    const auth = $("authScreen");
-    const app = $("appScreen");
+    const auth =
+        $("authScreen");
+
+    const app =
+        $("appScreen");
 
     if (auth) {
         auth.style.display = "flex";
@@ -196,8 +239,11 @@ function showAuthScreen() {
 
 function showAppScreen() {
 
-    const auth = $("authScreen");
-    const app = $("appScreen");
+    const auth =
+        $("authScreen");
+
+    const app =
+        $("appScreen");
 
     if (auth) {
         auth.style.display = "none";
@@ -214,8 +260,11 @@ function showAppScreen() {
 
 function showLogin() {
 
-    const login = $("loginBox");
-    const register = $("registerBox");
+    const login =
+        $("loginBox");
+
+    const register =
+        $("registerBox");
 
     if (login) {
         login.style.display = "block";
@@ -230,8 +279,11 @@ function showLogin() {
 
 function showRegister() {
 
-    const login = $("loginBox");
-    const register = $("registerBox");
+    const login =
+        $("loginBox");
+
+    const register =
+        $("registerBox");
 
     if (login) {
         login.style.display = "none";
@@ -248,46 +300,74 @@ function showRegister() {
 // MESSAGES
 // ============================================================
 
-function showAuthMessage(text, type = "error") {
+function showAuthMessage(
+    text,
+    type = "error"
+) {
 
-    const box = $("authMessage");
+    const box =
+        $("authMessage");
 
     if (!box) {
         return;
     }
 
-    box.innerText = text;
-    box.style.display = "block";
-    box.className = "auth-message " + type;
+    box.innerText =
+        text;
+
+    box.style.display =
+        "block";
+
+    box.className =
+        "auth-message " + type;
 }
 
 function clearAuthMessage() {
 
-    const box = $("authMessage");
+    const box =
+        $("authMessage");
 
     if (!box) {
         return;
     }
 
-    box.innerText = "";
-    box.style.display = "none";
+    box.innerText =
+        "";
+
+    box.style.display =
+        "none";
 }
 
-function showMessage(text, type = "info") {
+function showMessage(
+    text,
+    type = "info"
+) {
 
-    const box = $("message");
+    const box =
+        $("message");
 
     if (!box) {
         return;
     }
 
-    box.innerText = text;
-    box.style.display = "block";
-    box.className = "message " + type;
+    box.innerText =
+        text;
 
-    setTimeout(() => {
-        box.style.display = "none";
-    }, 5000);
+    box.style.display =
+        "block";
+
+    box.className =
+        "message " + type;
+
+    setTimeout(
+        () => {
+
+            box.style.display =
+                "none";
+
+        },
+        5000
+    );
 }
 
 // ============================================================
@@ -298,56 +378,77 @@ async function loginUser() {
 
     clearAuthMessage();
 
-    const emailInput = $("loginEmail");
-    const passwordInput = $("loginPassword");
+    const emailInput =
+        $("loginEmail");
 
-    const email = emailInput
-        ? emailInput.value.trim().toLowerCase()
-        : "";
+    const passwordInput =
+        $("loginPassword");
 
-    const password = passwordInput
-        ? passwordInput.value
-        : "";
+    const email =
+        emailInput
+            ? emailInput.value
+                .trim()
+                .toLowerCase()
+            : "";
+
+    const password =
+        passwordInput
+            ? passwordInput.value
+            : "";
 
     if (!email) {
+
         showAuthMessage(
             "E-posta adresinizi girin."
         );
+
         return;
     }
 
     if (!password) {
+
         showAuthMessage(
             "Şifrenizi girin."
         );
+
         return;
     }
 
-    const button = document.querySelector(
-        "#loginBox .auth-button"
-    );
+    const button =
+        document.querySelector(
+            "#loginBox .auth-button"
+        );
 
     if (button) {
-        button.disabled = true;
-        button.innerText = "GİRİŞ YAPILIYOR...";
+
+        button.disabled =
+            true;
+
+        button.innerText =
+            "GİRİŞ YAPILIYOR...";
     }
 
     try {
 
         setToken(null);
 
-        const data = await apiFetch(
-            "/api/login",
-            {
-                method: "POST",
-                body: {
-                    email: email,
-                    password: password
-                }
-            }
-        );
+        const data =
+            await apiFetch(
+                "/api/login",
+                {
+                    method: "POST",
 
-        if (!data || !data.ok) {
+                    body: {
+                        email: email,
+                        password: password
+                    }
+                }
+            );
+
+        if (
+            !data ||
+            !data.ok
+        ) {
 
             throw new Error(
                 data?.message ||
@@ -371,30 +472,39 @@ async function loginUser() {
 
         if (data.user) {
 
-            currentUser = data.user;
+            currentUser =
+                data.user;
 
-            saveUser(data.user);
+            saveUser(
+                data.user
+            );
 
         } else {
 
-            const me = await apiFetch(
-                "/api/me"
-            );
+            const me =
+                await apiFetch(
+                    "/api/me"
+                );
 
             if (
                 me?.ok &&
                 me?.user
             ) {
 
-                currentUser = me.user;
+                currentUser =
+                    me.user;
 
-                saveUser(me.user);
+                saveUser(
+                    me.user
+                );
             }
         }
 
         showAppScreen();
 
-        updateUserUI(currentUser);
+        updateUserUI(
+            currentUser
+        );
 
         await refreshData();
 
@@ -420,8 +530,12 @@ async function loginUser() {
     } finally {
 
         if (button) {
-            button.disabled = false;
-            button.innerText = "GİRİŞ YAP";
+
+            button.disabled =
+                false;
+
+            button.innerText =
+                "GİRİŞ YAP";
         }
     }
 }
@@ -434,25 +548,36 @@ async function registerUser() {
 
     clearAuthMessage();
 
-    const emailInput = $("registerEmail");
-    const passwordInput = $("registerPassword");
-    const password2Input = $("registerPassword2");
+    const emailInput =
+        $("registerEmail");
 
-    const email = emailInput
-        ? emailInput.value.trim().toLowerCase()
-        : "";
+    const passwordInput =
+        $("registerPassword");
 
-    const password = passwordInput
-        ? passwordInput.value
-        : "";
+    const password2Input =
+        $("registerPassword2");
 
-    const password2 = password2Input
-        ? password2Input.value
-        : "";
+    const email =
+        emailInput
+            ? emailInput.value
+                .trim()
+                .toLowerCase()
+            : "";
 
-    const name = email
-        ? email.split("@")[0]
-        : "";
+    const password =
+        passwordInput
+            ? passwordInput.value
+            : "";
+
+    const password2 =
+        password2Input
+            ? password2Input.value
+            : "";
+
+    const name =
+        email
+            ? email.split("@")[0]
+            : "";
 
     if (!email) {
 
@@ -481,33 +606,42 @@ async function registerUser() {
         return;
     }
 
-    const button = document.querySelector(
-        "#registerBox .auth-button"
-    );
+    const button =
+        document.querySelector(
+            "#registerBox .auth-button"
+        );
 
     if (button) {
 
-        button.disabled = true;
-        button.innerText = "HESAP OLUŞTURULUYOR...";
+        button.disabled =
+            true;
+
+        button.innerText =
+            "HESAP OLUŞTURULUYOR...";
     }
 
     try {
 
         setToken(null);
 
-        const data = await apiFetch(
-            "/api/register",
-            {
-                method: "POST",
-                body: {
-                    name: name,
-                    email: email,
-                    password: password
-                }
-            }
-        );
+        const data =
+            await apiFetch(
+                "/api/register",
+                {
+                    method: "POST",
 
-        if (!data || !data.ok) {
+                    body: {
+                        name: name,
+                        email: email,
+                        password: password
+                    }
+                }
+            );
+
+        if (
+            !data ||
+            !data.ok
+        ) {
 
             throw new Error(
                 data?.message ||
@@ -531,30 +665,39 @@ async function registerUser() {
 
         if (data.user) {
 
-            currentUser = data.user;
+            currentUser =
+                data.user;
 
-            saveUser(data.user);
+            saveUser(
+                data.user
+            );
 
         } else {
 
-            const me = await apiFetch(
-                "/api/me"
-            );
+            const me =
+                await apiFetch(
+                    "/api/me"
+                );
 
             if (
                 me?.ok &&
                 me?.user
             ) {
 
-                currentUser = me.user;
+                currentUser =
+                    me.user;
 
-                saveUser(me.user);
+                saveUser(
+                    me.user
+                );
             }
         }
 
         showAppScreen();
 
-        updateUserUI(currentUser);
+        updateUserUI(
+            currentUser
+        );
 
         await refreshData();
 
@@ -581,8 +724,11 @@ async function registerUser() {
 
         if (button) {
 
-            button.disabled = false;
-            button.innerText = "HESAP OLUŞTUR";
+            button.disabled =
+                false;
+
+            button.innerText =
+                "HESAP OLUŞTUR";
         }
     }
 }
@@ -593,7 +739,8 @@ async function registerUser() {
 
 async function logoutUser() {
 
-    const token = getToken();
+    const token =
+        getToken();
 
     try {
 
@@ -603,6 +750,7 @@ async function logoutUser() {
                 "/api/logout",
                 {
                     method: "POST",
+
                     headers: {
                         "Authorization":
                             "Bearer " + token
@@ -623,6 +771,7 @@ async function logoutUser() {
         clearSession();
 
         showAuthScreen();
+
         showLogin();
     }
 }
@@ -633,18 +782,35 @@ async function logoutUser() {
 
 function clearSession() {
 
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(
+        TOKEN_KEY
+    );
+
+    localStorage.removeItem(
+        USER_KEY
+    );
 
     allSignals = [];
-    currentUser = null;
-    currentPlan = "FREE";
-    currentPlanData = null;
 
-    scanRunning = false;
-    scanUsed = 0;
-    scanLimit = 3;
-    scanRemaining = 3;
+    currentUser = null;
+
+    currentPlan =
+        "FREE";
+
+    currentPlanData =
+        null;
+
+    scanRunning =
+        false;
+
+    scanUsed =
+        0;
+
+    scanLimit =
+        3;
+
+    scanRemaining =
+        3;
 
     updateScanUI();
 }
@@ -653,39 +819,49 @@ function clearSession() {
 // USER UI
 // ============================================================
 
-function updateUserUI(user) {
+function updateUserUI(
+    user
+) {
 
     if (!user) {
         return;
     }
 
-    currentUser = user;
+    currentUser =
+        user;
 
-    const emailElement = document.querySelector(
-        ".user-email"
-    );
+    const emailElement =
+        document.querySelector(
+            ".user-email"
+        );
 
-    const planElement = document.querySelector(
-        ".user-plan"
-    );
+    const planElement =
+        document.querySelector(
+            ".user-plan"
+        );
 
     if (emailElement) {
 
         emailElement.innerText =
-            user.email || "Kullanıcı";
+            user.email ||
+            "Kullanıcı";
     }
 
-    const plan = normalizePlan(
-        user.plan
-    );
+    const plan =
+        normalizePlan(
+            user.plan
+        );
 
     if (planElement) {
-        planElement.innerText = plan;
+
+        planElement.innerText =
+            plan;
     }
 
-    const adminButton = document.querySelector(
-        ".admin-button"
-    );
+    const adminButton =
+        document.querySelector(
+            ".admin-button"
+        );
 
     if (adminButton) {
 
@@ -695,7 +871,10 @@ function updateUserUI(user) {
                 : "none";
     }
 
-    updatePlanUI(plan);
+    updatePlanUI(
+        plan
+    );
+
     updateScanUI();
 }
 
@@ -703,24 +882,37 @@ function updateUserUI(user) {
 // PLAN NORMALIZE
 // ============================================================
 
-function normalizePlan(plan) {
+function normalizePlan(
+    plan
+) {
 
-    const value = String(
-        plan || "FREE"
-    )
-        .trim()
-        .toUpperCase()
-        .replace(/[_-]+/g, " ")
-        .replace(/\s+/g, " ");
+    const value =
+        String(
+            plan || "FREE"
+        )
+            .trim()
+            .toUpperCase()
+            .replace(
+                /[_-]+/g,
+                " "
+            )
+            .replace(
+                /\s+/g,
+                " "
+            );
 
     if (
         value === "MAX PRO" ||
         value === "MAXPRO"
     ) {
+
         return "MAX PRO";
     }
 
-    if (value === "PRO") {
+    if (
+        value === "PRO"
+    ) {
+
         return "PRO";
     }
 
@@ -731,15 +923,24 @@ function normalizePlan(plan) {
 // PLAN LEVEL
 // ============================================================
 
-function getPlanLevel(plan) {
+function getPlanLevel(
+    plan
+) {
 
-    const value = normalizePlan(plan);
+    const value =
+        normalizePlan(
+            plan
+        );
 
-    if (value === "MAX PRO") {
+    if (
+        value === "MAX PRO"
+    ) {
         return 3;
     }
 
-    if (value === "PRO") {
+    if (
+        value === "PRO"
+    ) {
         return 2;
     }
 
@@ -750,11 +951,18 @@ function getPlanLevel(plan) {
 // PLAN CONFIG
 // ============================================================
 
-function getFrontendPlanConfig(plan) {
+function getFrontendPlanConfig(
+    plan
+) {
 
-    plan = normalizePlan(plan);
+    plan =
+        normalizePlan(
+            plan
+        );
 
-    if (plan === "MAX PRO") {
+    if (
+        plan === "MAX PRO"
+    ) {
 
         return {
             name: "MAX PRO",
@@ -765,7 +973,9 @@ function getFrontendPlanConfig(plan) {
         };
     }
 
-    if (plan === "PRO") {
+    if (
+        plan === "PRO"
+    ) {
 
         return {
             name: "PRO",
@@ -793,48 +1003,62 @@ async function loadPlan() {
 
     try {
 
-        const data = await apiFetch(
-            "/api/plan"
-        );
+        const data =
+            await apiFetch(
+                "/api/plan"
+            );
 
         if (!data) {
             return null;
         }
 
-        currentPlan = normalizePlan(
-            data.plan ||
-            data.name ||
-            data.current_plan ||
-            currentUser?.plan ||
-            "FREE"
+        currentPlan =
+            normalizePlan(
+                data.plan ||
+                data.name ||
+                data.current_plan ||
+                currentUser?.plan ||
+                "FREE"
+            );
+
+        currentPlanData =
+            data;
+
+        updateScanData(
+            data
         );
-
-        currentPlanData = data;
-
-        updateScanData(data);
 
         if (currentUser) {
 
-            currentUser.plan = currentPlan;
+            currentUser.plan =
+                currentPlan;
 
             if (
-                data.scans_used !== undefined
+                data.scans_used !==
+                undefined
             ) {
+
                 currentUser.scans_used =
                     data.scans_used;
             }
 
             if (
-                data.scans_remaining !== undefined
+                data.scans_remaining !==
+                undefined
             ) {
+
                 currentUser.scans_remaining =
                     data.scans_remaining;
             }
 
-            saveUser(currentUser);
+            saveUser(
+                currentUser
+            );
         }
 
-        updatePlanUI(currentPlan);
+        updatePlanUI(
+            currentPlan
+        );
 
         return data;
 
@@ -845,15 +1069,19 @@ async function loadPlan() {
             error.message
         );
 
-        const savedUser = getSavedUser();
+        const savedUser =
+            getSavedUser();
 
-        currentPlan = normalizePlan(
-            savedUser?.plan ||
-            currentUser?.plan ||
-            "FREE"
+        currentPlan =
+            normalizePlan(
+                savedUser?.plan ||
+                currentUser?.plan ||
+                "FREE"
+            );
+
+        updatePlanUI(
+            currentPlan
         );
-
-        updatePlanUI(currentPlan);
 
         return null;
     }
@@ -863,84 +1091,119 @@ async function loadPlan() {
 // UPDATE SCAN DATA
 // ============================================================
 
-function updateScanData(data) {
+function updateScanData(
+    data
+) {
 
     if (!data) {
         return;
     }
 
-    const plan = normalizePlan(
-        data.plan ||
-        data.current_plan ||
-        currentPlan
-    );
-
-    currentPlan = plan;
-
-    if (plan === "MAX PRO") {
-
-        scanLimit = Infinity;
-
-        scanUsed = Number(
-            data.scans_used ?? 0
+    const plan =
+        normalizePlan(
+            data.plan ||
+            data.current_plan ||
+            currentPlan
         );
 
-        scanRemaining = Infinity;
+    currentPlan =
+        plan;
+
+    if (
+        plan === "MAX PRO"
+    ) {
+
+        scanLimit =
+            Infinity;
+
+        scanUsed =
+            Number(
+                data.scans_used ??
+                data.scan_count ??
+                0
+            );
+
+        scanRemaining =
+            Infinity;
 
         updateScanUI();
 
         return;
     }
 
-    scanLimit = Number(
-        data.scan_limit ??
-        data.free_scan_limit ??
-        (plan === "PRO" ? 30 : 3)
-    );
+    scanLimit =
+        Number(
+            data.scan_limit ??
+            data.free_scan_limit ??
+            (
+                plan === "PRO"
+                    ? 30
+                    : 3
+            )
+        );
 
     if (
-        !Number.isFinite(scanLimit) ||
+        !Number.isFinite(
+            scanLimit
+        ) ||
         scanLimit < 0
     ) {
-        scanLimit = plan === "PRO" ? 30 : 3;
+
+        scanLimit =
+            plan === "PRO"
+                ? 30
+                : 3;
     }
 
-    scanUsed = Number(
-        data.scans_used ??
-        data.scan_count ??
-        0
-    );
+    scanUsed =
+        Number(
+            data.scans_used ??
+            data.scan_count ??
+            0
+        );
 
     if (
-        !Number.isFinite(scanUsed) ||
+        !Number.isFinite(
+            scanUsed
+        ) ||
         scanUsed < 0
     ) {
+
         scanUsed = 0;
     }
 
     if (
-        data.scans_remaining !== undefined
+        data.scans_remaining !==
+        undefined
     ) {
 
-        scanRemaining = Number(
-            data.scans_remaining
-        );
+        scanRemaining =
+            Number(
+                data.scans_remaining
+            );
 
     } else {
 
-        scanRemaining = Math.max(
-            0,
-            scanLimit - scanUsed
-        );
+        scanRemaining =
+            Math.max(
+                0,
+                scanLimit -
+                scanUsed
+            );
     }
 
     if (
-        !Number.isFinite(scanRemaining)
+        !Number.isFinite(
+            scanRemaining
+        )
     ) {
-        scanRemaining = Math.max(
-            0,
-            scanLimit - scanUsed
-        );
+
+        scanRemaining =
+            Math.max(
+                0,
+                scanLimit -
+                scanUsed
+            );
     }
 
     updateScanUI();
@@ -952,9 +1215,10 @@ function updateScanData(data) {
 
 function updateScanUI() {
 
-    const plan = normalizePlan(
-        currentPlan
-    );
+    const plan =
+        normalizePlan(
+            currentPlan
+        );
 
     const remainingElements = [
         $("scanRemaining"),
@@ -980,24 +1244,33 @@ function updateScanUI() {
         $("startScanButton") ||
         $("runAnalysisButton");
 
-    if (plan === "MAX PRO") {
+    if (
+        plan === "MAX PRO"
+    ) {
 
         remainingElements.forEach(
             element => {
-                element.innerText = "SINIRSIZ";
+
+                element.innerText =
+                    "SINIRSIZ";
             }
         );
 
         usedElements.forEach(
             element => {
+
                 element.innerText =
-                    formatInteger(scanUsed);
+                    formatInteger(
+                        scanUsed
+                    );
             }
         );
 
         limitElements.forEach(
             element => {
-                element.innerText = "SINIRSIZ";
+
+                element.innerText =
+                    "SINIRSIZ";
             }
         );
 
@@ -1036,7 +1309,9 @@ function updateScanUI() {
         element => {
 
             element.innerText =
-                formatInteger(scanUsed);
+                formatInteger(
+                    scanUsed
+                );
         }
     );
 
@@ -1044,7 +1319,9 @@ function updateScanUI() {
         element => {
 
             element.innerText =
-                formatInteger(scanLimit);
+                formatInteger(
+                    scanLimit
+                );
         }
     );
 
@@ -1075,9 +1352,7 @@ function updateScanUI() {
         } else {
 
             scanButton.innerText =
-                plan === "PRO"
-                    ? `ANALİZİ BAŞLAT (${scanRemaining} HAK)`
-                    : `ANALİZİ BAŞLAT (${scanRemaining} HAK)`;
+                `ANALİZİ BAŞLAT (${scanRemaining} HAK)`;
         }
     }
 }
@@ -1110,9 +1385,10 @@ async function runAnalysis() {
         return;
     }
 
-    const plan = normalizePlan(
-        currentPlan
-    );
+    const plan =
+        normalizePlan(
+            currentPlan
+        );
 
     if (
         plan !== "MAX PRO" &&
@@ -1124,7 +1400,9 @@ async function runAnalysis() {
             "error"
         );
 
-        if (plan === "FREE") {
+        if (
+            plan === "FREE"
+        ) {
 
             openPlanModal(
                 "PRO",
@@ -1137,7 +1415,8 @@ async function runAnalysis() {
         return;
     }
 
-    scanRunning = true;
+    scanRunning =
+        true;
 
     updateScanUI();
 
@@ -1150,12 +1429,13 @@ async function runAnalysis() {
 
     try {
 
-        const data = await apiFetch(
-            "/api/run",
-            {
-                method: "POST"
-            }
-        );
+        const data =
+            await apiFetch(
+                "/api/run",
+                {
+                    method: "POST"
+                }
+            );
 
         if (
             !data ||
@@ -1171,8 +1451,10 @@ async function runAnalysis() {
         }
 
         if (
-            data.scans_used !== undefined ||
-            data.scans_remaining !== undefined
+            data.scans_used !==
+            undefined ||
+            data.scans_remaining !==
+            undefined
         ) {
 
             updateScanData({
@@ -1188,10 +1470,12 @@ async function runAnalysis() {
 
             scanUsed += 1;
 
-            scanRemaining = Math.max(
-                0,
-                scanLimit - scanUsed
-            );
+            scanRemaining =
+                Math.max(
+                    0,
+                    scanLimit -
+                    scanUsed
+                );
 
             updateScanUI();
         }
@@ -1211,7 +1495,9 @@ async function runAnalysis() {
             error
         );
 
-        if (error.status === 403) {
+        if (
+            error.status === 403
+        ) {
 
             const message =
                 error.data?.detail ||
@@ -1224,7 +1510,8 @@ async function runAnalysis() {
             );
 
             if (
-                error.data?.scans_remaining !== undefined
+                error.data?.scans_remaining !==
+                undefined
             ) {
 
                 updateScanData({
@@ -1234,8 +1521,9 @@ async function runAnalysis() {
             }
 
             if (
-                normalizePlan(currentPlan) ===
-                "FREE"
+                normalizePlan(
+                    currentPlan
+                ) === "FREE"
             ) {
 
                 openPlanModal(
@@ -1255,7 +1543,8 @@ async function runAnalysis() {
 
     } finally {
 
-        scanRunning = false;
+        scanRunning =
+            false;
 
         updateScanUI();
 
@@ -1297,11 +1586,14 @@ async function getRunStatus() {
 
 async function monitorRunStatus() {
 
-    const maxChecks = 360;
+    const maxChecks =
+        360;
 
     let checks = 0;
 
-    while (checks < maxChecks) {
+    while (
+        checks < maxChecks
+    ) {
 
         checks++;
 
@@ -1318,14 +1610,17 @@ async function monitorRunStatus() {
         const running =
             Boolean(
                 data.running ??
-                data.status === "RUNNING"
+                data.status ===
+                "RUNNING"
             );
 
         if (!running) {
 
             if (
-                data.scans_used !== undefined ||
-                data.scans_remaining !== undefined
+                data.scans_used !==
+                undefined ||
+                data.scans_remaining !==
+                undefined
             ) {
 
                 updateScanData({
@@ -1381,16 +1676,23 @@ function sleep(ms) {
 // PLAN UI
 // ============================================================
 
-function updatePlanUI(plan) {
+function updatePlanUI(
+    plan
+) {
 
-    plan = normalizePlan(plan);
+    plan =
+        normalizePlan(
+            plan
+        );
 
-    currentPlan = plan;
+    currentPlan =
+        plan;
 
     if (
         document.documentElement &&
         document.documentElement.dataset
     ) {
+
         document.documentElement.dataset.plan =
             plan;
     }
@@ -1401,21 +1703,27 @@ function updatePlanUI(plan) {
         );
 
     if (planElement) {
-        planElement.innerText = plan;
+
+        planElement.innerText =
+            plan;
     }
 
     const currentPlanText =
         $("currentPlanText");
 
     if (currentPlanText) {
-        currentPlanText.innerText = plan;
+
+        currentPlanText.innerText =
+            plan;
     }
 
     const planInfoBar =
         $("planInfoBar");
 
     if (planInfoBar) {
-        planInfoBar.style.display = "flex";
+
+        planInfoBar.style.display =
+            "flex";
     }
 
     const plansSection =
@@ -1424,7 +1732,9 @@ function updatePlanUI(plan) {
         );
 
     if (plansSection) {
-        plansSection.style.display = "block";
+
+        plansSection.style.display =
+            "block";
     }
 
     const freeButton =
@@ -1465,7 +1775,9 @@ function updatePlanUI(plan) {
 
     if (upgrade) {
 
-        if (plan === "FREE") {
+        if (
+            plan === "FREE"
+        ) {
 
             upgrade.innerText =
                 "PRO'YA GEÇ";
@@ -1474,9 +1786,13 @@ function updatePlanUI(plan) {
                 "inline-block";
 
             upgrade.onclick =
-                () => selectPlan("PRO");
+                () => selectPlan(
+                    "PRO"
+                );
 
-        } else if (plan === "PRO") {
+        } else if (
+            plan === "PRO"
+        ) {
 
             upgrade.innerText =
                 "MAX PRO'YA GEÇ";
@@ -1485,11 +1801,14 @@ function updatePlanUI(plan) {
                 "inline-block";
 
             upgrade.onclick =
-                () => selectPlan("MAX PRO");
+                () => selectPlan(
+                    "MAX PRO"
+                );
 
         } else {
 
-            upgrade.style.display = "none";
+            upgrade.style.display =
+                "none";
         }
     }
 
@@ -1517,6 +1836,7 @@ function updatePlanUI(plan) {
         plan === "FREE" &&
         cards[0]
     ) {
+
         cards[0].classList.add(
             "active-plan"
         );
@@ -1526,6 +1846,7 @@ function updatePlanUI(plan) {
         plan === "PRO" &&
         cards[1]
     ) {
+
         cards[1].classList.add(
             "active-plan"
         );
@@ -1535,6 +1856,7 @@ function updatePlanUI(plan) {
         plan === "MAX PRO" &&
         cards[2]
     ) {
+
         cards[2].classList.add(
             "active-plan"
         );
@@ -1556,7 +1878,9 @@ function updateLockedFeatures() {
         );
 
     const userLevel =
-        getPlanLevel(currentPlan);
+        getPlanLevel(
+            currentPlan
+        );
 
     elements.forEach(
         element => {
@@ -1567,10 +1891,13 @@ function updateLockedFeatures() {
                 );
 
             const requiredLevel =
-                getPlanLevel(requiredPlan);
+                getPlanLevel(
+                    requiredPlan
+                );
 
             const allowed =
-                userLevel >= requiredLevel;
+                userLevel >=
+                requiredLevel;
 
             if (allowed) {
 
@@ -1579,7 +1906,8 @@ function updateLockedFeatures() {
                 );
 
                 if (
-                    element.dataset.originalLocked ===
+                    element.dataset
+                        .originalLocked ===
                     "true"
                 ) {
 
@@ -1638,20 +1966,28 @@ function requirePlan(
 ) {
 
     requiredPlan =
-        normalizePlan(requiredPlan);
+        normalizePlan(
+            requiredPlan
+        );
 
     const userLevel =
-        getPlanLevel(currentPlan);
+        getPlanLevel(
+            currentPlan
+        );
 
     const requiredLevel =
-        getPlanLevel(requiredPlan);
+        getPlanLevel(
+            requiredPlan
+        );
 
     if (
-        userLevel >= requiredLevel
+        userLevel >=
+        requiredLevel
     ) {
 
         showMessage(
-            featureName + " aktif.",
+            featureName +
+            " aktif.",
             "success"
         );
 
@@ -1676,7 +2012,9 @@ function openPlanModal(
 ) {
 
     requiredPlan =
-        normalizePlan(requiredPlan);
+        normalizePlan(
+            requiredPlan
+        );
 
     const modal =
         $("planModal");
@@ -1710,7 +2048,8 @@ function openPlanModal(
     if (icon) {
 
         icon.innerText =
-            requiredPlan === "MAX PRO"
+            requiredPlan ===
+            "MAX PRO"
                 ? "∞"
                 : "✦";
     }
@@ -1718,7 +2057,8 @@ function openPlanModal(
     if (title) {
 
         title.innerText =
-            requiredPlan + " ACCESS";
+            requiredPlan +
+            " ACCESS";
     }
 
     if (description) {
@@ -1732,7 +2072,8 @@ function openPlanModal(
     if (features) {
 
         if (
-            requiredPlan === "MAX PRO"
+            requiredPlan ===
+            "MAX PRO"
         ) {
 
             features.innerHTML = `
@@ -1790,7 +2131,8 @@ function openPlanModal(
     if (upgrade) {
 
         upgrade.innerText =
-            requiredPlan === "MAX PRO"
+            requiredPlan ===
+            "MAX PRO"
                 ? "MAX PRO'YA GEÇ"
                 : "PRO'YA GEÇ";
 
@@ -1798,7 +2140,8 @@ function openPlanModal(
             requiredPlan;
     }
 
-    modal.style.display = "flex";
+    modal.style.display =
+        "flex";
 
     document.body.style.overflow =
         "hidden";
@@ -1808,12 +2151,15 @@ function openPlanModal(
 // CLOSE MODAL
 // ============================================================
 
-function closePlanModal(event) {
+function closePlanModal(
+    event
+) {
 
     if (
         event &&
         event.target &&
-        event.target.id !== "planModal"
+        event.target.id !==
+        "planModal"
     ) {
         return;
     }
@@ -1822,10 +2168,13 @@ function closePlanModal(event) {
         $("planModal");
 
     if (modal) {
-        modal.style.display = "none";
+
+        modal.style.display =
+            "none";
     }
 
-    document.body.style.overflow = "";
+    document.body.style.overflow =
+        "";
 }
 
 // ============================================================
@@ -1845,25 +2194,37 @@ function upgradeFromModal() {
 
     closePlanModal();
 
-    selectPlan(target);
+    selectPlan(
+        target
+    );
 }
 
 // ============================================================
 // SELECT PLAN
 // ============================================================
 
-function selectPlan(plan) {
+function selectPlan(
+    plan
+) {
 
-    plan = normalizePlan(plan);
+    plan =
+        normalizePlan(
+            plan
+        );
 
     const currentLevel =
-        getPlanLevel(currentPlan);
+        getPlanLevel(
+            currentPlan
+        );
 
     const selectedLevel =
-        getPlanLevel(plan);
+        getPlanLevel(
+            plan
+        );
 
     if (
-        selectedLevel <= currentLevel
+        selectedLevel <=
+        currentLevel
     ) {
 
         showMessage(
@@ -1888,7 +2249,8 @@ function selectPlan(plan) {
 
 async function checkSession() {
 
-    const token = getToken();
+    const token =
+        getToken();
 
     if (!token) {
 
@@ -1900,7 +2262,9 @@ async function checkSession() {
     try {
 
         const data =
-            await apiFetch("/api/me");
+            await apiFetch(
+                "/api/me"
+            );
 
         if (
             data &&
@@ -1908,11 +2272,16 @@ async function checkSession() {
             data.user
         ) {
 
-            currentUser = data.user;
+            currentUser =
+                data.user;
 
-            saveUser(data.user);
+            saveUser(
+                data.user
+            );
 
-            updateUserUI(data.user);
+            updateUserUI(
+                data.user
+            );
 
             showAppScreen();
 
@@ -1945,30 +2314,45 @@ function formatNumber(
     decimals = 2
 ) {
 
-    const number = Number(value);
+    const number =
+        Number(value);
 
-    if (!Number.isFinite(number)) {
+    if (
+        !Number.isFinite(number)
+    ) {
+
         return "0";
     }
 
     return number.toLocaleString(
         "tr-TR",
         {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals
+            minimumFractionDigits:
+                decimals,
+
+            maximumFractionDigits:
+                decimals
         }
     );
 }
 
-function formatInteger(value) {
+function formatInteger(
+    value
+) {
 
-    const number = Number(value);
+    const number =
+        Number(value);
 
-    if (!Number.isFinite(number)) {
+    if (
+        !Number.isFinite(number)
+    ) {
+
         return "0";
     }
 
-    return Math.round(number).toLocaleString(
+    return Math.round(
+        number
+    ).toLocaleString(
         "tr-TR"
     );
 }
@@ -1976,21 +2360,40 @@ function formatInteger(value) {
 // ============================================================
 // CHANGE FORMAT
 // ============================================================
+// Backend artık günlük değişimi yüzde olarak gönderiyor.
+// Örn: 0.42 = +0.42%
+// 5.83 = +5.83%
+//
+// AI predicted_return BURADA KULLANILMAZ.
+// ============================================================
 
-function formatChange(value) {
+function formatChange(
+    value
+) {
 
-    let number = Number(value);
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
 
-    if (!Number.isFinite(number)) {
-        return "0,00%";
+        return "-";
     }
 
-    if (Math.abs(number) <= 1) {
-        number *= 100;
+    const number =
+        Number(value);
+
+    if (
+        !Number.isFinite(number)
+    ) {
+
+        return "-";
     }
 
     return (
-        number >= 0 ? "+" : ""
+        number >= 0
+            ? "+"
+            : ""
     ) +
     number.toLocaleString(
         "tr-TR",
@@ -2006,11 +2409,27 @@ function formatChange(value) {
 // PRICE FORMAT
 // ============================================================
 
-function formatPrice(value) {
+function formatPrice(
+    value
+) {
 
-    const number = Number(value);
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
 
-    if (!Number.isFinite(number)) {
+        return "-";
+    }
+
+    const number =
+        Number(value);
+
+    if (
+        !Number.isFinite(number) ||
+        number <= 0
+    ) {
+
         return "-";
     }
 
@@ -2027,15 +2446,24 @@ function formatPrice(value) {
 // SCORE FORMAT
 // ============================================================
 
-function formatScore(value) {
+function formatScore(
+    value
+) {
 
-    let number = Number(value);
+    let number =
+        Number(value);
 
-    if (!Number.isFinite(number)) {
+    if (
+        !Number.isFinite(number)
+    ) {
+
         return "0,00%";
     }
 
-    if (Math.abs(number) <= 1) {
+    if (
+        Math.abs(number) <= 1
+    ) {
+
         number *= 100;
     }
 
@@ -2052,15 +2480,24 @@ function formatScore(value) {
 // RAW SCORE
 // ============================================================
 
-function getScorePercent(value) {
+function getScorePercent(
+    value
+) {
 
-    let number = Number(value);
+    let number =
+        Number(value);
 
-    if (!Number.isFinite(number)) {
+    if (
+        !Number.isFinite(number)
+    ) {
+
         return 0;
     }
 
-    if (Math.abs(number) <= 1) {
+    if (
+        Math.abs(number) <= 1
+    ) {
+
         number *= 100;
     }
 
@@ -2076,13 +2513,20 @@ async function loadStatus() {
     try {
 
         const data =
-            await apiFetch("/api/status");
+            await apiFetch(
+                "/api/status"
+            );
 
-        if (!data || !data.ok) {
+        if (
+            !data ||
+            !data.ok
+        ) {
             return;
         }
 
-        updateScanData(data);
+        updateScanData(
+            data
+        );
 
         const statusElements =
             document.querySelectorAll(
@@ -2147,7 +2591,9 @@ async function loadStatus() {
             );
 
         if (live) {
-            live.innerText = "● LIVE";
+
+            live.innerText =
+                "● LIVE";
         }
 
     } catch (error) {
@@ -2168,7 +2614,9 @@ async function loadSignals() {
     try {
 
         const data =
-            await apiFetch("/api/signals");
+            await apiFetch(
+                "/api/signals"
+            );
 
         if (
             !data ||
@@ -2185,14 +2633,20 @@ async function loadSignals() {
             );
         }
 
-        updateScanData(data);
+        updateScanData(
+            data
+        );
 
         allSignals =
-            Array.isArray(data.signals)
+            Array.isArray(
+                data.signals
+            )
                 ? data.signals
                 : [];
 
-        renderSignals(allSignals);
+        renderSignals(
+            allSignals
+        );
 
     } catch (error) {
 
@@ -2239,7 +2693,8 @@ function renderSignals(
         return;
     }
 
-    tbody.innerHTML = "";
+    tbody.innerHTML =
+        "";
 
     if (
         !Array.isArray(signals) ||
@@ -2257,10 +2712,16 @@ function renderSignals(
             </tr>
         `;
 
-        updateSignalFooter([]);
+        updateSignalFooter(
+            []
+        );
 
         return;
     }
+
+    // ========================================================
+    // SCORE'A GÖRE SIRALA
+    // ========================================================
 
     const sortedSignals =
         [...signals].sort(
@@ -2282,12 +2743,22 @@ function renderSignals(
                         0
                     );
 
-                return scoreB - scoreA;
+                return (
+                    scoreB -
+                    scoreA
+                );
             }
         );
 
     sortedSignals.forEach(
-        (item, index) => {
+        (
+            item,
+            index
+        ) => {
+
+            // =================================================
+            // SYMBOL
+            // =================================================
 
             const symbol =
                 String(
@@ -2296,14 +2767,24 @@ function renderSignals(
                     item?.Ticker ??
                     item?.Symbol ??
                     "-"
-                ).toUpperCase();
+                )
+                    .toUpperCase();
+
+            // =================================================
+            // SIGNAL
+            // =================================================
 
             const signal =
                 String(
                     item?.signal ??
                     item?.Signal ??
                     "HOLD"
-                ).toUpperCase();
+                )
+                    .toUpperCase();
+
+            // =================================================
+            // SCORE
+            // =================================================
 
             const scorePercent =
                 getScorePercent(
@@ -2313,38 +2794,80 @@ function renderSignals(
                     0
                 );
 
+            // =================================================
+            // GERÇEK CANLI FİYAT
+            // =================================================
+            // SADECE backend'in "price" alanı.
+            // AI predicted_return KULLANILMAZ.
+            // =================================================
+
+            const priceRaw =
+                item?.price ??
+                item?.Price ??
+                null;
+
             const price =
-                Number(
-                    item?.price ??
-                    item?.Price ??
-                    0
-                );
+                priceRaw !== null &&
+                priceRaw !== undefined &&
+                priceRaw !== ""
+                    ? Number(
+                        priceRaw
+                    )
+                    : NaN;
+
+            // =================================================
+            // GERÇEK GÜNLÜK DEĞİŞİM
+            // =================================================
+            // ÖNCELİK:
+            // 1. daily_change_percent
+            // 2. change
+            //
+            // predicted_return KULLANILMAZ.
+            // AI tahmini günlük değişim değildir.
+            // =================================================
+
+            const changeRaw =
+                item?.daily_change_percent ??
+                item?.change ??
+                item?.Daily_Change_Percent ??
+                null;
 
             const change =
-                Number(
-                    item?.change ??
-                    item?.AI_Predicted_Return ??
-                    item?.predicted_return ??
-                    item?.Change ??
-                    0
-                );
+                changeRaw !== null &&
+                changeRaw !== undefined &&
+                changeRaw !== ""
+                    ? Number(
+                        changeRaw
+                    )
+                    : NaN;
 
-            let signalClass = "hold";
+            // =================================================
+            // SIGNAL CLASS
+            // =================================================
+
+            let signalClass =
+                "hold";
 
             if (
                 signal === "BUY" ||
                 signal === "AL"
             ) {
 
-                signalClass = "buy";
+                signalClass =
+                    "buy";
 
             } else if (
                 signal === "SELL" ||
                 signal === "SAT"
             ) {
 
-                signalClass = "sell";
+                signalClass =
+                    "sell";
             }
+
+            // =================================================
+            // BUY STRENGTH
+            // =================================================
 
             const strongBuy =
                 signalClass === "buy" &&
@@ -2359,16 +2882,40 @@ function renderSignals(
                 signalClass === "buy" &&
                 scorePercent < 66;
 
-            let scoreClass = "score-weak";
+            // =================================================
+            // SCORE CLASS
+            // =================================================
 
-            if (scorePercent >= 68) {
-                scoreClass = "score-strong";
-            } else if (scorePercent >= 66) {
-                scoreClass = "score-medium";
+            let scoreClass =
+                "score-weak";
+
+            if (
+                scorePercent >= 68
+            ) {
+
+                scoreClass =
+                    "score-strong";
+
+            } else if (
+                scorePercent >= 66
+            ) {
+
+                scoreClass =
+                    "score-medium";
             }
 
+            // =================================================
+            // CHANGE CLASS
+            // =================================================
+
             const changeCls =
-                changeClass(change);
+                changeClass(
+                    change
+                );
+
+            // =================================================
+            // SCORE BAR
+            // =================================================
 
             const scoreWidth =
                 Math.max(
@@ -2379,28 +2926,54 @@ function renderSignals(
                     )
                 );
 
+            // =================================================
+            // PRICE TEXT
+            // =================================================
+
             const priceText =
-                Number.isFinite(price) &&
+                Number.isFinite(
+                    price
+                ) &&
                 price > 0
-                    ? formatPrice(price)
+                    ? formatPrice(
+                        price
+                    )
                     : "-";
 
-            const row =
-                document.createElement("tr");
+            // =================================================
+            // ROW
+            // =================================================
 
-            row.dataset.symbol = symbol;
-            row.dataset.signal = signal;
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+            row.dataset.symbol =
+                symbol;
+
+            row.dataset.signal =
+                signal;
 
             if (strongBuy) {
-                row.classList.add("strong-buy");
+
+                row.classList.add(
+                    "strong-buy"
+                );
             }
 
             if (mediumBuy) {
-                row.classList.add("medium-buy");
+
+                row.classList.add(
+                    "medium-buy"
+                );
             }
 
             if (weakBuy) {
-                row.classList.add("weak-buy");
+
+                row.classList.add(
+                    "weak-buy"
+                );
             }
 
             row.innerHTML = `
@@ -2444,18 +3017,24 @@ function renderSignals(
                 </td>
             `;
 
-            tbody.appendChild(row);
+            tbody.appendChild(
+                row
+            );
         }
     );
 
-    updateSignalFooter(sortedSignals);
+    updateSignalFooter(
+        sortedSignals
+    );
 }
 
 // ============================================================
 // SIGNAL FOOTER
 // ============================================================
 
-function updateSignalFooter(signals) {
+function updateSignalFooter(
+    signals
+) {
 
     const footer =
         document.querySelector(
@@ -2475,7 +3054,8 @@ function updateSignalFooter(signals) {
                         item?.signal ??
                         item?.Signal ??
                         ""
-                    ).toUpperCase();
+                    )
+                        .toUpperCase();
 
                 return (
                     signal === "BUY" ||
@@ -2493,7 +3073,8 @@ function updateSignalFooter(signals) {
                         item?.signal ??
                         item?.Signal ??
                         ""
-                    ).toUpperCase();
+                    )
+                        .toUpperCase();
 
                 return (
                     signal === "SELL" ||
@@ -2521,19 +3102,36 @@ function updateSignalFooter(signals) {
 // CHANGE CLASS
 // ============================================================
 
-function changeClass(value) {
+function changeClass(
+    value
+) {
 
-    const number = Number(value);
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
 
-    if (!Number.isFinite(number)) {
+        return "change-neutral";
+    }
+
+    const number =
+        Number(value);
+
+    if (
+        !Number.isFinite(number)
+    ) {
+
         return "change-neutral";
     }
 
     if (number > 0) {
+
         return "change-positive";
     }
 
     if (number < 0) {
+
         return "change-negative";
     }
 
@@ -2546,7 +3144,8 @@ function changeClass(value) {
 
 function filterSignals() {
 
-    const input = $("searchInput");
+    const input =
+        $("searchInput");
 
     if (!input) {
         return;
@@ -2559,7 +3158,9 @@ function filterSignals() {
 
     if (!query) {
 
-        renderSignals(allSignals);
+        renderSignals(
+            allSignals
+        );
 
         return;
     }
@@ -2575,23 +3176,31 @@ function filterSignals() {
                         item?.Ticker ??
                         item?.Symbol ??
                         ""
-                    ).toUpperCase();
+                    )
+                        .toUpperCase();
 
                 const signal =
                     String(
                         item?.signal ??
                         item?.Signal ??
                         ""
-                    ).toUpperCase();
+                    )
+                        .toUpperCase();
 
                 return (
-                    symbol.includes(query) ||
-                    signal.includes(query)
+                    symbol.includes(
+                        query
+                    ) ||
+                    signal.includes(
+                        query
+                    )
                 );
             }
         );
 
-    renderSignals(filtered);
+    renderSignals(
+        filtered
+    );
 }
 
 // ============================================================
@@ -2612,8 +3221,12 @@ async function refreshData() {
             loadSignals()
         ]);
 
-        updatePlanUI(currentPlan);
+        updatePlanUI(
+            currentPlan
+        );
+
         updateLockedFeatures();
+
         updateScanUI();
 
     } catch (error) {
@@ -2629,12 +3242,18 @@ async function refreshData() {
 // TEXT HELPER
 // ============================================================
 
-function setText(id, value) {
+function setText(
+    id,
+    value
+) {
 
-    const element = $(id);
+    const element =
+        $(id);
 
     if (element) {
-        element.innerText = value;
+
+        element.innerText =
+            value;
     }
 }
 
@@ -2642,21 +3261,39 @@ function setText(id, value) {
 // ESCAPE HTML
 // ============================================================
 
-function escapeHtml(value) {
+function escapeHtml(
+    value
+) {
 
     if (
         value === null ||
         value === undefined
     ) {
+
         return "";
     }
 
     return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 }
 
 // ============================================================
@@ -2708,7 +3345,10 @@ function setupKeyboard() {
             "keydown",
             event => {
 
-                if (event.key === "Enter") {
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
 
                     event.preventDefault();
 
@@ -2724,7 +3364,10 @@ function setupKeyboard() {
             "keydown",
             event => {
 
-                if (event.key === "Enter") {
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
 
                     event.preventDefault();
 
@@ -2740,7 +3383,10 @@ function setupKeyboard() {
             "keydown",
             event => {
 
-                if (event.key === "Enter") {
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
 
                     event.preventDefault();
 
@@ -2756,7 +3402,10 @@ function setupKeyboard() {
             "keydown",
             event => {
 
-                if (event.key === "Enter") {
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
 
                     event.preventDefault();
 
@@ -2766,15 +3415,27 @@ function setupKeyboard() {
         );
     }
 
+    // ========================================================
+    // ESC
+    // ========================================================
+
     document.addEventListener(
         "keydown",
         event => {
 
-            if (event.key === "Escape") {
+            if (
+                event.key ===
+                "Escape"
+            ) {
+
                 closePlanModal();
             }
         }
     );
+
+    // ========================================================
+    // SEARCH /
+    // ========================================================
 
     document.addEventListener(
         "keydown",
@@ -2782,8 +3443,10 @@ function setupKeyboard() {
 
             if (
                 event.key === "/" &&
-                document.activeElement?.tagName !== "INPUT" &&
-                document.activeElement?.tagName !== "TEXTAREA"
+                document.activeElement?.tagName !==
+                    "INPUT" &&
+                document.activeElement?.tagName !==
+                    "TEXTAREA"
             ) {
 
                 event.preventDefault();
@@ -2792,11 +3455,16 @@ function setupKeyboard() {
                     $("searchInput");
 
                 if (search) {
+
                     search.focus();
                 }
             }
         }
     );
+
+    // ========================================================
+    // SEARCH INPUT
+    // ========================================================
 
     const search =
         $("searchInput");
@@ -2808,6 +3476,10 @@ function setupKeyboard() {
             filterSignals
         );
     }
+
+    // ========================================================
+    // SCAN BUTTONS
+    // ========================================================
 
     const scanButtons = [
         $("runScanButton"),
@@ -2836,19 +3508,44 @@ function setupKeyboard() {
 // GLOBAL HTML ONCLICK ACCESS
 // ============================================================
 
-window.loginUser = loginUser;
-window.registerUser = registerUser;
-window.logoutUser = logoutUser;
-window.showLogin = showLogin;
-window.showRegister = showRegister;
-window.runAnalysis = runAnalysis;
-window.openAdmin = openAdmin;
-window.openPlanModal = openPlanModal;
-window.closePlanModal = closePlanModal;
-window.upgradeFromModal = upgradeFromModal;
-window.selectPlan = selectPlan;
-window.requirePlan = requirePlan;
-window.filterSignals = filterSignals;
+window.loginUser =
+    loginUser;
+
+window.registerUser =
+    registerUser;
+
+window.logoutUser =
+    logoutUser;
+
+window.showLogin =
+    showLogin;
+
+window.showRegister =
+    showRegister;
+
+window.runAnalysis =
+    runAnalysis;
+
+window.openAdmin =
+    openAdmin;
+
+window.openPlanModal =
+    openPlanModal;
+
+window.closePlanModal =
+    closePlanModal;
+
+window.upgradeFromModal =
+    upgradeFromModal;
+
+window.selectPlan =
+    selectPlan;
+
+window.requirePlan =
+    requirePlan;
+
+window.filterSignals =
+    filterSignals;
 
 // ============================================================
 // INIT
@@ -2864,10 +3561,16 @@ document.addEventListener(
 
         await checkSession();
 
+        // ====================================================
+        // 30 SANİYEDE BİR VERİ YENİLE
+        // ====================================================
+
         setInterval(
             () => {
 
-                if (!getToken()) {
+                if (
+                    !getToken()
+                ) {
                     return;
                 }
 
@@ -2878,3 +3581,4 @@ document.addEventListener(
         );
     }
 );
+```
