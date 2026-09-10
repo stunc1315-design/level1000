@@ -1,5 +1,12 @@
-﻿from pathlib import Path
-from datetime import datetime, timedelta, timezone
+﻿# ============================================================
+# LEVEL 1000 AI - WEB APP
+# FULL APP
+# LIVE PRICE + AUTH + PLAN + SIGNALS + PAPER + ADMIN
+# YAHOO 429 KORUMALI
+# ============================================================
+
+from pathlib import Path
+from datetime import datetime, timezone
 import os
 import secrets
 import subprocess
@@ -14,56 +21,97 @@ warnings.filterwarnings("ignore")
 
 import pandas as pd
 import yfinance as yf
-import jwt
 
-from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.responses import HTMLResponse, PlainTextResponse, Response
+from fastapi import (
+    FastAPI,
+    Request,
+    Depends,
+    HTTPException,
+)
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+)
 from fastapi.staticfiles import StaticFiles
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.templating import Jinja2Templates
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+
 from pwdlib import PasswordHash
+
+import jwt
 
 
 # ============================================================
-# LEVEL 1000 AI
+# PATHS
 # ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent
 
-STATIC_DIR = BASE_DIR / "static"
-TEMPLATES_DIR = BASE_DIR / "templates"
 DATA_DIR = BASE_DIR / "level1000_data"
+TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
 
-STATIC_DIR.mkdir(parents=True, exist_ok=True)
-TEMPLATES_DIR.mkdir(parents=True, exist_ok=True)
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-DB_FILE = BASE_DIR / "level1000_users.db"
 LEVEL1000_FILE = BASE_DIR / "level1000.py"
 
-LATEST_SIGNALS = BASE_DIR / "level1000_latest_signals.csv"
-PAPER_SIGNALS = BASE_DIR / "level1000_paper_signals.csv"
+DB_FILE = DATA_DIR / "level1000_users.db"
+
+PAPER_SIGNALS = (
+    DATA_DIR /
+    "level1000_paper_signals.csv"
+)
+
+
+DATA_DIR.mkdir(
+    parents=True,
+    exist_ok=True
+)
 
 
 # ============================================================
-# AYARLAR
+# FASTAPI
 # ============================================================
 
-DISPLAY_LIMIT = 300
-MIN_SIGNAL_SCORE = 0.65
+app = FastAPI(
+    title="LEVEL 1000 AI",
+    version="10.0"
+)
+
+
+if STATIC_DIR.exists():
+
+    app.mount(
+        "/static",
+        StaticFiles(
+            directory=str(STATIC_DIR)
+        ),
+        name="static"
+    )
+
+
+templates = Jinja2Templates(
+    directory=str(TEMPLATES_DIR)
+)
+
 
 # ============================================================
-# CANLI FİYAT
+# SECURITY
 # ============================================================
 
-LIVE_PRICE_CACHE_SECONDS = 30
-LIVE_INTERVAL = "1m"
-LIVE_PERIOD = "1d"
-LIVE_BATCH_SIZE = 100
+SECRET_KEY = os.environ.get(
+    "LEVEL1000_SECRET_KEY"
+)
 
-live_price_cache = {}
-live_price_cache_lock = threading.Lock()
+if not SECRET_KEY:
+
+    SECRET_KEY = secrets.token_urlsafe(
+        48
+    )
+
+
+ALGORITHM = "HS256"
+
+password_hash = PasswordHash.recommended()
 
 
 # ============================================================
@@ -71,61 +119,89 @@ live_price_cache_lock = threading.Lock()
 # ============================================================
 
 PLANS = {
+
     "FREE": {
+
         "name": "FREE",
+
         "level": 1,
+
         "display_limit": 20,
+
         "scan_limit": 3,
+
         "backtest": False,
+
         "paper": False,
+
         "advanced_ai": False,
+
         "all_signals": False,
     },
 
     "PRO": {
+
         "name": "PRO",
+
         "level": 2,
+
         "display_limit": 100,
+
         "scan_limit": 30,
+
         "backtest": True,
+
         "paper": True,
+
         "advanced_ai": True,
+
         "all_signals": False,
     },
 
     "MAX PRO": {
+
         "name": "MAX PRO",
+
         "level": 3,
+
         "display_limit": 300,
+
         "scan_limit": 999999,
+
         "backtest": True,
+
         "paper": True,
+
         "advanced_ai": True,
+
         "all_signals": True,
     },
 }
 
 
+MIN_SIGNAL_SCORE = 0
+
+
 # ============================================================
-# PLAN NORMALIZE
+# YAHOO CANLI FİYAT AYARLARI
 # ============================================================
 
-def normalize_plan_name(plan):
+# 429 azaltmak için 30 yerine 120 saniye cache.
+LIVE_PRICE_CACHE_SECONDS = 120
 
-    plan = str(plan or "FREE").upper().strip()
-    plan = plan.replace("_", " ")
-    plan = plan.replace("-", " ")
+LIVE_INTERVAL = "1m"
+LIVE_PERIOD = "1d"
 
-    if plan == "MAXPRO":
-        plan = "MAX PRO"
+# Aynı anda yalnızca tek Yahoo sorgusu.
+LIVE_DOWNLOAD_LOCK = threading.Lock()
 
-    if plan == "MAX PRO":
-        return "MAX PRO"
+# Genel cooldown.
+LIVE_LAST_DOWNLOAD_TIME = 0.0
 
-    if plan == "PRO":
-        return "PRO"
+# Cache.
+live_price_cache = {}
 
-    return "FREE"
+live_price_cache_lock = threading.Lock()
 
 
 # ============================================================
@@ -136,7 +212,7 @@ def get_db():
 
     conn = sqlite3.connect(
         DB_FILE,
-        timeout=30
+        check_same_thread=False
     )
 
     conn.row_factory = sqlite3.Row
@@ -151,221 +227,33 @@ def init_db():
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS users (
+
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+
             name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
+
+            email TEXT UNIQUE NOT NULL,
+
             password_hash TEXT NOT NULL,
-            plan TEXT NOT NULL DEFAULT 'FREE',
-            is_admin INTEGER NOT NULL DEFAULT 0,
-            created_at TEXT NOT NULL,
-            scan_count INTEGER NOT NULL DEFAULT 0
+
+            plan TEXT DEFAULT 'FREE',
+
+            is_admin INTEGER DEFAULT 0,
+
+            scan_count INTEGER DEFAULT 0,
+
+            created_at TEXT NOT NULL
+
         )
         """
     )
 
-    columns = conn.execute(
-        "PRAGMA table_info(users)"
-    ).fetchall()
-
-    names = {
-        row["name"]
-        for row in columns
-    }
-
-    if "scan_count" not in names:
-
-        conn.execute(
-            """
-            ALTER TABLE users
-            ADD COLUMN scan_count INTEGER NOT NULL DEFAULT 0
-            """
-        )
-
     conn.commit()
+
     conn.close()
 
 
 init_db()
-
-
-# ============================================================
-# FASTAPI
-# ============================================================
-
-app = FastAPI(
-    title="LEVEL 1000 AI TRADING PRO",
-    version="9.0"
-)
-
-
-# ============================================================
-# STATIC
-# ============================================================
-
-app.mount(
-    "/static",
-    StaticFiles(directory=str(STATIC_DIR)),
-    name="static"
-)
-
-
-# ============================================================
-# SECURITY
-# ============================================================
-
-password_hash = PasswordHash.recommended()
-
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/login",
-    auto_error=False
-)
-
-
-# ============================================================
-# JWT
-# ============================================================
-
-SECRET_FILE = BASE_DIR / ".level1000_secret"
-
-ENV_SECRET = os.environ.get(
-    "LEVEL1000_SECRET_KEY"
-)
-
-if ENV_SECRET:
-
-    JWT_SECRET = ENV_SECRET.strip()
-
-elif SECRET_FILE.exists():
-
-    try:
-
-        JWT_SECRET = SECRET_FILE.read_text(
-            encoding="utf-8"
-        ).strip()
-
-        if not JWT_SECRET:
-            raise ValueError("Boş secret")
-
-    except Exception:
-
-        JWT_SECRET = secrets.token_hex(32)
-
-else:
-
-    JWT_SECRET = secrets.token_hex(32)
-
-    try:
-        SECRET_FILE.write_text(
-            JWT_SECRET,
-            encoding="utf-8"
-        )
-    except Exception:
-        pass
-
-
-JWT_ALGORITHM = "HS256"
-TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
-
-
-# ============================================================
-# ADMIN
-# ============================================================
-
-def ensure_admin_user():
-
-    admin_email = os.environ.get(
-        "LEVEL1000_ADMIN_EMAIL",
-        ""
-    ).strip().lower()
-
-    admin_password = os.environ.get(
-        "LEVEL1000_ADMIN_PASSWORD",
-        ""
-    )
-
-    if not admin_email or not admin_password:
-        return
-
-    if len(admin_password) < 8:
-        print("ADMIN şifresi en az 8 karakter olmalı.")
-        return
-
-    try:
-
-        conn = get_db()
-
-        user = conn.execute(
-            """
-            SELECT *
-            FROM users
-            WHERE email = ?
-            """,
-            (admin_email,)
-        ).fetchone()
-
-        hashed = password_hash.hash(
-            admin_password
-        )
-
-        created_at = datetime.now(
-            timezone.utc
-        ).isoformat()
-
-        if user:
-
-            conn.execute(
-                """
-                UPDATE users
-                SET
-                    password_hash = ?,
-                    plan = 'MAX PRO',
-                    is_admin = 1
-                WHERE email = ?
-                """,
-                (
-                    hashed,
-                    admin_email
-                )
-            )
-
-        else:
-
-            conn.execute(
-                """
-                INSERT INTO users
-                (
-                    name,
-                    email,
-                    password_hash,
-                    plan,
-                    is_admin,
-                    created_at,
-                    scan_count
-                )
-                VALUES (?, ?, ?, 'MAX PRO', 1, ?, 0)
-                """,
-                (
-                    "LEVEL 1000 Admin",
-                    admin_email,
-                    hashed,
-                    created_at
-                )
-            )
-
-        conn.commit()
-        conn.close()
-
-        print("ADMIN AKTIF:", admin_email)
-
-    except Exception as exc:
-
-        print(
-            "ADMIN HATASI:",
-            repr(exc)
-        )
-
-
-ensure_admin_user()
 
 
 # ============================================================
@@ -375,135 +263,46 @@ ensure_admin_user()
 class RegisterRequest(BaseModel):
 
     name: str
-    email: EmailStr
+
+    email: str
+
     password: str
 
 
 class LoginRequest(BaseModel):
 
-    email: EmailStr
+    email: str
+
     password: str
 
 
 # ============================================================
-# JWT
+# PLAN YARDIMCILARI
 # ============================================================
 
-def create_token(user):
+def normalize_plan_name(plan):
 
-    expire = (
-        datetime.now(timezone.utc)
-        +
-        timedelta(
-            minutes=TOKEN_EXPIRE_MINUTES
-        )
-    )
+    plan = str(
+        plan or "FREE"
+    ).strip().upper()
 
-    plan = normalize_plan_name(
-        user["plan"]
-    )
+    if plan in (
+        "MAX",
+        "MAXPRO",
+        "MAX-PRO",
+        "MAX_PRO"
+    ):
 
-    payload = {
-        "sub": str(user["id"]),
-        "email": user["email"],
-        "plan": plan,
-        "admin": bool(user["is_admin"]),
-        "exp": expire,
-    }
+        return "MAX PRO"
 
-    return jwt.encode(
-        payload,
-        JWT_SECRET,
-        algorithm=JWT_ALGORITHM
-    )
+    if plan == "PRO":
 
+        return "PRO"
 
-def decode_token(token):
+    return "FREE"
 
-    try:
-
-        return jwt.decode(
-            token,
-            JWT_SECRET,
-            algorithms=[JWT_ALGORITHM]
-        )
-
-    except Exception:
-
-        return None
-
-
-# ============================================================
-# CURRENT USER
-# ============================================================
-
-def get_current_user(
-    token: str = Depends(oauth2_scheme)
-):
-
-    if not token:
-
-        raise HTTPException(
-            status_code=401,
-            detail="Giriş yapmanız gerekiyor."
-        )
-
-    payload = decode_token(token)
-
-    if not payload:
-
-        raise HTTPException(
-            status_code=401,
-            detail="Oturum geçersiz veya süresi dolmuş."
-        )
-
-    user_id = payload.get("sub")
-
-    if not user_id:
-
-        raise HTTPException(
-            status_code=401,
-            detail="Geçersiz kullanıcı."
-        )
-
-    conn = get_db()
-
-    user = conn.execute(
-        """
-        SELECT
-            id,
-            name,
-            email,
-            plan,
-            is_admin,
-            created_at,
-            scan_count
-        FROM users
-        WHERE id = ?
-        """,
-        (user_id,)
-    ).fetchone()
-
-    conn.close()
-
-    if not user:
-
-        raise HTTPException(
-            status_code=401,
-            detail="Kullanıcı bulunamadı."
-        )
-
-    return user
-
-
-# ============================================================
-# PLAN
-# ============================================================
 
 def get_plan_config(user):
-
-    if bool(user["is_admin"]):
-        return PLANS["MAX PRO"]
 
     plan = normalize_plan_name(
         user["plan"]
@@ -515,36 +314,156 @@ def get_plan_config(user):
     )
 
 
-def user_dict(user):
+# ============================================================
+# USER DICT
+# ============================================================
 
-    if not user:
-        return None
-
-    plan = (
-        "MAX PRO"
-        if bool(user["is_admin"])
-        else normalize_plan_name(
-            user["plan"]
-        )
-    )
-
-    config = PLANS.get(
-        plan,
-        PLANS["FREE"]
-    )
+def user_dict(row):
 
     return {
-        "id": user["id"],
-        "name": user["name"],
-        "email": user["email"],
-        "plan": plan,
-        "is_admin": bool(user["is_admin"]),
-        "created_at": user["created_at"],
-        "plan_level": config["level"],
-        "plan_features": config,
-        "scan_count": int(user["scan_count"]),
+
+        "id": int(
+            row["id"]
+        ),
+
+        "name": row["name"],
+
+        "email": row["email"],
+
+        "plan": normalize_plan_name(
+            row["plan"]
+        ),
+
+        "is_admin": bool(
+            row["is_admin"]
+        ),
+
+        "scan_count": int(
+            row["scan_count"]
+        ),
+
+        "created_at":
+            row["created_at"],
     }
 
+
+# ============================================================
+# JWT
+# ============================================================
+
+def create_token(user):
+
+    payload = {
+
+        "sub": str(
+            user["id"]
+        ),
+
+        "email":
+            user["email"],
+
+        "iat": int(
+            time.time()
+        ),
+
+        "exp": int(
+            time.time()
+        ) + 60 * 60 * 24 * 30,
+    }
+
+    return jwt.encode(
+        payload,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+
+
+def get_token_from_request(request):
+
+    auth = request.headers.get(
+        "Authorization",
+        ""
+    )
+
+    if auth.startswith(
+        "Bearer "
+    ):
+
+        return auth[7:].strip()
+
+    token = request.cookies.get(
+        "access_token"
+    )
+
+    return token
+
+
+# ============================================================
+# CURRENT USER
+# ============================================================
+
+async def get_current_user(
+    request: Request
+):
+
+    token = get_token_from_request(
+        request
+    )
+
+    if not token:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Giriş yapmanız gerekiyor."
+        )
+
+    try:
+
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[
+                ALGORITHM
+            ]
+        )
+
+        user_id = int(
+            payload.get("sub")
+        )
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Oturum geçersiz veya süresi dolmuş."
+        )
+
+    conn = get_db()
+
+    row = conn.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE id = ?
+        """,
+        (user_id,)
+    ).fetchone()
+
+    conn.close()
+
+    if not row:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Kullanıcı bulunamadı."
+        )
+
+    return user_dict(row)
+
+
+# ============================================================
+# PLAN KONTROL
+# ============================================================
 
 def require_plan(required_plan):
 
@@ -552,211 +471,74 @@ def require_plan(required_plan):
         required_plan
     )
 
-    def checker(
+    async def dependency(
         user=Depends(get_current_user)
     ):
 
-        if bool(user["is_admin"]):
-            return user
-
-        current = normalize_plan_name(
-            user["plan"]
+        current = get_plan_config(
+            user
         )
 
-        current_level = PLANS.get(
-            current,
-            PLANS["FREE"]
-        )["level"]
-
-        required_level = PLANS.get(
+        required = PLANS.get(
             required_plan,
             PLANS["FREE"]
-        )["level"]
+        )
 
-        if current_level < required_level:
+        if bool(user["is_admin"]):
+
+            return user
+
+        if current["level"] < required["level"]:
 
             raise HTTPException(
                 status_code=403,
                 detail=(
                     f"Bu özellik {required_plan} "
-                    "ve üzeri plan gerektiriyor."
+                    f"planı gerektiriyor."
                 )
             )
 
         return user
 
-    return checker
+    return dependency
 
 
-def require_admin(
+async def require_admin(
     user=Depends(get_current_user)
 ):
 
-    if not bool(user["is_admin"]):
+    if not bool(
+        user["is_admin"]
+    ):
 
         raise HTTPException(
             status_code=403,
-            detail="Bu işlem sadece admin içindir."
+            detail="Admin yetkisi gerekiyor."
         )
 
     return user
 
 
 # ============================================================
-# CSV NORMALIZE
+# CSV
 # ============================================================
 
-def normalize_signal_dataframe(df):
+def dataframe_to_records(df):
 
     if df is None or df.empty:
-        return pd.DataFrame()
 
-    df = df.copy()
+        return []
 
-    df.columns = [
-        str(c)
-        .replace("\ufeff", "")
-        .strip()
-        for c in df.columns
-    ]
+    result = df.copy()
 
-    rename_map = {
-
-        "date": "Date",
-        "DATE": "Date",
-        "Trade_Date": "Date",
-
-        "symbol": "Ticker",
-        "Symbol": "Ticker",
-        "SYMBOL": "Ticker",
-        "ticker": "Ticker",
-        "TICKER": "Ticker",
-        "Hisse": "Ticker",
-
-        "price": "Price",
-        "PRICE": "Price",
-        "close": "Price",
-        "Close": "Price",
-        "CLOSE": "Price",
-        "last": "Price",
-        "Last": "Price",
-
-        "signal": "Signal",
-        "SIGNAL": "Signal",
-        "AI_Signal": "Signal",
-        "AI_SIGNAL": "Signal",
-        "prediction": "Signal",
-        "Prediction": "Signal",
-
-        "score": "AI_Probability",
-        "Score": "AI_Probability",
-        "SCORE": "AI_Probability",
-        "probability": "AI_Probability",
-        "Probability": "AI_Probability",
-        "AI Probability": "AI_Probability",
-        "AI_Probability": "AI_Probability",
-
-        "predicted_return": "AI_Predicted_Return",
-        "Predicted_Return": "AI_Predicted_Return",
-        "Predicted Return": "AI_Predicted_Return",
-        "AI_Predicted_Return": "AI_Predicted_Return",
-
-        "change": "Change",
-        "CHANGE": "Change",
-        "change_percent": "Change",
-        "Change_Percent": "Change",
-    }
-
-    for old, new in rename_map.items():
-
-        if (
-            old in df.columns
-            and new not in df.columns
-        ):
-
-            df[new] = df[old]
-
-    original = list(df.columns)
-
-    if len(original) >= 6:
-
-        if "Date" not in df.columns:
-            df["Date"] = df[original[0]]
-
-        if "Ticker" not in df.columns:
-            df["Ticker"] = df[original[1]]
-
-        if "Price" not in df.columns:
-            df["Price"] = df[original[2]]
-
-        if "AI_Probability" not in df.columns:
-            df["AI_Probability"] = df[original[3]]
-
-        if "AI_Predicted_Return" not in df.columns:
-            df["AI_Predicted_Return"] = df[original[4]]
-
-        if "Signal" not in df.columns:
-            df["Signal"] = df[original[5]]
-
-    defaults = {
-        "Ticker": "-",
-        "Signal": "HOLD",
-        "AI_Probability": 0,
-        "AI_Predicted_Return": 0,
-        "Date": "-",
-        "Price": 0,
-        "Change": 0,
-    }
-
-    for col, value in defaults.items():
-
-        if col not in df.columns:
-            df[col] = value
-
-    df["Ticker"] = (
-        df["Ticker"]
-        .fillna("-")
-        .astype(str)
-        .str.strip()
-        .str.upper()
+    result = result.where(
+        pd.notna(result),
+        None
     )
 
-    df["Signal"] = (
-        df["Signal"]
-        .fillna("HOLD")
-        .astype(str)
-        .str.upper()
-        .str.strip()
-        .replace({
-            "AL": "BUY",
-            "LONG": "BUY",
-            "SAT": "SELL",
-            "SHORT": "SELL",
-            "BEKLE": "HOLD",
-            "NEUTRAL": "HOLD",
-        })
+    return result.to_dict(
+        orient="records"
     )
-
-    for col in [
-        "AI_Probability",
-        "AI_Predicted_Return",
-        "Price",
-        "Change",
-    ]:
-
-        df[col] = pd.to_numeric(
-            df[col],
-            errors="coerce"
-        ).fillna(0)
-
-    df["Date"] = (
-        df["Date"]
-        .fillna("-")
-        .astype(str)
-        .str.strip()
-    )
-
-    return df
 
 
 # ============================================================
@@ -767,47 +549,30 @@ def find_signal_file():
 
     candidates = [
 
-        LATEST_SIGNALS,
-        PAPER_SIGNALS,
+        DATA_DIR /
+        "level1000_latest_signals.csv",
 
-        BASE_DIR / "level1000_v3_signals.csv",
-        BASE_DIR / "level1000_fast_top.csv",
-        BASE_DIR / "level1000_fast_scan.csv",
+        DATA_DIR /
+        "level1000_v10_latest.csv",
 
-        DATA_DIR / "level1000_latest_signals.csv",
-        DATA_DIR / "level1000_paper_signals.csv",
-        DATA_DIR / "level1000_v3_signals.csv",
-        DATA_DIR / "level1000_fast_top.csv",
-        DATA_DIR / "level1000_fast_scan.csv",
+        DATA_DIR /
+        "level1000_latest.csv",
 
-        BASE_DIR / "level1000_ai_history.csv",
-        BASE_DIR / "level1000_ai_historical.csv",
-        BASE_DIR / "level1000_history.csv",
-        BASE_DIR / "level1000_results.csv",
-        BASE_DIR / "level1000_signals.csv",
+        DATA_DIR /
+        "level1000_predictions.csv",
 
-        DATA_DIR / "level1000_ai_history.csv",
-        DATA_DIR / "level1000_ai_historical.csv",
-        DATA_DIR / "level1000_history.csv",
-        DATA_DIR / "level1000_results.csv",
-        DATA_DIR / "level1000_signals.csv",
+        BASE_DIR /
+        "level1000_latest_signals.csv",
+
+        BASE_DIR /
+        "level1000_v10_latest.csv",
+
     ]
-
-    checked = set()
 
     for path in candidates:
 
-        try:
-            key = str(path.resolve())
-        except Exception:
-            key = str(path)
-
-        if key in checked:
-            continue
-
-        checked.add(key)
-
         if not path.exists():
+
             continue
 
         try:
@@ -817,53 +582,275 @@ def find_signal_file():
                 low_memory=False
             )
 
-            normalized = normalize_signal_dataframe(df)
+            if not df.empty:
 
-            if normalized.empty:
-                continue
-
-            valid = normalized[
-                normalized["Signal"].isin(
-                    ["BUY", "SELL", "HOLD"]
-                )
-            ]
-
-            if len(valid):
-                return path, normalized
+                return path, df
 
         except Exception:
+
             continue
 
     return None, pd.DataFrame()
 
 
 # ============================================================
-# CANLI FİYAT YARDIMCILARI
+# SIGNAL NORMALIZE
+# ============================================================
+
+def normalize_signal_dataframe(df):
+
+    if df is None:
+
+        return pd.DataFrame()
+
+    if df.empty:
+
+        return df.copy()
+
+    result = df.copy()
+
+    rename_map = {}
+
+    for col in result.columns:
+
+        key = str(
+            col
+        ).strip()
+
+        low = key.lower()
+
+        if low in (
+            "symbol",
+            "ticker",
+            "code"
+        ):
+
+            rename_map[col] = "Ticker"
+
+        elif low in (
+            "signal",
+            "action"
+        ):
+
+            rename_map[col] = "Signal"
+
+        elif low in (
+            "ai_probability",
+            "probability",
+            "confidence",
+            "confidence_pct"
+        ):
+
+            rename_map[col] = "AI_Probability"
+
+        elif low in (
+            "ai_predicted_return",
+            "predicted_return",
+            "expected_return"
+        ):
+
+            rename_map[col] = (
+                "AI_Predicted_Return"
+            )
+
+        elif low in (
+            "date",
+            "datetime",
+            "timestamp"
+        ):
+
+            rename_map[col] = "Date"
+
+        elif low in (
+            "price",
+            "close"
+        ):
+
+            # Eski CSV fiyatı daha sonra
+            # canlı fiyat tarafından
+            # değiştirilecek.
+            if "Price" not in result.columns:
+
+                rename_map[col] = "Old_Price"
+
+    if rename_map:
+
+        result = result.rename(
+            columns=rename_map
+        )
+
+    if "Ticker" not in result.columns:
+
+        result["Ticker"] = "-"
+
+    if "Signal" not in result.columns:
+
+        result["Signal"] = "HOLD"
+
+    if "AI_Probability" not in result.columns:
+
+        result["AI_Probability"] = 0.0
+
+    if "AI_Predicted_Return" not in result.columns:
+
+        result["AI_Predicted_Return"] = 0.0
+
+    if "Date" not in result.columns:
+
+        result["Date"] = "-"
+
+    result["Ticker"] = (
+        result["Ticker"]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
+
+    result["Signal"] = (
+        result["Signal"]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
+
+    result["Signal"] = result[
+        "Signal"
+    ].replace(
+        {
+            "AL": "BUY",
+            "SAT": "SELL",
+            "BEKLE": "HOLD",
+        }
+    )
+
+    result["AI_Probability"] = pd.to_numeric(
+        result["AI_Probability"],
+        errors="coerce"
+    ).fillna(0)
+
+    result["AI_Predicted_Return"] = pd.to_numeric(
+        result["AI_Predicted_Return"],
+        errors="coerce"
+    ).fillna(0)
+
+    return result
+
+
+# ============================================================
+# DISPLAY FILTER
+# ============================================================
+
+def prepare_display_dataframe(
+    df,
+    limit
+):
+
+    if df is None or df.empty:
+
+        return pd.DataFrame()
+
+    work = df.copy()
+
+    # Öncelik:
+    # BUY > SELL > HOLD
+    order_map = {
+
+        "BUY": 0,
+
+        "SELL": 1,
+
+        "HOLD": 2,
+    }
+
+    work["_order"] = (
+        work["Signal"]
+        .map(order_map)
+        .fillna(9)
+    )
+
+    work["_score_sort"] = pd.to_numeric(
+        work["AI_Probability"],
+        errors="coerce"
+    ).fillna(0)
+
+    # Güçlü sinyaller.
+    strong = work[
+        work["Signal"].isin(
+            [
+                "BUY",
+                "SELL"
+            ]
+        )
+    ].copy()
+
+    if strong.empty:
+
+        strong = work.copy()
+
+    strong = strong.sort_values(
+        [
+            "_order",
+            "_score_sort"
+        ],
+        ascending=[
+            True,
+            False
+        ]
+    )
+
+    try:
+
+        limit = int(limit)
+
+    except Exception:
+
+        limit = 20
+
+    if limit < 1:
+
+        limit = 20
+
+    strong = strong.head(
+        limit
+    )
+
+    strong = strong.drop(
+        columns=[
+            "_order",
+            "_score_sort"
+        ],
+        errors="ignore"
+    )
+
+    return strong
+
+
+# ============================================================
+# FLOAT
 # ============================================================
 
 def _clean_float(value):
 
     try:
 
-        if value is None:
+        value = float(value)
+
+        if not math.isfinite(
+            value
+        ):
+
             return None
 
-        if isinstance(value, pd.Series):
-            if value.empty:
-                return None
-            value = value.iloc[-1]
-
-        number = float(value)
-
-        if not math.isfinite(number):
-            return None
-
-        return number
+        return value
 
     except Exception:
 
         return None
 
+
+# ============================================================
+# TIME
+# ============================================================
 
 def _utc_now():
 
@@ -872,120 +859,152 @@ def _utc_now():
     )
 
 
-def _turkey_time_string(dt):
+def _turkey_time_string():
 
     try:
 
-        tr_dt = dt.astimezone(
-            timezone(
-                timedelta(hours=3)
+        from zoneinfo import ZoneInfo
+
+        dt = datetime.now(
+            ZoneInfo(
+                "Europe/Istanbul"
             )
         )
 
-        return tr_dt.strftime(
+        return dt.strftime(
             "%Y-%m-%d %H:%M:%S"
         )
 
     except Exception:
 
-        return None
+        return datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
 
 
 # ============================================================
-# YAHOO DATA FRAME
+# YAHOO FRAME HELPERS
 # ============================================================
 
 def _extract_ticker_from_download(
-    downloaded,
-    ticker
+    frame,
+    symbol
 ):
 
-    if downloaded is None or downloaded.empty:
-        return None
+    if frame is None or frame.empty:
 
-    ticker = str(
-        ticker
-    ).strip().upper()
+        return pd.DataFrame()
 
-    try:
+    result = frame
 
-        if isinstance(
-            downloaded.columns,
-            pd.MultiIndex
-        ):
+    if isinstance(
+        result.columns,
+        pd.MultiIndex
+    ):
 
-            levels = downloaded.columns
+        # yfinance:
+        # (Close, AAPL)
+        # veya
+        # (AAPL, Close)
 
-            # group_by=ticker
-            if ticker in levels.get_level_values(0):
+        try:
 
-                sub = downloaded[ticker]
+            if symbol in result.columns.get_level_values(0):
 
-                if isinstance(sub, pd.DataFrame):
-                    return sub
+                result = result[symbol]
 
-            # group_by=column
-            if ticker in levels.get_level_values(1):
+            elif symbol in result.columns.get_level_values(1):
 
-                try:
+                result = result.xs(
+                    symbol,
+                    axis=1,
+                    level=1
+                )
 
-                    return downloaded.xs(
-                        ticker,
-                        axis=1,
-                        level=1
-                    )
+        except Exception:
 
-                except Exception:
-                    pass
+            pass
 
-        else:
-
-            return downloaded
-
-    except Exception:
-        pass
-
-    return None
+    return result
 
 
-def _get_close_series(frame):
+def _get_close_series(
+    frame
+):
 
     if frame is None or frame.empty:
+
         return None
 
-    for column in [
+    if isinstance(
+        frame.columns,
+        pd.MultiIndex
+    ):
+
+        try:
+
+            frame = frame.copy()
+
+            frame.columns = [
+                str(
+                    c[-1]
+                    if isinstance(c, tuple)
+                    else c
+                )
+                for c in frame.columns
+            ]
+
+        except Exception:
+
+            return None
+
+    for name in (
         "Close",
         "close",
         "Adj Close",
         "adj close",
-    ]:
+    ):
 
-        if column in frame.columns:
+        if name in frame.columns:
 
             series = pd.to_numeric(
-                frame[column],
+                frame[name],
                 errors="coerce"
             ).dropna()
 
             if not series.empty:
+
                 return series
 
     return None
 
 
-def _get_last_price_from_frame(frame):
+def _get_last_price_from_frame(
+    frame
+):
 
-    series = _get_close_series(frame)
-
-    if series is None or series.empty:
-        return None
-
-    return _clean_float(
-        series.iloc[-1]
+    series = _get_close_series(
+        frame
     )
 
+    if series is None:
 
-def _get_fast_info_price(symbol):
+        return None
+
+    try:
+
+        return float(
+            series.iloc[-1]
+        )
+
+    except Exception:
+
+        return None
+
+
+def _get_fast_info_price(
+    symbol
+):
 
     try:
 
@@ -995,378 +1014,408 @@ def _get_fast_info_price(symbol):
 
         info = ticker.fast_info
 
-        for key in [
-            "lastPrice",
+        for key in (
             "last_price",
+            "lastPrice",
             "regularMarketPrice",
-            "regular_market_price",
-        ]:
+        ):
 
-            try:
-                value = info.get(key)
-            except Exception:
-                try:
-                    value = info[key]
-                except Exception:
-                    value = None
+            value = info.get(
+                key
+            )
 
-            value = _clean_float(value)
+            value = _clean_float(
+                value
+            )
 
             if value is not None:
+
                 return value
 
     except Exception:
+
         pass
 
     return None
 
 
 # ============================================================
-# CANLI FİYAT İNDİR
+# YAHOO DOWNLOAD
 # ============================================================
 
-def _download_live_prices(tickers):
+def _download_live_prices(
+    symbols
+):
 
-    unique = []
-    seen = set()
+    global LIVE_LAST_DOWNLOAD_TIME
 
-    for symbol in tickers:
-
-        symbol = (
-            str(symbol or "")
+    symbols = list(
+        dict.fromkeys(
+            str(s)
             .strip()
             .upper()
+            for s in symbols
+            if str(s).strip()
         )
+    )
 
-        if not symbol:
-            continue
+    if not symbols:
 
-        if symbol in [
-            "-",
-            "NAN",
-            "NONE",
-            "NULL",
-        ]:
-            continue
-
-        if symbol in seen:
-            continue
-
-        seen.add(symbol)
-        unique.append(symbol)
-
-    if not unique:
         return {}
 
-    results = {}
+    now = time.time()
 
-    now = _utc_now()
-
-    # ========================================================
-    # 1M INTRADAY
-    # ========================================================
-
-    for start in range(
-        0,
-        len(unique),
-        LIVE_BATCH_SIZE
+    # Genel cooldown.
+    # Arka arkaya endpoint çağrılarında
+    # Yahoo'ya tekrar gitme.
+    if (
+        now - LIVE_LAST_DOWNLOAD_TIME
+        < 2.0
     ):
 
-        batch = unique[
-            start:start + LIVE_BATCH_SIZE
-        ]
+        return {}
+
+    with LIVE_DOWNLOAD_LOCK:
+
+        now = time.time()
+
+        if (
+            now - LIVE_LAST_DOWNLOAD_TIME
+            < 2.0
+        ):
+
+            return {}
+
+        LIVE_LAST_DOWNLOAD_TIME = now
+
+        results = {}
+
+        utc_now = _utc_now()
+
+        # ====================================================
+        # 1M TEK BATCH
+        # ====================================================
 
         try:
 
-            downloaded = yf.download(
-                tickers=batch,
-                period="1d",
-                interval="1m",
+            frame = yf.download(
+                tickers=symbols,
+                period=LIVE_PERIOD,
+                interval=LIVE_INTERVAL,
                 auto_adjust=False,
-                prepost=True,
                 progress=False,
-                threads=True,
-                group_by="ticker",
-                timeout=15,
-                multi_level_index=True,
+                threads=False,
+                group_by="column",
             )
+
+            if (
+                frame is not None
+                and not frame.empty
+            ):
+
+                for symbol in symbols:
+
+                    try:
+
+                        ticker_frame = (
+                            _extract_ticker_from_download(
+                                frame,
+                                symbol
+                            )
+                        )
+
+                        price = (
+                            _get_last_price_from_frame(
+                                ticker_frame
+                            )
+                        )
+
+                        if price is not None:
+
+                            results[symbol] = {
+
+                                "price":
+                                    price,
+
+                                "previous_close":
+                                    None,
+
+                                "change":
+                                    None,
+
+                                "change_percent":
+                                    None,
+
+                                "status":
+                                    "LIVE",
+
+                                "source":
+                                    "Yahoo Finance / yfinance 1m",
+
+                                "updated_at_utc":
+                                    utc_now.isoformat(),
+
+                                "updated_at_tr":
+                                    _turkey_time_string(),
+                            }
+
+                    except Exception:
+
+                        continue
 
         except Exception as exc:
 
             print(
-                "[YAHOO 1M HATA]",
-                repr(exc)
+                "[YAHOO 1M UYARI]",
+                str(exc)
             )
 
-            downloaded = pd.DataFrame()
+        # ====================================================
+        # GÜNLÜK ÖNCEKİ KAPANIŞ
+        # ====================================================
 
-        if downloaded is None or downloaded.empty:
-            continue
+        missing_previous = [
+            symbol
+            for symbol in results
+            if results[symbol].get(
+                "previous_close"
+            ) is None
+        ]
 
-        for symbol in batch:
+        if missing_previous:
 
             try:
 
-                frame = _extract_ticker_from_download(
-                    downloaded,
-                    symbol
+                daily = yf.download(
+                    tickers=missing_previous,
+                    period="5d",
+                    interval="1d",
+                    auto_adjust=False,
+                    progress=False,
+                    threads=False,
+                    group_by="column",
                 )
 
-                if frame is None or frame.empty:
-                    continue
+                if (
+                    daily is not None
+                    and not daily.empty
+                ):
 
-                price = _get_last_price_from_frame(
-                    frame
-                )
+                    for symbol in missing_previous:
 
-                if price is None:
-                    continue
+                        try:
 
-                results[symbol] = {
-                    "price": price,
-                    "previous_close": None,
-                    "change": None,
-                    "change_percent": None,
-                    "updated_at_utc": now.isoformat(),
-                    "updated_at_tr": _turkey_time_string(now),
-                    "status": "LIVE",
-                    "source": "Yahoo Finance / yfinance 1m",
-                }
+                            ticker_frame = (
+                                _extract_ticker_from_download(
+                                    daily,
+                                    symbol
+                                )
+                            )
+
+                            close_series = (
+                                _get_close_series(
+                                    ticker_frame
+                                )
+                            )
+
+                            if (
+                                close_series is None
+                                or len(close_series) < 2
+                            ):
+
+                                continue
+
+                            previous_close = float(
+                                close_series.iloc[-2]
+                            )
+
+                            price = results[
+                                symbol
+                            ]["price"]
+
+                            if (
+                                previous_close > 0
+                                and price is not None
+                            ):
+
+                                change = (
+                                    price
+                                    - previous_close
+                                )
+
+                                change_percent = (
+                                    change
+                                    / previous_close
+                                    * 100
+                                )
+
+                                results[
+                                    symbol
+                                ][
+                                    "previous_close"
+                                ] = previous_close
+
+                                results[
+                                    symbol
+                                ][
+                                    "change"
+                                ] = change
+
+                                results[
+                                    symbol
+                                ][
+                                    "change_percent"
+                                ] = (
+                                    change_percent
+                                )
+
+                        except Exception:
+
+                            continue
 
             except Exception as exc:
 
                 print(
-                    "[YAHOO SEMBOL HATA]",
-                    symbol,
-                    repr(exc)
+                    "[YAHOO DAILY UYARI]",
+                    str(exc)
                 )
 
-    # ========================================================
-    # DAILY KAPANIŞ
-    # ========================================================
+        # ====================================================
+        # FAST_INFO FALLBACK
+        # ====================================================
 
-    result_symbols = list(results.keys())
-
-    for start in range(
-        0,
-        len(result_symbols),
-        LIVE_BATCH_SIZE
-    ):
-
-        batch = result_symbols[
-            start:start + LIVE_BATCH_SIZE
+        # Sadece eksik kalanlarda.
+        missing = [
+            symbol
+            for symbol in symbols
+            if symbol not in results
         ]
 
-        try:
+        # 429'u azaltmak için çok fazla
+        # fallback yapmıyoruz.
+        if missing:
 
-            daily = yf.download(
-                tickers=batch,
-                period="5d",
-                interval="1d",
-                auto_adjust=False,
-                prepost=False,
-                progress=False,
-                threads=True,
-                group_by="ticker",
-                timeout=15,
-                multi_level_index=True,
-            )
+            for symbol in missing[:10]:
 
-        except Exception as exc:
+                try:
 
-            print(
-                "[YAHOO DAILY HATA]",
-                repr(exc)
-            )
-
-            daily = pd.DataFrame()
-
-        if daily is None or daily.empty:
-            continue
-
-        for symbol in batch:
-
-            try:
-
-                frame = _extract_ticker_from_download(
-                    daily,
-                    symbol
-                )
-
-                series = _get_close_series(
-                    frame
-                )
-
-                if series is None or series.empty:
-                    continue
-
-                previous_close = None
-
-                if len(series) >= 2:
-
-                    previous_close = _clean_float(
-                        series.iloc[-2]
+                    price = (
+                        _get_fast_info_price(
+                            symbol
+                        )
                     )
 
-                if (
-                    previous_close is not None
-                    and
-                    symbol in results
-                ):
+                    if price is not None:
 
-                    results[symbol][
-                        "previous_close"
-                    ] = previous_close
+                        results[symbol] = {
 
-            except Exception:
-                continue
+                            "price":
+                                price,
 
-    # ========================================================
-    # DEĞİŞİM
-    # ========================================================
+                            "previous_close":
+                                None,
 
-    for symbol, item in results.items():
+                            "change":
+                                None,
 
-        price = _clean_float(
-            item.get("price")
-        )
+                            "change_percent":
+                                None,
 
-        previous = _clean_float(
-            item.get("previous_close")
-        )
+                            "status":
+                                "DELAYED",
 
-        if (
-            price is not None
-            and previous is not None
-            and previous != 0
-        ):
+                            "source":
+                                "Yahoo Finance / yfinance fast_info",
 
-            change = price - previous
+                            "updated_at_utc":
+                                utc_now.isoformat(),
 
-            change_percent = (
-                change
-                /
-                previous
-                *
-                100
-            )
+                            "updated_at_tr":
+                                _turkey_time_string(),
+                        }
 
-            item["change"] = change
+                except Exception:
 
-            item["change_percent"] = (
-                change_percent
-            )
+                    continue
 
-        else:
-
-            item["change"] = None
-            item["change_percent"] = None
-
-    # ========================================================
-    # FAST INFO FALLBACK
-    # ========================================================
-
-    missing = [
-        symbol
-        for symbol in unique
-        if symbol not in results
-    ]
-
-    # Sadece az sayıda sembolde tekil fallback.
-    # Böylece 10.000 sembollük istekte sunucu kilitlenmez.
-    for symbol in missing[:30]:
-
-        price = _get_fast_info_price(
-            symbol
-        )
-
-        if price is None:
-            continue
-
-        results[symbol] = {
-            "price": price,
-            "previous_close": None,
-            "change": None,
-            "change_percent": None,
-            "updated_at_utc": now.isoformat(),
-            "updated_at_tr": _turkey_time_string(now),
-            "status": "DELAYED",
-            "source": "Yahoo Finance / yfinance fast_info",
-        }
-
-    return results
+        return results
 
 
 # ============================================================
-# CANLI FİYAT CACHE
+# CACHE
 # ============================================================
 
-def get_live_prices(tickers):
+def get_live_prices(
+    symbols
+):
 
-    if not tickers:
-        return {}
-
-    unique = []
-    seen = set()
-
-    for symbol in tickers:
-
-        symbol = (
-            str(symbol or "")
+    symbols = list(
+        dict.fromkeys(
+            str(s)
             .strip()
             .upper()
+            for s in symbols
+            if str(s).strip()
         )
+    )
 
-        if not symbol:
-            continue
+    if not symbols:
 
-        if symbol in seen:
-            continue
-
-        seen.add(symbol)
-        unique.append(symbol)
+        return {}
 
     now = time.time()
 
-    result = {}
+    output = {}
+
     missing = []
+
+    # ========================================================
+    # CACHE
+    # ========================================================
 
     with live_price_cache_lock:
 
-        for symbol in unique:
+        for symbol in symbols:
 
-            cached = live_price_cache.get(
+            item = live_price_cache.get(
                 symbol
             )
 
-            if not cached:
+            if not item:
 
-                missing.append(symbol)
+                missing.append(
+                    symbol
+                )
+
                 continue
 
-            age = (
-                now
-                -
-                cached.get(
-                    "_cache_time",
+            cached_at = float(
+                item.get(
+                    "_cached_at",
                     0
                 )
             )
 
-            if age <= LIVE_PRICE_CACHE_SECONDS:
+            if (
+                now - cached_at
+                <= LIVE_PRICE_CACHE_SECONDS
+            ):
 
-                item = dict(cached)
-
-                item.pop(
-                    "_cache_time",
-                    None
-                )
-
-                result[symbol] = item
+                output[symbol] = {
+                    k: v
+                    for k, v in item.items()
+                    if k != "_cached_at"
+                }
 
             else:
 
-                missing.append(symbol)
+                missing.append(
+                    symbol
+                )
+
+    # ========================================================
+    # YENİ VERİ
+    # ========================================================
 
     if missing:
 
@@ -1378,51 +1427,78 @@ def get_live_prices(tickers):
 
             for symbol, item in fresh.items():
 
-                cached = dict(item)
+                item_copy = dict(
+                    item
+                )
 
-                cached["_cache_time"] = time.time()
+                item_copy[
+                    "_cached_at"
+                ] = time.time()
 
                 live_price_cache[
                     symbol
-                ] = cached
+                ] = item_copy
 
-                result[symbol] = dict(item)
+                output[symbol] = dict(
+                    item
+                )
 
-    return result
+    # ========================================================
+    # CACHE'DE OLMAYANLAR
+    # ========================================================
+
+    for symbol in symbols:
+
+        if symbol not in output:
+
+            output[symbol] = {
+
+                "price": None,
+
+                "previous_close": None,
+
+                "change": None,
+
+                "change_percent": None,
+
+                "status":
+                    "UNAVAILABLE",
+
+                "source":
+                    "Yahoo Finance / yfinance",
+
+                "updated_at_utc":
+                    None,
+
+                "updated_at_tr":
+                    None,
+            }
+
+    return output
 
 
 # ============================================================
-# DATAFRAME'E CANLI FİYAT UYGULA
+# DATAFRAME'E CANLI FİYAT
 # ============================================================
 
-def apply_live_prices_to_dataframe(df):
-
-    """
-    KRİTİK KURAL:
-
-    Canlı veri varsa:
-        Price = canlı fiyat
-        Change = gerçek günlük %
-
-    Canlı veri yoksa:
-        Price = None
-        Change = None
-
-    ESKİ CSV PRICE/CHANGE ASLA KULLANILMAZ.
-
-    AI_Predicted_Return:
-        AI tahmini olarak aynen korunur.
-    """
+def apply_live_prices_to_dataframe(
+    df
+):
 
     if df is None or df.empty:
 
-        return df, {
-            "updated_at_utc": None,
-            "updated_at_tr": None,
-            "live_count": 0,
-            "unavailable_count": 0,
-            "total_count": 0,
-        }
+        return (
+            df.copy()
+            if df is not None
+            else pd.DataFrame(),
+            {
+                "live_count": 0,
+                "unavailable_count": 0,
+                "total_count": 0,
+                "updated_at_utc": None,
+                "updated_at_tr": None,
+            }
+        )
 
     work = df.copy()
 
@@ -1434,462 +1510,185 @@ def apply_live_prices_to_dataframe(df):
         .tolist()
     )
 
-    live_data = get_live_prices(
+    prices = get_live_prices(
         symbols
     )
-
-    prices = []
-    changes = []
-    daily_changes = []
-
-    statuses = []
-    sources = []
-
-    updated_utc = []
-    updated_tr = []
 
     live_count = 0
     unavailable_count = 0
 
-    latest_utc = None
-    latest_tr = None
+    updated_utc = []
+    updated_tr = []
+
+    price_values = []
+    change_values = []
+    status_values = []
+    source_values = []
 
     for symbol in symbols:
 
-        symbol = (
-            str(symbol)
-            .strip()
-            .upper()
+        item = prices.get(
+            symbol,
+            {}
         )
 
-        item = live_data.get(
-            symbol
+        price = _clean_float(
+            item.get("price")
         )
 
-        if item:
+        change = _clean_float(
+            item.get("change_percent")
+        )
 
-            price = _clean_float(
-                item.get("price")
-            )
+        status = item.get(
+            "status",
+            "UNAVAILABLE"
+        )
 
-            change_percent = _clean_float(
-                item.get("change_percent")
-            )
+        source = item.get(
+            "source",
+            "Yahoo Finance / yfinance"
+        )
 
-            # ------------------------------------------------
-            # CANLI FİYAT VAR
-            # ------------------------------------------------
+        if price is not None:
 
-            if price is not None:
-
-                prices.append(price)
-
-                live_count += 1
-
-            else:
-
-                prices.append(None)
-
-                unavailable_count += 1
-
-            if change_percent is not None:
-
-                changes.append(
-                    change_percent
-                )
-
-                daily_changes.append(
-                    change_percent
-                )
-
-            else:
-
-                changes.append(None)
-
-                daily_changes.append(None)
-
-            statuses.append(
-                item.get(
-                    "status",
-                    "LIVE"
-                )
-            )
-
-            sources.append(
-                item.get(
-                    "source",
-                    "Yahoo Finance / yfinance"
-                )
-            )
-
-            utc_value = item.get(
-                "updated_at_utc"
-            )
-
-            tr_value = item.get(
-                "updated_at_tr"
-            )
-
-            updated_utc.append(
-                utc_value
-            )
-
-            updated_tr.append(
-                tr_value
-            )
-
-            if utc_value:
-                latest_utc = utc_value
-
-            if tr_value:
-                latest_tr = tr_value
+            live_count += 1
 
         else:
 
-            # =================================================
-            # CANLI VERİ YOK
-            # =================================================
-            #
-            # BURADA ESKİ CSV FİYATI KULLANMIYORUZ.
-            #
-
-            prices.append(None)
-
-            changes.append(None)
-
-            daily_changes.append(None)
-
-            statuses.append(
-                "UNAVAILABLE"
-            )
-
-            sources.append(
-                "Yahoo Finance verisi alınamadı"
-            )
-
-            updated_utc.append(None)
-            updated_tr.append(None)
-
             unavailable_count += 1
 
-    work["Price"] = prices
+        price_values.append(
+            price
+        )
 
-    work["Change"] = changes
+        change_values.append(
+            change
+        )
 
-    work["Live_Price"] = prices
+        status_values.append(
+            status
+        )
 
-    work["Daily_Change_Percent"] = daily_changes
+        source_values.append(
+            source
+        )
 
-    work["Price_Status"] = statuses
+        updated_utc.append(
+            item.get(
+                "updated_at_utc"
+            )
+        )
 
-    work["Price_Source"] = sources
+        updated_tr.append(
+            item.get(
+                "updated_at_tr"
+            )
+        )
 
-    work["Price_Updated_UTC"] = updated_utc
+    # ========================================================
+    # ÖNEMLİ:
+    # ESKİ CSV FİYATINA DÖNME.
+    # CANLI VERİ YOKSA NONE.
+    # ========================================================
 
-    work["Price_Updated_TR"] = updated_tr
+    work["Price"] = price_values
 
-    return work, {
-        "updated_at_utc": latest_utc,
-        "updated_at_tr": latest_tr,
-        "live_count": live_count,
-        "unavailable_count": unavailable_count,
-        "total_count": len(work),
+    work["Daily_Change_Percent"] = (
+        change_values
+    )
+
+    work["Price_Status"] = (
+        status_values
+    )
+
+    work["Price_Source"] = (
+        source_values
+    )
+
+    work["Price_Updated_UTC"] = (
+        updated_utc
+    )
+
+    work["Price_Updated_TR"] = (
+        updated_tr
+    )
+
+    latest_utc = next(
+        (
+            x
+            for x in updated_utc
+            if x
+        ),
+        None
+    )
+
+    latest_tr = next(
+        (
+            x
+            for x in updated_tr
+            if x
+        ),
+        None
+    )
+
+    meta = {
+
+        "live_count":
+            live_count,
+
+        "unavailable_count":
+            unavailable_count,
+
+        "total_count":
+            len(symbols),
+
+        "updated_at_utc":
+            latest_utc,
+
+        "updated_at_tr":
+            latest_tr,
     }
 
-
-# ============================================================
-# DISPLAY
-# ============================================================
-
-def prepare_display_dataframe(
-    df,
-    limit=DISPLAY_LIMIT
-):
-
-    df = normalize_signal_dataframe(df)
-
-    if df.empty:
-        return df
-
-    work = df.copy()
-
-    work = work[
-        ~work["Ticker"].isin(
-            ["", "-", "NAN", "NONE"]
-        )
-    ].copy()
-
-    work["_score"] = pd.to_numeric(
-        work["AI_Probability"],
-        errors="coerce"
-    ).fillna(0)
-
-    work["_date"] = pd.to_datetime(
-        work["Date"],
-        errors="coerce"
-    )
-
-    work = work[
-        work["Signal"].isin(
-            ["BUY", "SELL"]
-        )
-        &
-        (
-            work["_score"]
-            >=
-            MIN_SIGNAL_SCORE
-        )
-    ]
-
-    if work.empty:
-        return work
-
-    work = work.sort_values(
-        [
-            "_date",
-            "_score"
-        ],
-        ascending=[
-            False,
-            False
-        ],
-        na_position="last"
-    )
-
-    work = work.drop_duplicates(
-        "Ticker",
-        keep="first"
-    )
-
-    work = work.sort_values(
-        "_score",
-        ascending=False
-    )
-
-    work = work.head(
-        min(
-            int(limit),
-            DISPLAY_LIMIT
-        )
-    )
-
-    return work.drop(
-        columns=[
-            "_score",
-            "_date"
-        ],
-        errors="ignore"
-    )
-
-
-# ============================================================
-# JSON
-# ============================================================
-
-def dataframe_to_records(df):
-
-    if df is None or df.empty:
-        return []
-
-    df = df.replace(
-        [float("inf"), float("-inf")],
-        None
-    )
-
-    df = df.where(
-        pd.notnull(df),
-        None
-    )
-
-    records = df.to_dict(
-        orient="records"
-    )
-
-    result = []
-
-    for row in records:
-
-        clean = {}
-
-        for key, value in row.items():
-
-            if value is None:
-
-                clean[key] = None
-                continue
-
-            try:
-
-                if pd.isna(value):
-
-                    clean[key] = None
-                    continue
-
-            except Exception:
-                pass
-
-            if hasattr(value, "item"):
-
-                try:
-                    clean[key] = value.item()
-                except Exception:
-                    clean[key] = str(value)
-
-            else:
-
-                clean[key] = value
-
-        result.append(clean)
-
-    return result
+    return work, meta
 
 
 # ============================================================
 # ANA SAYFA
 # ============================================================
 
-def render_fallback_home():
-
-    return """
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LEVEL 1000 AI</title>
-<style>
-*{box-sizing:border-box}
-body{
-margin:0;
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-padding:20px;
-font-family:Arial,Helvetica,sans-serif;
-background:#0b1020;
-color:#fff
-}
-.box{
-width:100%;
-max-width:900px;
-padding:55px 35px;
-text-align:center;
-background:#121a2d;
-border:1px solid #27304a;
-border-radius:22px;
-box-shadow:0 20px 60px rgba(0,0,0,.35)
-}
-.logo{
-font-size:40px;
-font-weight:900;
-margin-bottom:20px
-}
-.logo span{color:#7ea2ff}
-h1{margin:0 0 18px;font-size:30px}
-p{
-max-width:680px;
-margin:0 auto;
-color:#aeb8cc;
-font-size:17px;
-line-height:1.7
-}
-.online{
-display:inline-block;
-margin-top:28px;
-padding:10px 18px;
-background:#17233d;
-border-radius:8px;
-color:#8fe3a4;
-font-weight:700
-}
-.buttons{
-display:flex;
-justify-content:center;
-flex-wrap:wrap;
-gap:10px;
-margin-top:30px
-}
-.buttons a{
-display:inline-block;
-padding:11px 18px;
-background:#263657;
-color:#fff;
-text-decoration:none;
-border-radius:9px;
-font-weight:700
-}
-footer{
-margin-top:35px;
-color:#69758c;
-font-size:13px
-}
-</style>
-</head>
-<body>
-<div class="box">
-<div class="logo">LEVEL <span>1000</span> AI</div>
-<h1>Yapay Zeka Destekli Finansal Analiz</h1>
-<p>
-LEVEL 1000 AI; finansal piyasaları,
-yapay zeka ve makine öğrenmesi tabanlı
-analizlerle değerlendiren karar destek platformudur.
-</p>
-<div class="online">● LEVEL 1000 AI ONLINE</div>
-<div class="buttons">
-<a href="/about">Hakkımızda</a>
-<a href="/guide">Kullanım Rehberi</a>
-<a href="/risk">Risk Açıklaması</a>
-<a href="/privacy">Gizlilik</a>
-<a href="/contact">İletişim</a>
-<a href="/api/health">Sistem Durumu</a>
-</div>
-<footer>© 2026 LEVEL 1000 AI</footer>
-</div>
-</body>
-</html>
-"""
-
-
 @app.get(
     "/",
     response_class=HTMLResponse
 )
-async def home():
+async def home(
+    request: Request
+):
 
-    index_file = TEMPLATES_DIR / "index.html"
+    index_file = (
+        TEMPLATES_DIR /
+        "index.html"
+    )
 
-    if index_file.is_file():
+    if index_file.exists():
 
-        try:
-
-            html = index_file.read_text(
-                encoding="utf-8"
-            )
-
-            return HTMLResponse(
-                content=html,
-                status_code=200,
-                headers={
-                    "Cache-Control":
-                        "no-store, no-cache, must-revalidate, max-age=0",
-                    "Pragma": "no-cache",
-                    "Expires": "0",
-                }
-            )
-
-        except Exception:
-            pass
+        return templates.TemplateResponse(
+            request=request,
+            name="index.html"
+        )
 
     return HTMLResponse(
-        content=render_fallback_home(),
-        status_code=200,
-        headers={
-            "Cache-Control":
-                "no-store, no-cache, must-revalidate, max-age=0",
-            "Pragma": "no-cache",
-            "Expires": "0",
-        }
+        """
+        <html>
+        <head>
+        <title>LEVEL 1000 AI</title>
+        </head>
+        <body>
+        <h1>LEVEL 1000 AI</h1>
+        <p>Web uygulaması aktif.</p>
+        </body>
+        </html>
+        """
     )
 
 
@@ -1897,384 +1696,126 @@ async def home():
 # PUBLIC SAYFALAR
 # ============================================================
 
-PUBLIC_PAGES = {
+def simple_page(
+    title,
+    text
+):
 
-    "/about": {
-        "title": "Hakkımızda - LEVEL 1000 AI",
-        "heading": "LEVEL 1000 AI Hakkında",
-        "text": """
-LEVEL 1000 AI, finansal piyasaları analiz etmek için geliştirilmiş
-yapay zeka ve makine öğrenmesi tabanlı bir analiz platformudur.
-
-Platform; teknik göstergeler, makine öğrenmesi tahminleri,
-sinyal gücü ve geçmiş performans verilerini birlikte değerlendirerek
-kullanıcıya karar destek amaçlı piyasa analizleri sunar.
-
-LEVEL 1000 AI yatırım danışmanlığı veya garanti edilmiş getiri hizmeti
-değildir. Üretilen sinyaller yalnızca bilgi ve araştırma amacıyla
-kullanılmalıdır.
-"""
-    },
-
-    "/guide": {
-        "title": "Kullanım Rehberi - LEVEL 1000 AI",
-        "heading": "LEVEL 1000 AI Kullanım Rehberi",
-        "text": """
-Dashboard üzerinden mevcut piyasa sinyallerini inceleyebilirsiniz.
-
-BUY sinyali yükseliş yönlü,
-SELL sinyali düşüş yönlü,
-HOLD sinyali ise belirgin bir yön bulunmadığını ifade eder.
-
-AI Probability değeri modelin tahmin güvenini,
-Predicted Return ise model tarafından tahmin edilen potansiyel
-hareketi gösterir.
-
-Sinyaller yatırım tavsiyesi değildir.
-"""
-    },
-
-    "/risk": {
-        "title": "Risk Açıklaması - LEVEL 1000 AI",
-        "heading": "Risk Açıklaması",
-        "text": """
-Finansal piyasalarda işlem yapmak sermaye kaybı riski içerir.
-
-LEVEL 1000 AI tarafından oluşturulan hiçbir sinyal veya tahmin
-gelecekteki fiyat hareketlerini garanti etmez.
-
-Geçmiş performans gelecekteki sonuçların göstergesi değildir.
-"""
-    },
-
-    "/privacy": {
-        "title": "Gizlilik Politikası - LEVEL 1000 AI",
-        "heading": "Gizlilik Politikası",
-        "text": """
-LEVEL 1000 AI kullanıcı hesaplarının çalışması için gerekli temel
-bilgileri saklayabilir.
-
-Parolalar düz metin olarak saklanmaz.
-"""
-    },
-
-    "/cookies": {
-        "title": "Çerez Politikası - LEVEL 1000 AI",
-        "heading": "Çerez Politikası",
-        "text": """
-LEVEL 1000 AI, kullanıcı oturumu ve platformun temel işlevlerinin
-çalışması için gerekli teknik mekanizmaları kullanabilir.
-"""
-    },
-
-    "/terms": {
-        "title": "Kullanım Şartları - LEVEL 1000 AI",
-        "heading": "Kullanım Şartları",
-        "text": """
-LEVEL 1000 AI yalnızca bilgi, analiz ve araştırma amaçlı bir
-platformdur.
-
-Platform tarafından oluşturulan sinyaller yatırım tavsiyesi,
-finansal danışmanlık veya garanti edilmiş kazanç olarak
-değerlendirilmemelidir.
-"""
-    },
-
-    "/contact": {
-        "title": "İletişim - LEVEL 1000 AI",
-        "heading": "İletişim",
-        "text": """
-LEVEL 1000 AI hakkında sorularınız, teknik sorunlarınız veya
-geri bildirimleriniz varsa platform yöneticisiyle iletişime
-geçebilirsiniz.
-"""
-    },
-}
-
-
-def render_public_page(page):
-
-    return f"""
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{page["title"]}</title>
-<style>
-*{{box-sizing:border-box}}
-body{{
-margin:0;
-background:#0b1020;
-color:#e8ecf5;
-font-family:Arial,Helvetica,sans-serif;
-line-height:1.7
-}}
-.container{{
-width:100%;
-max-width:1000px;
-margin:auto;
-padding:30px 20px 50px
-}}
-header{{
-padding-bottom:25px;
-margin-bottom:30px;
-border-bottom:1px solid #27304a
-}}
-.logo{{
-font-size:25px;
-font-weight:800
-}}
-.logo span{{color:#7ea2ff}}
-nav{{
-display:flex;
-flex-wrap:wrap;
-gap:10px;
-margin-top:20px
-}}
-nav a{{
-padding:7px 11px;
-color:#aebfff;
-text-decoration:none;
-border-radius:7px
-}}
-main{{
-background:#121a2d;
-border:1px solid #27304a;
-border-radius:16px;
-padding:40px
-}}
-h1{{margin-top:0;color:#fff}}
-p{{white-space:pre-line;color:#cbd3e5}}
-.back{{
-display:inline-block;
-margin-top:30px;
-padding:10px 16px;
-background:#1b2640;
-color:#fff;
-border-radius:8px;
-text-decoration:none
-}}
-footer{{
-margin-top:35px;
-padding-top:25px;
-border-top:1px solid #27304a;
-color:#8993aa
-}}
-footer a{{
-margin-right:15px;
-color:#9db7ff;
-text-decoration:none
-}}
-</style>
-</head>
-<body>
-<div class="container">
-<header>
-<div class="logo">LEVEL <span>1000</span> AI</div>
-<nav>
-<a href="/">Ana Sayfa</a>
-<a href="/about">Hakkımızda</a>
-<a href="/guide">Rehber</a>
-<a href="/risk">Risk</a>
-<a href="/privacy">Gizlilik</a>
-<a href="/cookies">Çerezler</a>
-<a href="/terms">Şartlar</a>
-<a href="/contact">İletişim</a>
-</nav>
-</header>
-<main>
-<h1>{page["heading"]}</h1>
-<p>{page["text"]}</p>
-<a class="back" href="/">← Ana Sayfaya Dön</a>
-</main>
-<footer>
-<a href="/about">Hakkımızda</a>
-<a href="/guide">Rehber</a>
-<a href="/privacy">Gizlilik</a>
-<a href="/cookies">Çerezler</a>
-<a href="/terms">Şartlar</a>
-<a href="/risk">Risk</a>
-<a href="/contact">İletişim</a>
-<br><br>
-© 2026 LEVEL 1000 AI
-</footer>
-</div>
-</body>
-</html>
-"""
-
-
-for public_path, public_data in PUBLIC_PAGES.items():
-
-    def make_route(data):
-
-        async def public_page():
-
-            return HTMLResponse(
-                content=render_public_page(data)
-            )
-
-        return public_page
-
-    app.add_api_route(
-        public_path,
-        make_route(public_data),
-        methods=["GET"],
-        response_class=HTMLResponse
+    return HTMLResponse(
+        f"""
+        <!DOCTYPE html>
+        <html lang="tr">
+        <head>
+        <meta charset="UTF-8">
+        <title>{title}</title>
+        <style>
+        body {{
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #0b1020;
+            color: #fff;
+        }}
+        h1 {{
+            margin-bottom: 20px;
+        }}
+        p {{
+            line-height: 1.7;
+            color: #cbd5e1;
+        }}
+        </style>
+        </head>
+        <body>
+        <h1>{title}</h1>
+        <p>{text}</p>
+        </body>
+        </html>
+        """
     )
 
-
-# ============================================================
-# ROBOTS
-# ============================================================
 
 @app.get(
-    "/robots.txt",
-    response_class=PlainTextResponse
+    "/about",
+    response_class=HTMLResponse
 )
-async def robots_txt(
-    request: Request
-):
+async def about():
 
-    return """User-agent: *
-Allow: /
-
-Sitemap: /sitemap.xml
-"""
-
-
-# ============================================================
-# SITEMAP
-# ============================================================
-
-@app.get("/sitemap.xml")
-async def sitemap_xml():
-
-    urls = [
-        "/",
-        "/about",
-        "/guide",
-        "/risk",
-        "/privacy",
-        "/cookies",
-        "/terms",
-        "/contact",
-    ]
-
-    xml = [
-        '<?xml version="1.0" encoding="UTF-8"?>',
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-    ]
-
-    for url in urls:
-
-        xml.append(
-            f"<url><loc>{url}</loc></url>"
-        )
-
-    xml.append("</urlset>")
-
-    return Response(
-        content="\n".join(xml),
-        media_type="application/xml"
+    return simple_page(
+        "LEVEL 1000 AI",
+        "Yapay zeka destekli piyasa araştırma ve sinyal analiz platformu."
     )
 
 
-# ============================================================
-# ERROR
-# ============================================================
+@app.get(
+    "/guide",
+    response_class=HTMLResponse
+)
+async def guide():
 
-def render_error_page(
-    code,
-    title,
-    message
-):
-
-    return f"""
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>{code} - LEVEL 1000 AI</title>
-<style>
-body{{
-margin:0;
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#0b1020;
-color:#fff;
-font-family:Arial
-}}
-.box{{
-max-width:620px;
-padding:45px 35px;
-text-align:center;
-background:#121a2d;
-border:1px solid #27304a;
-border-radius:20px
-}}
-.code{{
-font-size:82px;
-font-weight:900;
-color:#7ea2ff
-}}
-p{{color:#aeb8cc;line-height:1.7}}
-a{{
-display:inline-block;
-margin-top:30px;
-padding:12px 22px;
-background:#263657;
-color:#fff;
-text-decoration:none;
-border-radius:9px
-}}
-</style>
-</head>
-<body>
-<div class="box">
-<div class="code">{code}</div>
-<h1>{title}</h1>
-<p>{message}</p>
-<a href="/">← Ana Sayfaya Dön</a>
-</div>
-</body>
-</html>
-"""
-
-
-@app.exception_handler(404)
-async def not_found_handler(
-    request: Request,
-    exc
-):
-
-    return HTMLResponse(
-        content=render_error_page(
-            404,
-            "Sayfa Bulunamadı",
-            "Aradığınız sayfa mevcut değil."
-        ),
-        status_code=404
+    return simple_page(
+        "Kullanım Rehberi",
+        "Sistem sinyal verilerini analiz eder. BUY, SELL ve HOLD sonuçları yatırım tavsiyesi değildir."
     )
 
 
-@app.exception_handler(500)
-async def server_error_handler(
-    request: Request,
-    exc
-):
+@app.get(
+    "/risk",
+    response_class=HTMLResponse
+)
+async def risk():
 
-    return HTMLResponse(
-        content=render_error_page(
-            500,
-            "Sunucu Hatası",
-            "Sunucu tarafında beklenmeyen bir hata oluştu."
-        ),
-        status_code=500
+    return simple_page(
+        "Risk Bildirimi",
+        "LEVEL 1000 AI finansal danışmanlık veya yatırım garantisi sunmaz. Geçmiş performans gelecekteki sonuçların garantisi değildir."
+    )
+
+
+@app.get(
+    "/privacy",
+    response_class=HTMLResponse
+)
+async def privacy():
+
+    return simple_page(
+        "Gizlilik",
+        "Kullanıcı hesap bilgileri uygulamanın kullanıcı veritabanında tutulur."
+    )
+
+
+@app.get(
+    "/cookies",
+    response_class=HTMLResponse
+)
+async def cookies():
+
+    return simple_page(
+        "Çerezler",
+        "Oturum yönetimi için gerekli teknik çerezler kullanılabilir."
+    )
+
+
+@app.get(
+    "/terms",
+    response_class=HTMLResponse
+)
+async def terms():
+
+    return simple_page(
+        "Kullanım Şartları",
+        "LEVEL 1000 AI yalnızca araştırma ve eğitim amaçlı kullanılmalıdır."
+    )
+
+
+@app.get(
+    "/contact",
+    response_class=HTMLResponse
+)
+async def contact():
+
+    return simple_page(
+        "İletişim",
+        "LEVEL 1000 AI destek kanallarından uygulama yöneticisine ulaşabilirsiniz."
     )
 
 
@@ -2287,22 +1828,37 @@ async def register(
     data: RegisterRequest
 ):
 
-    name = data.name.strip()
-    email = str(data.email).lower().strip()
-    password = data.password
+    name = str(
+        data.name
+    ).strip()
+
+    email = str(
+        data.email
+    ).strip().lower()
+
+    password = str(
+        data.password
+    )
 
     if len(name) < 2:
 
         raise HTTPException(
             status_code=400,
-            detail="Ad soyad en az 2 karakter olmalıdır."
+            detail="Ad soyad gerekli."
         )
 
-    if len(password) < 8:
+    if "@" not in email:
 
         raise HTTPException(
             status_code=400,
-            detail="Şifre en az 8 karakter olmalıdır."
+            detail="Geçerli e-posta girin."
+        )
+
+    if len(password) < 6:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Şifre en az 6 karakter olmalıdır."
         )
 
     conn = get_db()
@@ -2321,17 +1877,19 @@ async def register(
         conn.close()
 
         raise HTTPException(
-            status_code=409,
-            detail="Bu e-posta adresi zaten kayıtlı."
+            status_code=400,
+            detail="Bu e-posta zaten kayıtlı."
         )
 
     hashed = password_hash.hash(
         password
     )
 
-    created_at = datetime.now(
-        timezone.utc
-    ).isoformat()
+    created = (
+        datetime.now(
+            timezone.utc
+        ).isoformat()
+    )
 
     cursor = conn.execute(
         """
@@ -2342,48 +1900,55 @@ async def register(
             password_hash,
             plan,
             is_admin,
-            created_at,
-            scan_count
+            scan_count,
+            created_at
         )
-        VALUES (?, ?, ?, 'FREE', 0, ?, 0)
+        VALUES
+        (?, ?, ?, 'FREE', 0, 0, ?)
         """,
         (
             name,
             email,
             hashed,
-            created_at
+            created
         )
     )
 
     conn.commit()
 
-    user = conn.execute(
+    user_id = cursor.lastrowid
+
+    row = conn.execute(
         """
-        SELECT
-            id,
-            name,
-            email,
-            plan,
-            is_admin,
-            created_at,
-            scan_count
+        SELECT *
         FROM users
         WHERE id = ?
         """,
-        (cursor.lastrowid,)
+        (user_id,)
     ).fetchone()
 
     conn.close()
 
-    token = create_token(user)
+    user = user_dict(
+        row
+    )
+
+    token = create_token(
+        user
+    )
 
     return {
+
         "ok": True,
-        "message": "Hesabınız oluşturuldu.",
-        "access_token": token,
-        "token_type": "bearer",
-        "token": token,
-        "user": user_dict(user),
+
+        "message":
+            "Kayıt başarılı.",
+
+        "token":
+            token,
+
+        "user":
+            user,
     }
 
 
@@ -2398,11 +1963,15 @@ async def login(
 
     email = str(
         data.email
-    ).lower().strip()
+    ).strip().lower()
+
+    password = str(
+        data.password
+    )
 
     conn = get_db()
 
-    user = conn.execute(
+    row = conn.execute(
         """
         SELECT *
         FROM users
@@ -2413,7 +1982,7 @@ async def login(
 
     conn.close()
 
-    if not user:
+    if not row:
 
         raise HTTPException(
             status_code=401,
@@ -2423,8 +1992,8 @@ async def login(
     try:
 
         valid = password_hash.verify(
-            data.password,
-            user["password_hash"]
+            password,
+            row["password_hash"]
         )
 
     except Exception:
@@ -2438,15 +2007,26 @@ async def login(
             detail="E-posta veya şifre hatalı."
         )
 
-    token = create_token(user)
+    user = user_dict(
+        row
+    )
+
+    token = create_token(
+        user
+    )
 
     return {
+
         "ok": True,
-        "message": "Giriş başarılı.",
-        "access_token": token,
-        "token_type": "bearer",
-        "token": token,
-        "user": user_dict(user),
+
+        "message":
+            "Giriş başarılı.",
+
+        "token":
+            token,
+
+        "user":
+            user,
     }
 
 
@@ -2460,8 +2040,11 @@ async def me(
 ):
 
     return {
+
         "ok": True,
-        "user": user_dict(user)
+
+        "user":
+            user,
     }
 
 
@@ -2470,18 +2053,53 @@ async def me(
 # ============================================================
 
 @app.get("/api/plan")
-async def current_plan(
+async def plan(
     user=Depends(get_current_user)
 ):
 
-    config = get_plan_config(user)
+    config = get_plan_config(
+        user
+    )
+
+    used = int(
+        user["scan_count"]
+    )
+
+    if bool(
+        user["is_admin"]
+    ):
+
+        remaining = 999999
+
+    else:
+
+        remaining = max(
+            0,
+            int(config["scan_limit"])
+            - used
+        )
 
     return {
+
         "ok": True,
-        "plan": config["name"],
-        "level": config["level"],
-        "display_limit": config["display_limit"],
-        "features": config,
+
+        "plan":
+            config["name"],
+
+        "plan_level":
+            config["level"],
+
+        "features":
+            config,
+
+        "scan_used":
+            used,
+
+        "scan_limit":
+            config["scan_limit"],
+
+        "scan_remaining":
+            remaining,
     }
 
 
@@ -2493,8 +2111,11 @@ async def current_plan(
 async def logout():
 
     return {
+
         "ok": True,
-        "message": "Çıkış yapıldı."
+
+        "message":
+            "Çıkış yapıldı."
     }
 
 
@@ -2507,41 +2128,64 @@ async def signals(
     user=Depends(get_current_user)
 ):
 
-    config = get_plan_config(user)
+    config = get_plan_config(
+        user
+    )
 
-    signal_file, df = find_signal_file()
+    signal_file, df = (
+        find_signal_file()
+    )
 
     if df.empty:
 
         return {
+
             "ok": True,
+
             "total": 0,
+
             "buy": 0,
+
             "sell": 0,
+
             "hold": 0,
+
             "top": 0,
-            "display_limit": config["display_limit"],
-            "min_score": MIN_SIGNAL_SCORE,
-            "plan": config["name"],
+
+            "display_limit":
+                config["display_limit"],
+
+            "min_score":
+                MIN_SIGNAL_SCORE,
+
+            "plan":
+                config["name"],
+
             "signals": [],
+
             "live_prices": True,
+
             "live_price_count": 0,
+
             "live_price_unavailable": 0,
+
             "live_price_total": 0,
+
             "last_update_utc": None,
+
             "last_update_tr": None,
-            "price_source": "Yahoo Finance / yfinance",
+
+            "price_source":
+                "Yahoo Finance / yfinance",
         }
 
-    df = normalize_signal_dataframe(df)
-
-    # ========================================================
-    # CANLI FİYAT UYGULA
-    # ========================================================
-
-    df, live_meta = apply_live_prices_to_dataframe(
+    df = normalize_signal_dataframe(
         df
     )
+
+    # ========================================================
+    # ÖNCE SAYILAR
+    # ========================================================
 
     total = len(df)
 
@@ -2563,13 +2207,31 @@ async def signals(
         ).sum()
     )
 
-    display_df = prepare_display_dataframe(
-        df,
-        config["display_limit"]
+    # ========================================================
+    # ÖNCE TOP LİSTE
+    # ========================================================
+
+    display_df = (
+        prepare_display_dataframe(
+            df,
+            config["display_limit"]
+        )
     )
 
-    raw_records = dataframe_to_records(
-        display_df
+    # ========================================================
+    # SADECE TOP LİSTEYE CANLI FİYAT
+    # ========================================================
+
+    display_df, live_meta = (
+        apply_live_prices_to_dataframe(
+            display_df
+        )
+    )
+
+    raw_records = (
+        dataframe_to_records(
+            display_df
+        )
     )
 
     records = []
@@ -2580,59 +2242,37 @@ async def signals(
         # AI TAHMİNİ
         # ----------------------------------------------------
 
-        try:
-
-            predicted_raw = row.get(
+        predicted = _clean_float(
+            row.get(
                 "AI_Predicted_Return"
             )
+        )
 
-            predicted = (
-                float(predicted_raw)
-                if predicted_raw is not None
-                else 0.0
-            )
-
-        except Exception:
+        if predicted is None:
 
             predicted = 0.0
 
         # ----------------------------------------------------
-        # GERÇEK CANLI FİYAT
+        # CANLI FİYAT
         # ----------------------------------------------------
 
-        try:
-
-            raw_price = row.get(
+        price = _clean_float(
+            row.get(
                 "Price"
             )
-
-            price = (
-                float(raw_price)
-                if raw_price is not None
-                else None
-            )
-
-        except Exception:
-
-            price = None
+        )
 
         # ----------------------------------------------------
         # AI SCORE
         # ----------------------------------------------------
 
-        try:
-
-            raw_score = row.get(
+        score = _clean_float(
+            row.get(
                 "AI_Probability"
             )
+        )
 
-            score = (
-                float(raw_score)
-                if raw_score is not None
-                else 0.0
-            )
-
-        except Exception:
+        if score is None:
 
             score = 0.0
 
@@ -2640,91 +2280,89 @@ async def signals(
         # GERÇEK GÜNLÜK DEĞİŞİM
         # ----------------------------------------------------
 
-        try:
-
-            raw_change = row.get(
+        daily_change = _clean_float(
+            row.get(
                 "Daily_Change_Percent"
             )
-
-            daily_change = (
-                float(raw_change)
-                if raw_change is not None
-                else None
-            )
-
-        except Exception:
-
-            daily_change = None
+        )
 
         records.append({
 
-            "symbol": str(
-                row.get(
-                    "Ticker",
-                    "-"
-                )
-            ),
+            "symbol":
+                str(
+                    row.get(
+                        "Ticker",
+                        "-"
+                    )
+                ),
 
-            "signal": str(
-                row.get(
-                    "Signal",
-                    "HOLD"
-                )
-            ),
+            "signal":
+                str(
+                    row.get(
+                        "Signal",
+                        "HOLD"
+                    )
+                ),
 
-            "score": round(
-                score,
-                4
-            ),
-
-            # SADECE CANLI FİYAT
-            "price": (
+            "score":
                 round(
-                    price,
-                    6
-                )
-                if price is not None
-                else None
-            ),
+                    score,
+                    4
+                ),
+
+            "price":
+                (
+                    round(
+                        price,
+                        6
+                    )
+                    if price is not None
+                    else None
+                ),
 
             # SADECE AI TAHMİNİ
-            "predicted_return": round(
-                predicted,
-                6
-            ),
-
-            # SADECE GERÇEK GÜNLÜK %
-            "change": (
+            "predicted_return":
                 round(
-                    daily_change,
+                    predicted,
                     6
-                )
-                if daily_change is not None
-                else None
-            ),
+                ),
 
-            "daily_change_percent": (
-                round(
-                    daily_change,
-                    6
-                )
-                if daily_change is not None
-                else None
-            ),
+            # SADECE GERÇEK GÜNLÜK DEĞİŞİM
+            "change":
+                (
+                    round(
+                        daily_change,
+                        6
+                    )
+                    if daily_change is not None
+                    else None
+                ),
 
-            "price_status": str(
-                row.get(
-                    "Price_Status",
-                    "UNAVAILABLE"
-                )
-            ),
+            "daily_change_percent":
+                (
+                    round(
+                        daily_change,
+                        6
+                    )
+                    if daily_change is not None
+                    else None
+                ),
 
-            "price_source": str(
-                row.get(
-                    "Price_Source",
-                    "Yahoo Finance / yfinance"
-                )
-            ),
+            "price_status":
+                str(
+                    row.get(
+                        "Price_Status",
+                        "UNAVAILABLE"
+                    )
+                ),
+
+            "price_source":
+                str(
+                    row.get(
+                        "Price_Source",
+                        "Yahoo Finance / yfinance"
+                    )
+                ),
 
             "price_updated_utc":
                 row.get(
@@ -2736,24 +2374,33 @@ async def signals(
                     "Price_Updated_TR"
                 ),
 
-            "date": str(
-                row.get(
-                    "Date",
-                    "-"
-                )
-            ),
+            "date":
+                str(
+                    row.get(
+                        "Date",
+                        "-"
+                    )
+                ),
         })
 
     return {
 
         "ok": True,
 
-        "total": total,
-        "buy": buy,
-        "sell": sell,
-        "hold": hold,
+        "total":
+            total,
 
-        "top": len(records),
+        "buy":
+            buy,
+
+        "sell":
+            sell,
+
+        "hold":
+            hold,
+
+        "top":
+            len(records),
 
         "display_limit":
             config["display_limit"],
@@ -2780,22 +2427,33 @@ async def signals(
         "signals":
             records,
 
-        "live_prices": True,
+        "live_prices":
+            True,
 
         "live_price_count":
-            live_meta["live_count"],
+            live_meta[
+                "live_count"
+            ],
 
         "live_price_unavailable":
-            live_meta["unavailable_count"],
+            live_meta[
+                "unavailable_count"
+            ],
 
         "live_price_total":
-            live_meta["total_count"],
+            live_meta[
+                "total_count"
+            ],
 
         "last_update_utc":
-            live_meta["updated_at_utc"],
+            live_meta[
+                "updated_at_utc"
+            ],
 
         "last_update_tr":
-            live_meta["updated_at_tr"],
+            live_meta[
+                "updated_at_tr"
+            ],
 
         "price_source":
             "Yahoo Finance / yfinance",
@@ -2807,14 +2465,14 @@ async def signals(
 
 # ============================================================
 # CANLI FİYAT TEST
-#
-# DİKKAT:
-# BURADA USER DEPENDENCY YOK.
-# LOGIN GEREKTİRMEZ.
 # ============================================================
 
-@app.get("/api/live-price/{symbol}")
-async def live_price(symbol: str):
+@app.get(
+    "/api/live-price/{symbol}"
+)
+async def live_price(
+    symbol: str
+):
 
     symbol = (
         str(symbol)
@@ -2843,7 +2501,8 @@ async def live_price(symbol: str):
 
             "ok": False,
 
-            "symbol": symbol,
+            "symbol":
+                symbol,
 
             "price": None,
 
@@ -2853,43 +2512,52 @@ async def live_price(symbol: str):
 
             "change_percent": None,
 
-            "status": "UNAVAILABLE",
+            "status":
+                "UNAVAILABLE",
 
             "source":
                 "Yahoo Finance / yfinance",
 
-            "updated_at_utc": None,
+            "updated_at_utc":
+                None,
 
-            "updated_at_tr": None,
-
-            "message":
-                "Yahoo Finance canlı fiyat verisi alınamadı.",
+            "updated_at_tr":
+                None,
         }
 
     return {
 
         "ok": True,
 
-        "symbol": symbol,
+        "symbol":
+            symbol,
 
         "price":
             _clean_float(
-                item.get("price")
+                item.get(
+                    "price"
+                )
             ),
 
         "previous_close":
             _clean_float(
-                item.get("previous_close")
+                item.get(
+                    "previous_close"
+                )
             ),
 
         "change":
             _clean_float(
-                item.get("change")
+                item.get(
+                    "change"
+                )
             ),
 
         "change_percent":
             _clean_float(
-                item.get("change_percent")
+                item.get(
+                    "change_percent"
+                )
             ),
 
         "status":
@@ -2925,74 +2593,79 @@ async def status(
     user=Depends(get_current_user)
 ):
 
-    signal_file, df = find_signal_file()
+    signal_file, df = (
+        find_signal_file()
+    )
 
     df = normalize_signal_dataframe(
         df
     )
 
-    live_df, live_meta = (
-        apply_live_prices_to_dataframe(
-            df
-        )
-    )
+    # ========================================================
+    # ÖNEMLİ:
+    # STATUS YAHOO'YA GİTMEZ
+    # ========================================================
 
     historical_total = len(
-        live_df
+        df
     )
 
     historical_buy = (
         int(
             (
-                live_df["Signal"] == "BUY"
+                df["Signal"] == "BUY"
             ).sum()
         )
-        if not live_df.empty
+        if not df.empty
         else 0
     )
 
     historical_sell = (
         int(
             (
-                live_df["Signal"] == "SELL"
+                df["Signal"] == "SELL"
             ).sum()
         )
-        if not live_df.empty
+        if not df.empty
         else 0
     )
 
     historical_hold = (
         int(
             (
-                live_df["Signal"] == "HOLD"
+                df["Signal"] == "HOLD"
             ).sum()
         )
-        if not live_df.empty
+        if not df.empty
         else 0
     )
 
-    current_df = pd.DataFrame()
+    # ========================================================
+    # PAPER SAYILARI
+    # ========================================================
+
+    current_df = (
+        pd.DataFrame()
+    )
 
     if PAPER_SIGNALS.exists():
 
         try:
 
-            current_df = normalize_signal_dataframe(
-                pd.read_csv(
-                    PAPER_SIGNALS,
-                    low_memory=False
-                )
-            )
-
-            current_df, _ = (
-                apply_live_prices_to_dataframe(
-                    current_df
+            current_df = (
+                normalize_signal_dataframe(
+                    pd.read_csv(
+                        PAPER_SIGNALS,
+                        low_memory=False
+                    )
                 )
             )
 
         except Exception:
 
-            current_df = pd.DataFrame()
+            current_df = (
+                pd.DataFrame()
+            )
 
     current_total = len(
         current_df
@@ -3001,7 +2674,8 @@ async def status(
     current_buy = (
         int(
             (
-                current_df["Signal"] == "BUY"
+                current_df["Signal"]
+                == "BUY"
             ).sum()
         )
         if not current_df.empty
@@ -3011,7 +2685,8 @@ async def status(
     current_sell = (
         int(
             (
-                current_df["Signal"] == "SELL"
+                current_df["Signal"]
+                == "SELL"
             ).sum()
         )
         if not current_df.empty
@@ -3021,7 +2696,8 @@ async def status(
     current_hold = (
         int(
             (
-                current_df["Signal"] == "HOLD"
+                current_df["Signal"]
+                == "HOLD"
             ).sum()
         )
         if not current_df.empty
@@ -3032,16 +2708,21 @@ async def status(
         user
     )
 
-    strong_df = prepare_display_dataframe(
-        live_df,
-        config["display_limit"]
+    strong_df = (
+        prepare_display_dataframe(
+            df,
+            config["display_limit"]
+        )
     )
 
     return {
 
         "ok": True,
 
-        "status": "READY",
+        "status":
+            "READY"
+            if not df.empty
+            else "NO_DATA",
 
         "historical_total":
             historical_total,
@@ -3101,20 +2782,21 @@ async def status(
         "live_price_cache_seconds":
             LIVE_PRICE_CACHE_SECONDS,
 
+        # STATUS CANLI FİYAT İNDİRMİYOR
         "live_price_count":
-            live_meta["live_count"],
+            0,
 
         "live_price_unavailable":
-            live_meta["unavailable_count"],
+            0,
 
         "live_price_total":
-            live_meta["total_count"],
+            0,
 
         "last_update_utc":
-            live_meta["updated_at_utc"],
+            None,
 
         "last_update_tr":
-            live_meta["updated_at_tr"],
+            None,
 
         "price_source":
             "Yahoo Finance / yfinance",
@@ -3127,25 +2809,33 @@ async def status(
 
 @app.get("/api/paper")
 async def paper(
-    user=Depends(require_plan("PRO"))
+    user=Depends(
+        require_plan("PRO")
+    )
 ):
 
     if not PAPER_SIGNALS.exists():
 
         return {
+
             "ok": True,
+
             "paper": []
         }
 
     try:
 
-        df = normalize_signal_dataframe(
-            pd.read_csv(
-                PAPER_SIGNALS,
-                low_memory=False
+        df = (
+            normalize_signal_dataframe(
+                pd.read_csv(
+                    PAPER_SIGNALS,
+                    low_memory=False
+                )
             )
         )
 
+        # Paper genelde küçük olduğu için
+        # canlı fiyat uygulanabilir.
         df, live_meta = (
             apply_live_prices_to_dataframe(
                 df
@@ -3157,20 +2847,30 @@ async def paper(
             "ok": True,
 
             "paper":
-                dataframe_to_records(df),
+                dataframe_to_records(
+                    df
+                ),
 
             "last_update_utc":
-                live_meta["updated_at_utc"],
+                live_meta[
+                    "updated_at_utc"
+                ],
 
             "last_update_tr":
-                live_meta["updated_at_tr"],
+                live_meta[
+                    "updated_at_tr"
+                ],
         }
 
     except Exception as exc:
 
         return {
+
             "ok": False,
-            "error": str(exc),
+
+            "error":
+                str(exc),
+
             "paper": []
         }
 
@@ -3186,15 +2886,27 @@ async def metrics(
 
     files = [
 
-        BASE_DIR / "level1000_metrics.csv",
-        BASE_DIR / "metrics.csv",
-        DATA_DIR / "metrics.csv",
+        BASE_DIR /
+        "level1000_metrics.csv",
+
+        BASE_DIR /
+        "metrics.csv",
+
+        DATA_DIR /
+        "level1000_metrics.csv",
+
+        DATA_DIR /
+        "metrics.csv",
+
+        DATA_DIR /
+        "level1000_model_metrics.csv",
 
     ]
 
     for path in files:
 
         if not path.exists():
+
             continue
 
         try:
@@ -3204,24 +2916,38 @@ async def metrics(
                 low_memory=False
             )
 
-            records = dataframe_to_records(
-                df
+            records = (
+                dataframe_to_records(
+                    df
+                )
             )
 
             return {
+
                 "ok": True,
-                "count": len(records),
-                "metrics": records,
-                "data": records,
+
+                "count":
+                    len(records),
+
+                "metrics":
+                    records,
+
+                "data":
+                    records,
             }
 
         except Exception:
+
             continue
 
     return {
+
         "ok": True,
+
         "count": 0,
+
         "metrics": [],
+
         "data": [],
     }
 
@@ -3232,20 +2958,34 @@ async def metrics(
 
 @app.get("/api/backtest")
 async def backtest(
-    user=Depends(require_plan("PRO"))
+    user=Depends(
+        require_plan("PRO")
+    )
 ):
 
     files = [
 
-        BASE_DIR / "level1000_backtest.csv",
-        BASE_DIR / "backtest.csv",
-        DATA_DIR / "backtest.csv",
+        BASE_DIR /
+        "level1000_backtest.csv",
+
+        BASE_DIR /
+        "backtest.csv",
+
+        DATA_DIR /
+        "level1000_backtest.csv",
+
+        DATA_DIR /
+        "backtest.csv",
+
+        DATA_DIR /
+        "level1000_variant_summary.csv",
 
     ]
 
     for path in files:
 
         if not path.exists():
+
             continue
 
         try:
@@ -3255,23 +2995,39 @@ async def backtest(
                 low_memory=False
             )
 
-            records = dataframe_to_records(
-                df
+            records = (
+                dataframe_to_records(
+                    df
+                )
             )
 
             return {
+
                 "ok": True,
-                "count": len(records),
-                "data": records,
+
+                "count":
+                    len(records),
+
+                "data":
+                    records,
+
+                "backtest":
+                    records,
             }
 
         except Exception:
+
             continue
 
     return {
+
         "ok": True,
+
         "count": 0,
+
         "data": [],
+
+        "backtest": [],
     }
 
 
@@ -3290,17 +3046,18 @@ run_state = {
     "error": None,
 
     "last_user": None,
-
 }
 
 run_lock = threading.Lock()
 
 
 # ============================================================
-# SCAN
+# SCAN INFO
 # ============================================================
 
-def get_scan_info(user):
+def get_scan_info(
+    user
+):
 
     config = get_plan_config(
         user
@@ -3314,7 +3071,9 @@ def get_scan_info(user):
         config["scan_limit"]
     )
 
-    if bool(user["is_admin"]):
+    if bool(
+        user["is_admin"]
+    ):
 
         remaining = 999999
 
@@ -3326,20 +3085,34 @@ def get_scan_info(user):
         )
 
     return {
-        "used": used,
-        "limit": limit,
-        "remaining": remaining,
+
+        "used":
+            used,
+
+        "limit":
+            limit,
+
+        "remaining":
+            remaining,
     }
 
 
-def consume_scan(user):
+def consume_scan(
+    user
+):
 
-    if bool(user["is_admin"]):
+    if bool(
+        user["is_admin"]
+    ):
 
         return {
+
             "ok": True,
+
             "used": 0,
+
             "limit": 999999,
+
             "remaining": 999999,
         }
 
@@ -3376,7 +3149,9 @@ def consume_scan(user):
         FROM users
         WHERE id = ?
         """,
-        (user["id"],)
+        (
+            user["id"],
+        )
     ).fetchone()
 
     conn.close()
@@ -3384,7 +3159,9 @@ def consume_scan(user):
     if changed == 0:
 
         return {
+
             "ok": False,
+
             "remaining": 0,
         }
 
@@ -3398,35 +3175,53 @@ def consume_scan(user):
     )
 
     return {
+
         "ok": True,
-        "used": used,
-        "limit": limit,
-        "remaining": remaining,
+
+        "used":
+            used,
+
+        "limit":
+            limit,
+
+        "remaining":
+            remaining,
     }
 
 
 # ============================================================
-# LEVEL 1000 ÇALIŞTIR
+# LEVEL 1000 PROCESS
 # ============================================================
 
 def run_level1000_process():
 
-    run_state["running"] = True
+    run_state[
+        "running"
+    ] = True
 
-    run_state["started_at"] = (
+    run_state[
+        "started_at"
+    ] = (
         datetime.now(
             timezone.utc
         ).isoformat()
     )
 
-    run_state["finished_at"] = None
-    run_state["error"] = None
+    run_state[
+        "finished_at"
+    ] = None
+
+    run_state[
+        "error"
+    ] = None
 
     try:
 
         if not LEVEL1000_FILE.exists():
 
-            run_state["error"] = (
+            run_state[
+                "error"
+            ] = (
                 "level1000.py bulunamadı."
             )
 
@@ -3435,30 +3230,44 @@ def run_level1000_process():
         process = subprocess.Popen(
             [
                 sys.executable,
-                str(LEVEL1000_FILE)
+                str(
+                    LEVEL1000_FILE
+                )
             ],
-            cwd=str(BASE_DIR)
+            cwd=str(
+                BASE_DIR
+            )
         )
 
         process.wait()
 
         if process.returncode != 0:
 
-            run_state["error"] = (
+            run_state[
+                "error"
+            ] = (
                 "LEVEL 1000 hata kodu: "
                 +
-                str(process.returncode)
+                str(
+                    process.returncode
+                )
             )
 
     except Exception as exc:
 
-        run_state["error"] = str(exc)
+        run_state[
+            "error"
+        ] = str(exc)
 
     finally:
 
-        run_state["running"] = False
+        run_state[
+            "running"
+        ] = False
 
-        run_state["finished_at"] = (
+        run_state[
+            "finished_at"
+        ] = (
             datetime.now(
                 timezone.utc
             ).isoformat()
@@ -3476,55 +3285,77 @@ async def run_analysis(
 
     with run_lock:
 
-        if run_state["running"]:
+        if run_state[
+            "running"
+        ]:
 
             return {
+
                 "ok": False,
+
                 "error":
                     "Analiz zaten çalışıyor."
             }
 
-        scan_info = get_scan_info(
-            user
+        scan_info = (
+            get_scan_info(
+                user
+            )
         )
 
         if (
-            not bool(user["is_admin"])
-            and scan_info["remaining"] <= 0
+            not bool(
+                user["is_admin"]
+            )
+            and
+            scan_info[
+                "remaining"
+            ] <= 0
         ):
 
             raise HTTPException(
                 status_code=403,
-                detail=(
+                detail=
                     "Tarama hakkınız bitti."
-                )
             )
 
-        consumed = consume_scan(
-            user
+        consumed = (
+            consume_scan(
+                user
+            )
         )
 
-        if not consumed["ok"]:
+        if not consumed[
+            "ok"
+        ]:
 
             raise HTTPException(
                 status_code=403,
-                detail="Tarama hakkınız kalmadı."
+                detail=
+                    "Tarama hakkınız kalmadı."
             )
 
-        run_state["last_user"] = (
-            user["email"]
-        )
+        run_state[
+            "last_user"
+        ] = user["email"]
 
         thread = threading.Thread(
-            target=run_level1000_process,
+            target=
+                run_level1000_process,
             daemon=True
         )
 
         thread.start()
 
     return {
+
         "ok": True,
-        "message": "Analiz başlatıldı."
+
+        "message":
+            "Analiz başlatıldı.",
+
+        "scan":
+            consumed,
     }
 
 
@@ -3538,17 +3369,33 @@ async def run_status(
 ):
 
     return {
+
         "ok": True,
+
         "running":
-            run_state["running"],
+            run_state[
+                "running"
+            ],
+
         "started_at":
-            run_state["started_at"],
+            run_state[
+                "started_at"
+            ],
+
         "finished_at":
-            run_state["finished_at"],
+            run_state[
+                "finished_at"
+            ],
+
         "error":
-            run_state["error"],
+            run_state[
+                "error"
+            ],
+
         "last_user":
-            run_state["last_user"],
+            run_state[
+                "last_user"
+            ],
     }
 
 
@@ -3564,7 +3411,11 @@ async def make_admin(
     user=Depends(require_admin)
 ):
 
-    email = email.lower().strip()
+    email = (
+        email
+        .lower()
+        .strip()
+    )
 
     conn = get_db()
 
@@ -3576,7 +3427,9 @@ async def make_admin(
             plan = 'MAX PRO'
         WHERE email = ?
         """,
-        (email,)
+        (
+            email,
+        )
     )
 
     conn.commit()
@@ -3589,11 +3442,14 @@ async def make_admin(
 
         raise HTTPException(
             status_code=404,
-            detail="Kullanıcı bulunamadı."
+            detail=
+                "Kullanıcı bulunamadı."
         )
 
     return {
+
         "ok": True,
+
         "message":
             "Kullanıcı admin ve MAX PRO yapıldı."
     }
@@ -3603,7 +3459,9 @@ async def make_admin(
 # ADMIN USERS
 # ============================================================
 
-@app.get("/api/admin/users")
+@app.get(
+    "/api/admin/users"
+)
 async def admin_users(
     user=Depends(require_admin)
 ):
@@ -3643,29 +3501,49 @@ async def admin_users(
             row["scan_count"]
         )
 
-        item["scan_count"] = used
+        item[
+            "scan_count"
+        ] = used
 
-        if bool(row["is_admin"]):
+        if bool(
+            row["is_admin"]
+        ):
 
-            item["scan_limit"] = 999999
-            item["scan_remaining"] = 999999
+            item[
+                "scan_limit"
+            ] = 999999
+
+            item[
+                "scan_remaining"
+            ] = 999999
 
         else:
 
-            item["scan_limit"] = (
-                config["scan_limit"]
-            )
+            item[
+                "scan_limit"
+            ] = config[
+                "scan_limit"
+            ]
 
-            item["scan_remaining"] = max(
+            item[
+                "scan_remaining"
+            ] = max(
                 0,
-                config["scan_limit"] - used
+                config[
+                    "scan_limit"
+                ] - used
             )
 
-        result.append(item)
+        result.append(
+            item
+        )
 
     return {
+
         "ok": True,
-        "users": result
+
+        "users":
+            result,
     }
 
 
@@ -3686,11 +3564,11 @@ async def set_plan(
         plan
     )
 
-    if plan not in [
+    if plan not in (
         "FREE",
         "PRO",
         "MAX PRO"
-    ]:
+    ):
 
         raise HTTPException(
             status_code=400,
@@ -3699,7 +3577,11 @@ async def set_plan(
             )
         )
 
-    email = email.lower().strip()
+    email = (
+        email
+        .lower()
+        .strip()
+    )
 
     conn = get_db()
 
@@ -3725,12 +3607,17 @@ async def set_plan(
 
         raise HTTPException(
             status_code=404,
-            detail="Kullanıcı bulunamadı."
+            detail=
+                "Kullanıcı bulunamadı."
         )
 
     return {
+
         "ok": True,
-        "plan": plan,
+
+        "plan":
+            plan,
+
         "message":
             f"Kullanıcı planı {plan} yapıldı."
     }
@@ -3743,7 +3630,9 @@ async def set_plan(
 @app.get("/api/health")
 async def health():
 
-    signal_file, df = find_signal_file()
+    signal_file, df = (
+        find_signal_file()
+    )
 
     return {
 
@@ -3776,7 +3665,6 @@ async def health():
 
         "live_price_source":
             "Yahoo Finance / yfinance",
-
     }
 
 
@@ -3789,28 +3677,34 @@ async def debug_data(
     user=Depends(get_current_user)
 ):
 
-    signal_file, df = find_signal_file()
+    signal_file, df = (
+        find_signal_file()
+    )
 
     if df.empty:
 
         return {
+
             "ok": True,
+
             "file": None,
+
             "columns": [],
+
             "count": 0,
+
             "sample": [],
+
             "live_prices": True,
+
             "last_update_utc": None,
+
             "last_update_tr": None,
         }
 
-    normalized = normalize_signal_dataframe(
-        df
-    )
-
-    normalized, live_meta = (
-        apply_live_prices_to_dataframe(
-            normalized
+    normalized = (
+        normalize_signal_dataframe(
+            df
         )
     )
 
@@ -3818,9 +3712,19 @@ async def debug_data(
         user
     )
 
-    strong = prepare_display_dataframe(
-        normalized,
-        config["display_limit"]
+    # Önce TOP liste.
+    strong = (
+        prepare_display_dataframe(
+            normalized,
+            config["display_limit"]
+        )
+    )
+
+    # Sadece TOP liste canlı fiyat.
+    strong, live_meta = (
+        apply_live_prices_to_dataframe(
+            strong
+        )
     )
 
     return {
@@ -3835,7 +3739,9 @@ async def debug_data(
             ),
 
         "columns":
-            list(normalized.columns),
+            list(
+                normalized.columns
+            ),
 
         "count":
             len(normalized),
@@ -3843,7 +3749,9 @@ async def debug_data(
         "buy":
             int(
                 (
-                    normalized["Signal"]
+                    normalized[
+                        "Signal"
+                    ]
                     == "BUY"
                 ).sum()
             ),
@@ -3851,7 +3759,9 @@ async def debug_data(
         "sell":
             int(
                 (
-                    normalized["Signal"]
+                    normalized[
+                        "Signal"
+                    ]
                     == "SELL"
                 ).sum()
             ),
@@ -3859,7 +3769,9 @@ async def debug_data(
         "hold":
             int(
                 (
-                    normalized["Signal"]
+                    normalized[
+                        "Signal"
+                    ]
                     == "HOLD"
                 ).sum()
             ),
@@ -3885,24 +3797,266 @@ async def debug_data(
             True,
 
         "live_price_count":
-            live_meta["live_count"],
+            live_meta[
+                "live_count"
+            ],
 
         "live_price_unavailable":
-            live_meta["unavailable_count"],
+            live_meta[
+                "unavailable_count"
+            ],
 
         "live_price_total":
-            live_meta["total_count"],
+            live_meta[
+                "total_count"
+            ],
 
         "last_update_utc":
-            live_meta["updated_at_utc"],
+            live_meta[
+                "updated_at_utc"
+            ],
 
         "last_update_tr":
-            live_meta["updated_at_tr"],
+            live_meta[
+                "updated_at_tr"
+            ],
 
         "price_source":
             "Yahoo Finance / yfinance",
-
     }
+
+
+# ============================================================
+# TEK SİNYAL
+# ============================================================
+
+@app.get(
+    "/api/signal/{ticker}"
+)
+async def single_signal(
+    ticker: str,
+    user=Depends(get_current_user)
+):
+
+    signal_file, df = (
+        find_signal_file()
+    )
+
+    if df.empty:
+
+        raise HTTPException(
+            status_code=404,
+            detail=
+                "Henüz sinyal verisi yok."
+        )
+
+    df = normalize_signal_dataframe(
+        df
+    )
+
+    ticker = (
+        str(ticker)
+        .strip()
+        .upper()
+    )
+
+    result = df[
+        df["Ticker"]
+        .astype(str)
+        .str.upper()
+        == ticker
+    ].copy()
+
+    if result.empty:
+
+        raise HTTPException(
+            status_code=404,
+            detail=
+                f"{ticker} bulunamadı."
+        )
+
+    # Tek sembol için canlı fiyat.
+    result, live_meta = (
+        apply_live_prices_to_dataframe(
+            result
+        )
+    )
+
+    records = (
+        dataframe_to_records(
+            result
+        )
+    )
+
+    return {
+
+        "ok": True,
+
+        "symbol":
+            ticker,
+
+        "signal":
+            records[0]
+            if records
+            else None,
+
+        "live":
+            live_meta,
+    }
+
+
+# ============================================================
+# MONTE CARLO
+# ============================================================
+
+@app.get(
+    "/api/montecarlo"
+)
+async def montecarlo(
+    user=Depends(
+        require_plan("PRO")
+    )
+):
+
+    files = [
+
+        DATA_DIR /
+        "level1000_monte_carlo.csv",
+
+        BASE_DIR /
+        "level1000_monte_carlo.csv",
+
+    ]
+
+    for path in files:
+
+        if not path.exists():
+
+            continue
+
+        try:
+
+            df = pd.read_csv(
+                path,
+                low_memory=False
+            )
+
+            records = (
+                dataframe_to_records(
+                    df
+                )
+            )
+
+            return {
+
+                "ok": True,
+
+                "simulations":
+                    len(records),
+
+                "results":
+                    records,
+            }
+
+        except Exception:
+
+            continue
+
+    return {
+
+        "ok": True,
+
+        "simulations": 0,
+
+        "results": [],
+    }
+
+
+# ============================================================
+# ERROR HANDLERS
+# ============================================================
+
+@app.exception_handler(
+    404
+)
+async def not_found(
+    request: Request,
+    exc
+):
+
+    if request.url.path.startswith(
+        "/api/"
+    ):
+
+        return JSONResponse(
+
+            status_code=404,
+
+            content={
+
+                "ok": False,
+
+                "error":
+                    "Endpoint bulunamadı.",
+
+                "path":
+                    request.url.path,
+            }
+        )
+
+    return HTMLResponse(
+        "<h1>404</h1>",
+        status_code=404
+    )
+
+
+@app.exception_handler(
+    500
+)
+async def server_error(
+    request: Request,
+    exc
+):
+
+    if request.url.path.startswith(
+        "/api/"
+    ):
+
+        return JSONResponse(
+
+            status_code=500,
+
+            content={
+
+                "ok": False,
+
+                "error":
+                    "Sunucu hatası.",
+            }
+        )
+
+    return HTMLResponse(
+        "<h1>500 - Sunucu hatası</h1>",
+        status_code=500
+    )
+
+
+# ============================================================
+# ROBOTS
+# ============================================================
+
+@app.get(
+    "/robots.txt",
+    response_class=HTMLResponse
+)
+async def robots():
+
+    return HTMLResponse(
+        """
+User-agent: *
+Allow: /
+"""
+    )
 
 
 # ============================================================
@@ -3929,11 +4083,25 @@ if __name__ == "__main__":
     print("")
     print("=" * 70)
     print(" LEVEL 1000 AI")
-    print(" CANLI FİYAT SİSTEMİ AKTİF")
+    print(" CANLI FİYAT + 429 KORUMASI AKTİF")
     print("=" * 70)
-    print("Kaynak : Yahoo Finance / yfinance")
-    print("Cache  :", LIVE_PRICE_CACHE_SECONDS, "saniye")
-    print("1M     :", LIVE_INTERVAL)
+    print(
+        "Kaynak : Yahoo Finance / yfinance"
+    )
+    print(
+        "Cache  :",
+        LIVE_PRICE_CACHE_SECONDS,
+        "saniye"
+    )
+    print(
+        "Interval:",
+        LIVE_INTERVAL
+    )
+    print(
+        "Port   :",
+        port
+    )
+    print("=" * 70)
     print("")
 
     uvicorn.run(
