@@ -6,8 +6,14 @@ import subprocess
 import sys
 import threading
 import sqlite3
+import time
+import math
+import warnings
+
+warnings.filterwarnings("ignore")
 
 import pandas as pd
+import yfinance as yf
 import jwt
 
 from fastapi import FastAPI, Request, HTTPException, Depends
@@ -46,6 +52,18 @@ PAPER_SIGNALS = BASE_DIR / "level1000_paper_signals.csv"
 
 DISPLAY_LIMIT = 300
 MIN_SIGNAL_SCORE = 0.65
+
+# ============================================================
+# CANLI FİYAT
+# ============================================================
+
+LIVE_PRICE_CACHE_SECONDS = 30
+LIVE_INTERVAL = "1m"
+LIVE_PERIOD = "1d"
+LIVE_BATCH_SIZE = 100
+
+live_price_cache = {}
+live_price_cache_lock = threading.Lock()
 
 
 # ============================================================
@@ -95,7 +113,6 @@ PLANS = {
 def normalize_plan_name(plan):
 
     plan = str(plan or "FREE").upper().strip()
-
     plan = plan.replace("_", " ")
     plan = plan.replace("-", " ")
 
@@ -150,12 +167,12 @@ def init_db():
         "PRAGMA table_info(users)"
     ).fetchall()
 
-    column_names = {
+    names = {
         row["name"]
         for row in columns
     }
 
-    if "scan_count" not in column_names:
+    if "scan_count" not in names:
 
         conn.execute(
             """
@@ -172,12 +189,12 @@ init_db()
 
 
 # ============================================================
-# APP
+# FASTAPI
 # ============================================================
 
 app = FastAPI(
     title="LEVEL 1000 AI TRADING PRO",
-    version="8.0"
+    version="9.0"
 )
 
 
@@ -205,7 +222,7 @@ oauth2_scheme = OAuth2PasswordBearer(
 
 
 # ============================================================
-# JWT SECRET
+# JWT
 # ============================================================
 
 SECRET_FILE = BASE_DIR / ".level1000_secret"
@@ -238,23 +255,20 @@ else:
     JWT_SECRET = secrets.token_hex(32)
 
     try:
-
         SECRET_FILE.write_text(
             JWT_SECRET,
             encoding="utf-8"
         )
-
     except Exception:
         pass
 
 
 JWT_ALGORITHM = "HS256"
-
 TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 
 # ============================================================
-# OTOMATIK ADMIN HESABI
+# ADMIN
 # ============================================================
 
 def ensure_admin_user():
@@ -270,21 +284,10 @@ def ensure_admin_user():
     )
 
     if not admin_email or not admin_password:
-
-        print("========================================")
-        print("ADMIN ENV AYARLANMADI")
-        print("LEVEL1000_ADMIN_EMAIL veya")
-        print("LEVEL1000_ADMIN_PASSWORD eksik.")
-        print("========================================")
-
         return
 
     if len(admin_password) < 8:
-
-        print("========================================")
-        print("ADMIN SIFRESI EN AZ 8 KARAKTER OLMALI")
-        print("========================================")
-
+        print("ADMIN şifresi en az 8 karakter olmalı.")
         return
 
     try:
@@ -300,7 +303,7 @@ def ensure_admin_user():
             (admin_email,)
         ).fetchone()
 
-        hashed_password = password_hash.hash(
+        hashed = password_hash.hash(
             admin_password
         )
 
@@ -320,20 +323,10 @@ def ensure_admin_user():
                 WHERE email = ?
                 """,
                 (
-                    hashed_password,
+                    hashed,
                     admin_email
                 )
             )
-
-            conn.commit()
-            conn.close()
-
-            print("========================================")
-            print("ADMIN HESABI GUNCELLENDI")
-            print("ADMIN EMAIL:", admin_email)
-            print("ADMIN PLAN: MAX PRO")
-            print("ADMIN YETKI: AKTIF")
-            print("========================================")
 
         else:
 
@@ -349,48 +342,34 @@ def ensure_admin_user():
                     created_at,
                     scan_count
                 )
-                VALUES
-                (
-                    ?,
-                    ?,
-                    ?,
-                    'MAX PRO',
-                    1,
-                    ?,
-                    0
-                )
+                VALUES (?, ?, ?, 'MAX PRO', 1, ?, 0)
                 """,
                 (
                     "LEVEL 1000 Admin",
                     admin_email,
-                    hashed_password,
+                    hashed,
                     created_at
                 )
             )
 
-            conn.commit()
-            conn.close()
+        conn.commit()
+        conn.close()
 
-            print("========================================")
-            print("ADMIN HESABI OLUSTURULDU")
-            print("ADMIN EMAIL:", admin_email)
-            print("ADMIN PLAN: MAX PRO")
-            print("ADMIN YETKI: AKTIF")
-            print("========================================")
+        print("ADMIN AKTIF:", admin_email)
 
     except Exception as exc:
 
-        print("========================================")
-        print("ADMIN OLUSTURMA HATASI:")
-        print(repr(exc))
-        print("========================================")
+        print(
+            "ADMIN HATASI:",
+            repr(exc)
+        )
 
 
 ensure_admin_user()
 
 
 # ============================================================
-# MODELS
+# MODELLER
 # ============================================================
 
 class RegisterRequest(BaseModel):
@@ -518,13 +497,12 @@ def get_current_user(
 
 
 # ============================================================
-# PLAN CONFIG
+# PLAN
 # ============================================================
 
 def get_plan_config(user):
 
     if bool(user["is_admin"]):
-
         return PLANS["MAX PRO"]
 
     plan = normalize_plan_name(
@@ -536,10 +514,6 @@ def get_plan_config(user):
         PLANS["FREE"]
     )
 
-
-# ============================================================
-# USER DICT
-# ============================================================
 
 def user_dict(user):
 
@@ -568,15 +542,9 @@ def user_dict(user):
         "created_at": user["created_at"],
         "plan_level": config["level"],
         "plan_features": config,
-        "scan_count": int(
-            user["scan_count"]
-        ),
+        "scan_count": int(user["scan_count"]),
     }
 
-
-# ============================================================
-# REQUIRE PLAN
-# ============================================================
 
 def require_plan(required_plan):
 
@@ -620,10 +588,6 @@ def require_plan(required_plan):
     return checker
 
 
-# ============================================================
-# ADMIN
-# ============================================================
-
 def require_admin(
     user=Depends(get_current_user)
 ):
@@ -639,7 +603,7 @@ def require_admin(
 
 
 # ============================================================
-# CSV NORMALIZATION
+# CSV NORMALIZE
 # ============================================================
 
 def normalize_signal_dataframe(df):
@@ -659,7 +623,6 @@ def normalize_signal_dataframe(df):
     rename_map = {
 
         "date": "Date",
-        "Date": "Date",
         "DATE": "Date",
         "Trade_Date": "Date",
 
@@ -667,12 +630,10 @@ def normalize_signal_dataframe(df):
         "Symbol": "Ticker",
         "SYMBOL": "Ticker",
         "ticker": "Ticker",
-        "Ticker": "Ticker",
         "TICKER": "Ticker",
         "Hisse": "Ticker",
 
         "price": "Price",
-        "Price": "Price",
         "PRICE": "Price",
         "close": "Price",
         "Close": "Price",
@@ -681,7 +642,6 @@ def normalize_signal_dataframe(df):
         "Last": "Price",
 
         "signal": "Signal",
-        "Signal": "Signal",
         "SIGNAL": "Signal",
         "AI_Signal": "Signal",
         "AI_SIGNAL": "Signal",
@@ -702,7 +662,6 @@ def normalize_signal_dataframe(df):
         "AI_Predicted_Return": "AI_Predicted_Return",
 
         "change": "Change",
-        "Change": "Change",
         "CHANGE": "Change",
         "change_percent": "Change",
         "Change_Percent": "Change",
@@ -801,7 +760,7 @@ def normalize_signal_dataframe(df):
 
 
 # ============================================================
-# FIND SIGNAL FILE
+# SIGNAL DOSYASI BUL
 # ============================================================
 
 def find_signal_file():
@@ -858,9 +817,7 @@ def find_signal_file():
                 low_memory=False
             )
 
-            normalized = normalize_signal_dataframe(
-                df
-            )
+            normalized = normalize_signal_dataframe(df)
 
             if normalized.empty:
                 continue
@@ -878,6 +835,766 @@ def find_signal_file():
             continue
 
     return None, pd.DataFrame()
+
+
+# ============================================================
+# CANLI FİYAT YARDIMCILARI
+# ============================================================
+
+def _clean_float(value):
+
+    try:
+
+        if value is None:
+            return None
+
+        if isinstance(value, pd.Series):
+            if value.empty:
+                return None
+            value = value.iloc[-1]
+
+        number = float(value)
+
+        if not math.isfinite(number):
+            return None
+
+        return number
+
+    except Exception:
+
+        return None
+
+
+def _utc_now():
+
+    return datetime.now(
+        timezone.utc
+    )
+
+
+def _turkey_time_string(dt):
+
+    try:
+
+        tr_dt = dt.astimezone(
+            timezone(
+                timedelta(hours=3)
+            )
+        )
+
+        return tr_dt.strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+
+    except Exception:
+
+        return None
+
+
+# ============================================================
+# YAHOO DATA FRAME
+# ============================================================
+
+def _extract_ticker_from_download(
+    downloaded,
+    ticker
+):
+
+    if downloaded is None or downloaded.empty:
+        return None
+
+    ticker = str(
+        ticker
+    ).strip().upper()
+
+    try:
+
+        if isinstance(
+            downloaded.columns,
+            pd.MultiIndex
+        ):
+
+            levels = downloaded.columns
+
+            # group_by=ticker
+            if ticker in levels.get_level_values(0):
+
+                sub = downloaded[ticker]
+
+                if isinstance(sub, pd.DataFrame):
+                    return sub
+
+            # group_by=column
+            if ticker in levels.get_level_values(1):
+
+                try:
+
+                    return downloaded.xs(
+                        ticker,
+                        axis=1,
+                        level=1
+                    )
+
+                except Exception:
+                    pass
+
+        else:
+
+            return downloaded
+
+    except Exception:
+        pass
+
+    return None
+
+
+def _get_close_series(frame):
+
+    if frame is None or frame.empty:
+        return None
+
+    for column in [
+        "Close",
+        "close",
+        "Adj Close",
+        "adj close",
+    ]:
+
+        if column in frame.columns:
+
+            series = pd.to_numeric(
+                frame[column],
+                errors="coerce"
+            ).dropna()
+
+            if not series.empty:
+                return series
+
+    return None
+
+
+def _get_last_price_from_frame(frame):
+
+    series = _get_close_series(frame)
+
+    if series is None or series.empty:
+        return None
+
+    return _clean_float(
+        series.iloc[-1]
+    )
+
+
+def _get_fast_info_price(symbol):
+
+    try:
+
+        ticker = yf.Ticker(
+            symbol
+        )
+
+        info = ticker.fast_info
+
+        for key in [
+            "lastPrice",
+            "last_price",
+            "regularMarketPrice",
+            "regular_market_price",
+        ]:
+
+            try:
+                value = info.get(key)
+            except Exception:
+                try:
+                    value = info[key]
+                except Exception:
+                    value = None
+
+            value = _clean_float(value)
+
+            if value is not None:
+                return value
+
+    except Exception:
+        pass
+
+    return None
+
+
+# ============================================================
+# CANLI FİYAT İNDİR
+# ============================================================
+
+def _download_live_prices(tickers):
+
+    unique = []
+    seen = set()
+
+    for symbol in tickers:
+
+        symbol = (
+            str(symbol or "")
+            .strip()
+            .upper()
+        )
+
+        if not symbol:
+            continue
+
+        if symbol in [
+            "-",
+            "NAN",
+            "NONE",
+            "NULL",
+        ]:
+            continue
+
+        if symbol in seen:
+            continue
+
+        seen.add(symbol)
+        unique.append(symbol)
+
+    if not unique:
+        return {}
+
+    results = {}
+
+    now = _utc_now()
+
+    # ========================================================
+    # 1M INTRADAY
+    # ========================================================
+
+    for start in range(
+        0,
+        len(unique),
+        LIVE_BATCH_SIZE
+    ):
+
+        batch = unique[
+            start:start + LIVE_BATCH_SIZE
+        ]
+
+        try:
+
+            downloaded = yf.download(
+                tickers=batch,
+                period="1d",
+                interval="1m",
+                auto_adjust=False,
+                prepost=True,
+                progress=False,
+                threads=True,
+                group_by="ticker",
+                timeout=15,
+                multi_level_index=True,
+            )
+
+        except Exception as exc:
+
+            print(
+                "[YAHOO 1M HATA]",
+                repr(exc)
+            )
+
+            downloaded = pd.DataFrame()
+
+        if downloaded is None or downloaded.empty:
+            continue
+
+        for symbol in batch:
+
+            try:
+
+                frame = _extract_ticker_from_download(
+                    downloaded,
+                    symbol
+                )
+
+                if frame is None or frame.empty:
+                    continue
+
+                price = _get_last_price_from_frame(
+                    frame
+                )
+
+                if price is None:
+                    continue
+
+                results[symbol] = {
+                    "price": price,
+                    "previous_close": None,
+                    "change": None,
+                    "change_percent": None,
+                    "updated_at_utc": now.isoformat(),
+                    "updated_at_tr": _turkey_time_string(now),
+                    "status": "LIVE",
+                    "source": "Yahoo Finance / yfinance 1m",
+                }
+
+            except Exception as exc:
+
+                print(
+                    "[YAHOO SEMBOL HATA]",
+                    symbol,
+                    repr(exc)
+                )
+
+    # ========================================================
+    # DAILY KAPANIŞ
+    # ========================================================
+
+    result_symbols = list(results.keys())
+
+    for start in range(
+        0,
+        len(result_symbols),
+        LIVE_BATCH_SIZE
+    ):
+
+        batch = result_symbols[
+            start:start + LIVE_BATCH_SIZE
+        ]
+
+        try:
+
+            daily = yf.download(
+                tickers=batch,
+                period="5d",
+                interval="1d",
+                auto_adjust=False,
+                prepost=False,
+                progress=False,
+                threads=True,
+                group_by="ticker",
+                timeout=15,
+                multi_level_index=True,
+            )
+
+        except Exception as exc:
+
+            print(
+                "[YAHOO DAILY HATA]",
+                repr(exc)
+            )
+
+            daily = pd.DataFrame()
+
+        if daily is None or daily.empty:
+            continue
+
+        for symbol in batch:
+
+            try:
+
+                frame = _extract_ticker_from_download(
+                    daily,
+                    symbol
+                )
+
+                series = _get_close_series(
+                    frame
+                )
+
+                if series is None or series.empty:
+                    continue
+
+                previous_close = None
+
+                if len(series) >= 2:
+
+                    previous_close = _clean_float(
+                        series.iloc[-2]
+                    )
+
+                if (
+                    previous_close is not None
+                    and
+                    symbol in results
+                ):
+
+                    results[symbol][
+                        "previous_close"
+                    ] = previous_close
+
+            except Exception:
+                continue
+
+    # ========================================================
+    # DEĞİŞİM
+    # ========================================================
+
+    for symbol, item in results.items():
+
+        price = _clean_float(
+            item.get("price")
+        )
+
+        previous = _clean_float(
+            item.get("previous_close")
+        )
+
+        if (
+            price is not None
+            and previous is not None
+            and previous != 0
+        ):
+
+            change = price - previous
+
+            change_percent = (
+                change
+                /
+                previous
+                *
+                100
+            )
+
+            item["change"] = change
+
+            item["change_percent"] = (
+                change_percent
+            )
+
+        else:
+
+            item["change"] = None
+            item["change_percent"] = None
+
+    # ========================================================
+    # FAST INFO FALLBACK
+    # ========================================================
+
+    missing = [
+        symbol
+        for symbol in unique
+        if symbol not in results
+    ]
+
+    # Sadece az sayıda sembolde tekil fallback.
+    # Böylece 10.000 sembollük istekte sunucu kilitlenmez.
+    for symbol in missing[:30]:
+
+        price = _get_fast_info_price(
+            symbol
+        )
+
+        if price is None:
+            continue
+
+        results[symbol] = {
+            "price": price,
+            "previous_close": None,
+            "change": None,
+            "change_percent": None,
+            "updated_at_utc": now.isoformat(),
+            "updated_at_tr": _turkey_time_string(now),
+            "status": "DELAYED",
+            "source": "Yahoo Finance / yfinance fast_info",
+        }
+
+    return results
+
+
+# ============================================================
+# CANLI FİYAT CACHE
+# ============================================================
+
+def get_live_prices(tickers):
+
+    if not tickers:
+        return {}
+
+    unique = []
+    seen = set()
+
+    for symbol in tickers:
+
+        symbol = (
+            str(symbol or "")
+            .strip()
+            .upper()
+        )
+
+        if not symbol:
+            continue
+
+        if symbol in seen:
+            continue
+
+        seen.add(symbol)
+        unique.append(symbol)
+
+    now = time.time()
+
+    result = {}
+    missing = []
+
+    with live_price_cache_lock:
+
+        for symbol in unique:
+
+            cached = live_price_cache.get(
+                symbol
+            )
+
+            if not cached:
+
+                missing.append(symbol)
+                continue
+
+            age = (
+                now
+                -
+                cached.get(
+                    "_cache_time",
+                    0
+                )
+            )
+
+            if age <= LIVE_PRICE_CACHE_SECONDS:
+
+                item = dict(cached)
+
+                item.pop(
+                    "_cache_time",
+                    None
+                )
+
+                result[symbol] = item
+
+            else:
+
+                missing.append(symbol)
+
+    if missing:
+
+        fresh = _download_live_prices(
+            missing
+        )
+
+        with live_price_cache_lock:
+
+            for symbol, item in fresh.items():
+
+                cached = dict(item)
+
+                cached["_cache_time"] = time.time()
+
+                live_price_cache[
+                    symbol
+                ] = cached
+
+                result[symbol] = dict(item)
+
+    return result
+
+
+# ============================================================
+# DATAFRAME'E CANLI FİYAT UYGULA
+# ============================================================
+
+def apply_live_prices_to_dataframe(df):
+
+    """
+    KRİTİK KURAL:
+
+    Canlı veri varsa:
+        Price = canlı fiyat
+        Change = gerçek günlük %
+
+    Canlı veri yoksa:
+        Price = None
+        Change = None
+
+    ESKİ CSV PRICE/CHANGE ASLA KULLANILMAZ.
+
+    AI_Predicted_Return:
+        AI tahmini olarak aynen korunur.
+    """
+
+    if df is None or df.empty:
+
+        return df, {
+            "updated_at_utc": None,
+            "updated_at_tr": None,
+            "live_count": 0,
+            "unavailable_count": 0,
+            "total_count": 0,
+        }
+
+    work = df.copy()
+
+    symbols = (
+        work["Ticker"]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+        .tolist()
+    )
+
+    live_data = get_live_prices(
+        symbols
+    )
+
+    prices = []
+    changes = []
+    daily_changes = []
+
+    statuses = []
+    sources = []
+
+    updated_utc = []
+    updated_tr = []
+
+    live_count = 0
+    unavailable_count = 0
+
+    latest_utc = None
+    latest_tr = None
+
+    for symbol in symbols:
+
+        symbol = (
+            str(symbol)
+            .strip()
+            .upper()
+        )
+
+        item = live_data.get(
+            symbol
+        )
+
+        if item:
+
+            price = _clean_float(
+                item.get("price")
+            )
+
+            change_percent = _clean_float(
+                item.get("change_percent")
+            )
+
+            # ------------------------------------------------
+            # CANLI FİYAT VAR
+            # ------------------------------------------------
+
+            if price is not None:
+
+                prices.append(price)
+
+                live_count += 1
+
+            else:
+
+                prices.append(None)
+
+                unavailable_count += 1
+
+            if change_percent is not None:
+
+                changes.append(
+                    change_percent
+                )
+
+                daily_changes.append(
+                    change_percent
+                )
+
+            else:
+
+                changes.append(None)
+
+                daily_changes.append(None)
+
+            statuses.append(
+                item.get(
+                    "status",
+                    "LIVE"
+                )
+            )
+
+            sources.append(
+                item.get(
+                    "source",
+                    "Yahoo Finance / yfinance"
+                )
+            )
+
+            utc_value = item.get(
+                "updated_at_utc"
+            )
+
+            tr_value = item.get(
+                "updated_at_tr"
+            )
+
+            updated_utc.append(
+                utc_value
+            )
+
+            updated_tr.append(
+                tr_value
+            )
+
+            if utc_value:
+                latest_utc = utc_value
+
+            if tr_value:
+                latest_tr = tr_value
+
+        else:
+
+            # =================================================
+            # CANLI VERİ YOK
+            # =================================================
+            #
+            # BURADA ESKİ CSV FİYATI KULLANMIYORUZ.
+            #
+
+            prices.append(None)
+
+            changes.append(None)
+
+            daily_changes.append(None)
+
+            statuses.append(
+                "UNAVAILABLE"
+            )
+
+            sources.append(
+                "Yahoo Finance verisi alınamadı"
+            )
+
+            updated_utc.append(None)
+            updated_tr.append(None)
+
+            unavailable_count += 1
+
+    work["Price"] = prices
+
+    work["Change"] = changes
+
+    work["Live_Price"] = prices
+
+    work["Daily_Change_Percent"] = daily_changes
+
+    work["Price_Status"] = statuses
+
+    work["Price_Source"] = sources
+
+    work["Price_Updated_UTC"] = updated_utc
+
+    work["Price_Updated_TR"] = updated_tr
+
+    return work, {
+        "updated_at_utc": latest_utc,
+        "updated_at_tr": latest_tr,
+        "live_count": live_count,
+        "unavailable_count": unavailable_count,
+        "total_count": len(work),
+    }
 
 
 # ============================================================
@@ -907,13 +1624,6 @@ def prepare_display_dataframe(
         errors="coerce"
     ).fillna(0)
 
-    work["_predicted_return"] = pd.to_numeric(
-        work["AI_Predicted_Return"],
-        errors="coerce"
-    ).fillna(0)
-
-    work["Change"] = work["_predicted_return"]
-
     work["_date"] = pd.to_datetime(
         work["Date"],
         errors="coerce"
@@ -925,7 +1635,9 @@ def prepare_display_dataframe(
         )
         &
         (
-            work["_score"] >= MIN_SIGNAL_SCORE
+            work["_score"]
+            >=
+            MIN_SIGNAL_SCORE
         )
     ]
 
@@ -933,8 +1645,14 @@ def prepare_display_dataframe(
         return work
 
     work = work.sort_values(
-        ["_date", "_score"],
-        ascending=[False, False],
+        [
+            "_date",
+            "_score"
+        ],
+        ascending=[
+            False,
+            False
+        ],
         na_position="last"
     )
 
@@ -958,7 +1676,6 @@ def prepare_display_dataframe(
     return work.drop(
         columns=[
             "_score",
-            "_predicted_return",
             "_date"
         ],
         errors="ignore"
@@ -1015,7 +1732,6 @@ def dataframe_to_records(df):
 
                 try:
                     clean[key] = value.item()
-
                 except Exception:
                     clean[key] = str(value)
 
@@ -1029,7 +1745,7 @@ def dataframe_to_records(df):
 
 
 # ============================================================
-# FALLBACK ANA SAYFA
+# ANA SAYFA
 # ============================================================
 
 def render_fallback_home():
@@ -1037,193 +1753,103 @@ def render_fallback_home():
     return """
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LEVEL 1000 AI</title>
-
 <style>
-
-* {
-    box-sizing: border-box;
+*{box-sizing:border-box}
+body{
+margin:0;
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:20px;
+font-family:Arial,Helvetica,sans-serif;
+background:#0b1020;
+color:#fff
 }
-
-body {
-    margin: 0;
-    min-height: 100vh;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 20px;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    background: #0b1020;
-    color: #ffffff;
+.box{
+width:100%;
+max-width:900px;
+padding:55px 35px;
+text-align:center;
+background:#121a2d;
+border:1px solid #27304a;
+border-radius:22px;
+box-shadow:0 20px 60px rgba(0,0,0,.35)
 }
-
-.box {
-    width: 100%;
-    max-width: 900px;
-
-    padding: 55px 35px;
-
-    text-align: center;
-
-    background: #121a2d;
-
-    border:
-        1px solid #27304a;
-
-    border-radius: 22px;
-
-    box-shadow:
-        0 20px 60px
-        rgba(0, 0, 0, 0.35);
+.logo{
+font-size:40px;
+font-weight:900;
+margin-bottom:20px
 }
-
-.logo {
-    font-size: 40px;
-    font-weight: 900;
-    margin-bottom: 20px;
+.logo span{color:#7ea2ff}
+h1{margin:0 0 18px;font-size:30px}
+p{
+max-width:680px;
+margin:0 auto;
+color:#aeb8cc;
+font-size:17px;
+line-height:1.7
 }
-
-.logo span {
-    color: #7ea2ff;
+.online{
+display:inline-block;
+margin-top:28px;
+padding:10px 18px;
+background:#17233d;
+border-radius:8px;
+color:#8fe3a4;
+font-weight:700
 }
-
-h1 {
-    margin: 0 0 18px;
-    font-size: 30px;
+.buttons{
+display:flex;
+justify-content:center;
+flex-wrap:wrap;
+gap:10px;
+margin-top:30px
 }
-
-p {
-    max-width: 680px;
-    margin: 0 auto;
-
-    color: #aeb8cc;
-
-    font-size: 17px;
-    line-height: 1.7;
+.buttons a{
+display:inline-block;
+padding:11px 18px;
+background:#263657;
+color:#fff;
+text-decoration:none;
+border-radius:9px;
+font-weight:700
 }
-
-.online {
-    display: inline-block;
-
-    margin-top: 28px;
-
-    padding: 10px 18px;
-
-    background: #17233d;
-
-    border-radius: 8px;
-
-    color: #8fe3a4;
-
-    font-weight: 700;
+footer{
+margin-top:35px;
+color:#69758c;
+font-size:13px
 }
-
-.buttons {
-    display: flex;
-
-    justify-content: center;
-
-    flex-wrap: wrap;
-
-    gap: 10px;
-
-    margin-top: 30px;
-}
-
-.buttons a {
-    display: inline-block;
-
-    padding:
-        11px 18px;
-
-    background: #263657;
-
-    color: #ffffff;
-
-    text-decoration: none;
-
-    border-radius: 9px;
-
-    font-weight: 700;
-}
-
-footer {
-    margin-top: 35px;
-
-    color: #69758c;
-
-    font-size: 13px;
-}
-
 </style>
-
 </head>
-
 <body>
-
 <div class="box">
-
-<div class="logo">
-LEVEL <span>1000</span> AI
-</div>
-
-<h1>
-Yapay Zeka Destekli Finansal Analiz
-</h1>
-
+<div class="logo">LEVEL <span>1000</span> AI</div>
+<h1>Yapay Zeka Destekli Finansal Analiz</h1>
 <p>
 LEVEL 1000 AI; finansal piyasaları,
 yapay zeka ve makine öğrenmesi tabanlı
 analizlerle değerlendiren karar destek platformudur.
 </p>
-
-<div class="online">
-● LEVEL 1000 AI ONLINE
-</div>
-
+<div class="online">● LEVEL 1000 AI ONLINE</div>
 <div class="buttons">
-
 <a href="/about">Hakkımızda</a>
 <a href="/guide">Kullanım Rehberi</a>
 <a href="/risk">Risk Açıklaması</a>
 <a href="/privacy">Gizlilik</a>
 <a href="/contact">İletişim</a>
 <a href="/api/health">Sistem Durumu</a>
-
 </div>
-
-<footer>
-© 2026 LEVEL 1000 AI
-</footer>
-
+<footer>© 2026 LEVEL 1000 AI</footer>
 </div>
-
 </body>
-
 </html>
 """
 
-
-# ============================================================
-# ANA SAYFA
-# ============================================================
 
 @app.get(
     "/",
@@ -1233,24 +1859,12 @@ async def home():
 
     index_file = TEMPLATES_DIR / "index.html"
 
-    print("========================================")
-    print("LEVEL 1000 ANA SAYFA KONTROL")
-    print("INDEX DOSYASI:", str(index_file))
-    print("INDEX VAR MI:", index_file.is_file())
-    print("========================================")
-
     if index_file.is_file():
 
         try:
 
             html = index_file.read_text(
                 encoding="utf-8"
-            )
-
-            print(
-                "INDEX OKUNDU:",
-                len(html),
-                "karakter"
             )
 
             return HTMLResponse(
@@ -1264,17 +1878,8 @@ async def home():
                 }
             )
 
-        except Exception as exc:
-
-            print(
-                "INDEX OKUMA HATASI:",
-                repr(exc)
-            )
-
-    print(
-        "INDEX BULUNAMADI:",
-        str(index_file)
-    )
+        except Exception:
+            pass
 
     return HTMLResponse(
         content=render_fallback_home(),
@@ -1289,278 +1894,7 @@ async def home():
 
 
 # ============================================================
-# PUBLIC PAGE TEMPLATE
-# ============================================================
-
-def render_public_page(page):
-
-    return f"""
-<!DOCTYPE html>
-<html lang="tr">
-
-<head>
-
-<meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<meta
-    name="description"
-    content="LEVEL 1000 AI finansal piyasa analiz ve yapay zeka platformu."
->
-
-<title>{page["title"]}</title>
-
-<style>
-
-* {{
-    box-sizing: border-box;
-}}
-
-html {{
-    scroll-behavior: smooth;
-}}
-
-body {{
-    margin: 0;
-    padding: 0;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    background: #0b1020;
-    color: #e8ecf5;
-
-    line-height: 1.7;
-}}
-
-.container {{
-    width: 100%;
-    max-width: 1000px;
-
-    margin: 0 auto;
-
-    padding:
-        30px 20px 50px;
-}}
-
-header {{
-    padding-bottom: 25px;
-    margin-bottom: 30px;
-
-    border-bottom:
-        1px solid #27304a;
-}}
-
-.logo {{
-    font-size: 25px;
-    font-weight: 800;
-
-    letter-spacing: 0.5px;
-}}
-
-.logo span {{
-    color: #7ea2ff;
-}}
-
-nav {{
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 10px;
-
-    margin-top: 20px;
-}}
-
-nav a {{
-    display: inline-block;
-
-    padding:
-        7px 11px;
-
-    color: #aebfff;
-
-    text-decoration: none;
-
-    border-radius: 7px;
-}}
-
-nav a:hover {{
-    background: #1b2640;
-    color: #ffffff;
-}}
-
-main {{
-    background: #121a2d;
-
-    border:
-        1px solid #27304a;
-
-    border-radius: 16px;
-
-    padding: 40px;
-
-    box-shadow:
-        0 15px 45px
-        rgba(0, 0, 0, 0.25);
-}}
-
-h1 {{
-    margin-top: 0;
-    margin-bottom: 25px;
-
-    font-size: 34px;
-
-    line-height: 1.25;
-
-    color: #ffffff;
-}}
-
-p {{
-    margin: 0;
-
-    white-space: pre-line;
-
-    color: #cbd3e5;
-
-    font-size: 16px;
-}}
-
-.back {{
-    display: inline-block;
-
-    margin-top: 30px;
-
-    padding:
-        10px 16px;
-
-    background: #1b2640;
-
-    color: #ffffff;
-
-    border-radius: 8px;
-
-    text-decoration: none;
-}}
-
-footer {{
-    margin-top: 35px;
-
-    padding-top: 25px;
-
-    border-top:
-        1px solid #27304a;
-
-    color: #8993aa;
-
-    font-size: 14px;
-}}
-
-footer a {{
-    display: inline-block;
-
-    margin-right: 15px;
-    margin-bottom: 8px;
-
-    color: #9db7ff;
-
-    text-decoration: none;
-}}
-
-@media (max-width: 600px) {{
-
-    .container {{
-        padding:
-            20px 12px 35px;
-    }}
-
-    main {{
-        padding: 25px 20px;
-    }}
-
-    h1 {{
-        font-size: 27px;
-    }}
-
-}}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="container">
-
-<header>
-
-<div class="logo">
-LEVEL <span>1000</span> AI
-</div>
-
-<nav>
-
-<a href="/">Ana Sayfa</a>
-<a href="/about">Hakkımızda</a>
-<a href="/guide">Rehber</a>
-<a href="/risk">Risk</a>
-<a href="/privacy">Gizlilik</a>
-<a href="/cookies">Çerezler</a>
-<a href="/terms">Şartlar</a>
-<a href="/contact">İletişim</a>
-
-</nav>
-
-</header>
-
-<main>
-
-<h1>{page["heading"]}</h1>
-
-<p>{page["text"]}</p>
-
-<a
-    class="back"
-    href="/"
->
-← Ana Sayfaya Dön
-</a>
-
-</main>
-
-<footer>
-
-<a href="/about">Hakkımızda</a>
-<a href="/guide">Kullanım Rehberi</a>
-<a href="/privacy">Gizlilik</a>
-<a href="/cookies">Çerezler</a>
-<a href="/terms">Kullanım Şartları</a>
-<a href="/risk">Risk Açıklaması</a>
-<a href="/contact">İletişim</a>
-
-<br>
-<br>
-
-© 2026 LEVEL 1000 AI
-
-</footer>
-
-</div>
-
-</body>
-
-</html>
-"""
-
-
-# ============================================================
-# PUBLIC PAGES
+# PUBLIC SAYFALAR
 # ============================================================
 
 PUBLIC_PAGES = {
@@ -1596,8 +1930,7 @@ AI Probability değeri modelin tahmin güvenini,
 Predicted Return ise model tarafından tahmin edilen potansiyel
 hareketi gösterir.
 
-Sinyaller yatırım tavsiyesi değildir. Kullanıcıların kendi
-araştırmalarını ve risk değerlendirmelerini yapmaları gerekir.
+Sinyaller yatırım tavsiyesi değildir.
 """
     },
 
@@ -1611,11 +1944,6 @@ LEVEL 1000 AI tarafından oluşturulan hiçbir sinyal veya tahmin
 gelecekteki fiyat hareketlerini garanti etmez.
 
 Geçmiş performans gelecekteki sonuçların göstergesi değildir.
-Piyasa koşulları hızlı şekilde değişebilir ve modeller hatalı
-tahminlerde bulunabilir.
-
-Kullanıcı platformdaki bilgileri kendi risk değerlendirmesini
-yapmak için kullanmalıdır.
 """
     },
 
@@ -1626,13 +1954,7 @@ yapmak için kullanmalıdır.
 LEVEL 1000 AI kullanıcı hesaplarının çalışması için gerekli temel
 bilgileri saklayabilir.
 
-Hesap oluştururken ad, e-posta adresi ve güvenli şekilde hashlenmiş
-parola bilgisi kullanılmaktadır.
-
 Parolalar düz metin olarak saklanmaz.
-
-Kullanıcı bilgileri yalnızca platformun çalışması, güvenlik,
-kimlik doğrulama ve hesap yönetimi gibi gerekli amaçlarla işlenir.
 """
     },
 
@@ -1642,10 +1964,6 @@ kimlik doğrulama ve hesap yönetimi gibi gerekli amaçlarla işlenir.
         "text": """
 LEVEL 1000 AI, kullanıcı oturumu ve platformun temel işlevlerinin
 çalışması için gerekli teknik mekanizmaları kullanabilir.
-
-Çerezler veya benzeri teknolojiler kullanıldığı durumda bunların
-amacı kullanıcı deneyimini geliştirmek, güvenliği sağlamak ve
-platformun düzgün çalışmasını sağlamaktır.
 """
     },
 
@@ -1659,11 +1977,6 @@ platformdur.
 Platform tarafından oluşturulan sinyaller yatırım tavsiyesi,
 finansal danışmanlık veya garanti edilmiş kazanç olarak
 değerlendirilmemelidir.
-
-Kullanıcı gerçekleştirdiği yatırım işlemlerinden ve aldığı
-kararlardan kendisi sorumludur.
-
-Platformun kullanımında yürürlükteki yasalara uyulması gerekir.
 """
     },
 
@@ -1674,82 +1987,142 @@ Platformun kullanımında yürürlükteki yasalara uyulması gerekir.
 LEVEL 1000 AI hakkında sorularınız, teknik sorunlarınız veya
 geri bildirimleriniz varsa platform yöneticisiyle iletişime
 geçebilirsiniz.
-
-Destek taleplerinizde mümkün olduğunca sorununuzu, kullandığınız
-sayfayı ve karşılaştığınız hata mesajını belirtmeniz çözüm sürecini
-hızlandırır.
 """
     },
 }
 
 
-# ============================================================
-# PUBLIC PAGE ROUTES
-# ============================================================
+def render_public_page(page):
 
-def create_public_route(
-    path,
-    data
-):
-
-    async def public_page():
-
-        return HTMLResponse(
-            content=render_public_page(data),
-            status_code=200
-        )
-
-    app.add_api_route(
-        path,
-        public_page,
-        methods=["GET"],
-        response_class=HTMLResponse,
-        name=(
-            "public_"
-            +
-            path.strip("/")
-            .replace("/", "_")
-        )
-    )
+    return f"""
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{page["title"]}</title>
+<style>
+*{{box-sizing:border-box}}
+body{{
+margin:0;
+background:#0b1020;
+color:#e8ecf5;
+font-family:Arial,Helvetica,sans-serif;
+line-height:1.7
+}}
+.container{{
+width:100%;
+max-width:1000px;
+margin:auto;
+padding:30px 20px 50px
+}}
+header{{
+padding-bottom:25px;
+margin-bottom:30px;
+border-bottom:1px solid #27304a
+}}
+.logo{{
+font-size:25px;
+font-weight:800
+}}
+.logo span{{color:#7ea2ff}}
+nav{{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+margin-top:20px
+}}
+nav a{{
+padding:7px 11px;
+color:#aebfff;
+text-decoration:none;
+border-radius:7px
+}}
+main{{
+background:#121a2d;
+border:1px solid #27304a;
+border-radius:16px;
+padding:40px
+}}
+h1{{margin-top:0;color:#fff}}
+p{{white-space:pre-line;color:#cbd3e5}}
+.back{{
+display:inline-block;
+margin-top:30px;
+padding:10px 16px;
+background:#1b2640;
+color:#fff;
+border-radius:8px;
+text-decoration:none
+}}
+footer{{
+margin-top:35px;
+padding-top:25px;
+border-top:1px solid #27304a;
+color:#8993aa
+}}
+footer a{{
+margin-right:15px;
+color:#9db7ff;
+text-decoration:none
+}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<div class="logo">LEVEL <span>1000</span> AI</div>
+<nav>
+<a href="/">Ana Sayfa</a>
+<a href="/about">Hakkımızda</a>
+<a href="/guide">Rehber</a>
+<a href="/risk">Risk</a>
+<a href="/privacy">Gizlilik</a>
+<a href="/cookies">Çerezler</a>
+<a href="/terms">Şartlar</a>
+<a href="/contact">İletişim</a>
+</nav>
+</header>
+<main>
+<h1>{page["heading"]}</h1>
+<p>{page["text"]}</p>
+<a class="back" href="/">← Ana Sayfaya Dön</a>
+</main>
+<footer>
+<a href="/about">Hakkımızda</a>
+<a href="/guide">Rehber</a>
+<a href="/privacy">Gizlilik</a>
+<a href="/cookies">Çerezler</a>
+<a href="/terms">Şartlar</a>
+<a href="/risk">Risk</a>
+<a href="/contact">İletişim</a>
+<br><br>
+© 2026 LEVEL 1000 AI
+</footer>
+</div>
+</body>
+</html>
+"""
 
 
 for public_path, public_data in PUBLIC_PAGES.items():
 
-    create_public_route(
+    def make_route(data):
+
+        async def public_page():
+
+            return HTMLResponse(
+                content=render_public_page(data)
+            )
+
+        return public_page
+
+    app.add_api_route(
         public_path,
-        public_data
+        make_route(public_data),
+        methods=["GET"],
+        response_class=HTMLResponse
     )
-
-
-# ============================================================
-# SITE BASE URL
-# ============================================================
-
-def get_base_url(request: Request):
-
-    forwarded_proto = request.headers.get(
-        "x-forwarded-proto"
-    )
-
-    forwarded_host = request.headers.get(
-        "x-forwarded-host"
-    )
-
-    if forwarded_host:
-
-        protocol = (
-            forwarded_proto
-            or "https"
-        )
-
-        return (
-            f"{protocol}://"
-            f"{forwarded_host}"
-        ).rstrip("/")
-
-    return str(
-        request.base_url
-    ).rstrip("/")
 
 
 # ============================================================
@@ -1764,12 +2137,10 @@ async def robots_txt(
     request: Request
 ):
 
-    base_url = get_base_url(request)
-
-    return f"""User-agent: *
+    return """User-agent: *
 Allow: /
 
-Sitemap: {base_url}/sitemap.xml
+Sitemap: /sitemap.xml
 """
 
 
@@ -1778,9 +2149,7 @@ Sitemap: {base_url}/sitemap.xml
 # ============================================================
 
 @app.get("/sitemap.xml")
-async def sitemap_xml(
-    request: Request
-):
+async def sitemap_xml():
 
     urls = [
         "/",
@@ -1793,33 +2162,27 @@ async def sitemap_xml(
         "/contact",
     ]
 
-    base_url = get_base_url(request)
-
-    xml_urls = []
+    xml = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    ]
 
     for url in urls:
 
-        xml_urls.append(
-            f"""
-    <url>
-        <loc>{base_url}{url}</loc>
-    </url>"""
+        xml.append(
+            f"<url><loc>{url}</loc></url>"
         )
 
-    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-{"".join(xml_urls)}
-</urlset>
-"""
+    xml.append("</urlset>")
 
     return Response(
-        content=xml,
+        content="\n".join(xml),
         media_type="application/xml"
     )
 
 
 # ============================================================
-# ERROR PAGE
+# ERROR
 # ============================================================
 
 def render_error_page(
@@ -1831,130 +2194,57 @@ def render_error_page(
     return f"""
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>{code} - LEVEL 1000 AI</title>
-
 <style>
-
-body {{
-    margin: 0;
-    min-height: 100vh;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 20px;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    background: #0b1020;
-    color: #ffffff;
+body{{
+margin:0;
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#0b1020;
+color:#fff;
+font-family:Arial
 }}
-
-.error-box {{
-    width: 100%;
-    max-width: 620px;
-
-    padding: 45px 35px;
-
-    text-align: center;
-
-    background: #121a2d;
-
-    border:
-        1px solid #27304a;
-
-    border-radius: 20px;
+.box{{
+max-width:620px;
+padding:45px 35px;
+text-align:center;
+background:#121a2d;
+border:1px solid #27304a;
+border-radius:20px
 }}
-
-.code {{
-    font-size: 82px;
-    font-weight: 900;
-
-    color: #7ea2ff;
-
-    margin-bottom: 20px;
+.code{{
+font-size:82px;
+font-weight:900;
+color:#7ea2ff
 }}
-
-h1 {{
-    margin: 0 0 15px;
+p{{color:#aeb8cc;line-height:1.7}}
+a{{
+display:inline-block;
+margin-top:30px;
+padding:12px 22px;
+background:#263657;
+color:#fff;
+text-decoration:none;
+border-radius:9px
 }}
-
-p {{
-    color: #aeb8cc;
-    line-height: 1.7;
-}}
-
-.button {{
-    display: inline-block;
-
-    margin-top: 30px;
-
-    padding:
-        12px 22px;
-
-    background: #263657;
-
-    color: #ffffff;
-
-    text-decoration: none;
-
-    border-radius: 9px;
-
-    font-weight: 700;
-}}
-
 </style>
-
 </head>
-
 <body>
-
-<div class="error-box">
-
-<div class="code">
-{code}
+<div class="box">
+<div class="code">{code}</div>
+<h1>{title}</h1>
+<p>{message}</p>
+<a href="/">← Ana Sayfaya Dön</a>
 </div>
-
-<h1>
-{title}
-</h1>
-
-<p>
-{message}
-</p>
-
-<a
-    class="button"
-    href="/"
->
-← Ana Sayfaya Dön
-</a>
-
-</div>
-
 </body>
-
 </html>
 """
 
-
-# ============================================================
-# 404
-# ============================================================
 
 @app.exception_handler(404)
 async def not_found_handler(
@@ -1966,15 +2256,11 @@ async def not_found_handler(
         content=render_error_page(
             404,
             "Sayfa Bulunamadı",
-            "Aradığınız sayfa mevcut değil veya taşınmış olabilir."
+            "Aradığınız sayfa mevcut değil."
         ),
         status_code=404
     )
 
-
-# ============================================================
-# 500
-# ============================================================
 
 @app.exception_handler(500)
 async def server_error_handler(
@@ -1986,7 +2272,7 @@ async def server_error_handler(
         content=render_error_page(
             500,
             "Sunucu Hatası",
-            "Sunucu tarafında beklenmeyen bir hata oluştu. Lütfen kısa bir süre sonra tekrar deneyin."
+            "Sunucu tarafında beklenmeyen bir hata oluştu."
         ),
         status_code=500
     )
@@ -2110,7 +2396,9 @@ async def login(
     data: LoginRequest
 ):
 
-    email = str(data.email).lower().strip()
+    email = str(
+        data.email
+    ).lower().strip()
 
     conn = get_db()
 
@@ -2211,127 +2499,6 @@ async def logout():
 
 
 # ============================================================
-# STATUS
-# ============================================================
-
-@app.get("/api/status")
-async def status(
-    user=Depends(get_current_user)
-):
-
-    signal_file, df = find_signal_file()
-
-    df = normalize_signal_dataframe(df)
-
-    historical_total = len(df)
-
-    historical_buy = (
-        int(
-            (df["Signal"] == "BUY").sum()
-        )
-        if not df.empty
-        else 0
-    )
-
-    historical_sell = (
-        int(
-            (df["Signal"] == "SELL").sum()
-        )
-        if not df.empty
-        else 0
-    )
-
-    historical_hold = (
-        int(
-            (df["Signal"] == "HOLD").sum()
-        )
-        if not df.empty
-        else 0
-    )
-
-    current_df = pd.DataFrame()
-
-    if PAPER_SIGNALS.exists():
-
-        try:
-
-            current_df = normalize_signal_dataframe(
-                pd.read_csv(
-                    PAPER_SIGNALS,
-                    low_memory=False
-                )
-            )
-
-        except Exception:
-
-            current_df = pd.DataFrame()
-
-    current_total = len(current_df)
-
-    current_buy = (
-        int(
-            (current_df["Signal"] == "BUY").sum()
-        )
-        if not current_df.empty
-        else 0
-    )
-
-    current_sell = (
-        int(
-            (current_df["Signal"] == "SELL").sum()
-        )
-        if not current_df.empty
-        else 0
-    )
-
-    current_hold = (
-        int(
-            (current_df["Signal"] == "HOLD").sum()
-        )
-        if not current_df.empty
-        else 0
-    )
-
-    config = get_plan_config(user)
-
-    strong_df = prepare_display_dataframe(
-        df,
-        config["display_limit"]
-    )
-
-    return {
-        "ok": True,
-        "status": "READY",
-
-        "historical_total": historical_total,
-        "historical_buy": historical_buy,
-        "historical_sell": historical_sell,
-        "historical_hold": historical_hold,
-
-        "current_total": current_total,
-        "current_buy": current_buy,
-        "current_sell": current_sell,
-        "current_hold": current_hold,
-
-        "strong_signals": len(strong_df),
-        "top": len(strong_df),
-
-        "min_score": MIN_SIGNAL_SCORE,
-
-        "plan": config["name"],
-        "plan_level": config["level"],
-        "plan_limit": config["display_limit"],
-        "plan_features": config,
-
-        "signal_file": (
-            signal_file.name
-            if signal_file
-            else None
-        ),
-    }
-
-
-# ============================================================
 # SIGNALS
 # ============================================================
 
@@ -2357,22 +2524,43 @@ async def signals(
             "min_score": MIN_SIGNAL_SCORE,
             "plan": config["name"],
             "signals": [],
+            "live_prices": True,
+            "live_price_count": 0,
+            "live_price_unavailable": 0,
+            "live_price_total": 0,
+            "last_update_utc": None,
+            "last_update_tr": None,
+            "price_source": "Yahoo Finance / yfinance",
         }
 
     df = normalize_signal_dataframe(df)
 
+    # ========================================================
+    # CANLI FİYAT UYGULA
+    # ========================================================
+
+    df, live_meta = apply_live_prices_to_dataframe(
+        df
+    )
+
     total = len(df)
 
     buy = int(
-        (df["Signal"] == "BUY").sum()
+        (
+            df["Signal"] == "BUY"
+        ).sum()
     )
 
     sell = int(
-        (df["Signal"] == "SELL").sum()
+        (
+            df["Signal"] == "SELL"
+        ).sum()
     )
 
     hold = int(
-        (df["Signal"] == "HOLD").sum()
+        (
+            df["Signal"] == "HOLD"
+        ).sum()
     )
 
     display_df = prepare_display_dataframe(
@@ -2388,44 +2576,85 @@ async def signals(
 
     for row in raw_records:
 
+        # ----------------------------------------------------
+        # AI TAHMİNİ
+        # ----------------------------------------------------
+
         try:
 
-            predicted = float(
-                row.get(
-                    "AI_Predicted_Return",
-                    0
-                )
+            predicted_raw = row.get(
+                "AI_Predicted_Return"
+            )
+
+            predicted = (
+                float(predicted_raw)
+                if predicted_raw is not None
+                else 0.0
             )
 
         except Exception:
 
             predicted = 0.0
 
+        # ----------------------------------------------------
+        # GERÇEK CANLI FİYAT
+        # ----------------------------------------------------
+
         try:
 
-            price = float(
-                row.get(
-                    "Price",
-                    0
-                )
+            raw_price = row.get(
+                "Price"
+            )
+
+            price = (
+                float(raw_price)
+                if raw_price is not None
+                else None
             )
 
         except Exception:
 
-            price = 0.0
+            price = None
+
+        # ----------------------------------------------------
+        # AI SCORE
+        # ----------------------------------------------------
 
         try:
 
-            score = float(
-                row.get(
-                    "AI_Probability",
-                    0
-                )
+            raw_score = row.get(
+                "AI_Probability"
+            )
+
+            score = (
+                float(raw_score)
+                if raw_score is not None
+                else 0.0
             )
 
         except Exception:
 
             score = 0.0
+
+        # ----------------------------------------------------
+        # GERÇEK GÜNLÜK DEĞİŞİM
+        # ----------------------------------------------------
+
+        try:
+
+            raw_change = row.get(
+                "Daily_Change_Percent"
+            )
+
+            daily_change = (
+                float(raw_change)
+                if raw_change is not None
+                else None
+            )
+
+        except Exception:
+
+            daily_change = None
 
         records.append({
 
@@ -2448,15 +2677,64 @@ async def signals(
                 4
             ),
 
-            "price": round(
-                price,
-                4
+            # SADECE CANLI FİYAT
+            "price": (
+                round(
+                    price,
+                    6
+                )
+                if price is not None
+                else None
             ),
 
-            "change": round(
+            # SADECE AI TAHMİNİ
+            "predicted_return": round(
                 predicted,
                 6
             ),
+
+            # SADECE GERÇEK GÜNLÜK %
+            "change": (
+                round(
+                    daily_change,
+                    6
+                )
+                if daily_change is not None
+                else None
+            ),
+
+            "daily_change_percent": (
+                round(
+                    daily_change,
+                    6
+                )
+                if daily_change is not None
+                else None
+            ),
+
+            "price_status": str(
+                row.get(
+                    "Price_Status",
+                    "UNAVAILABLE"
+                )
+            ),
+
+            "price_source": str(
+                row.get(
+                    "Price_Source",
+                    "Yahoo Finance / yfinance"
+                )
+            ),
+
+            "price_updated_utc":
+                row.get(
+                    "Price_Updated_UTC"
+                ),
+
+            "price_updated_tr":
+                row.get(
+                    "Price_Updated_TR"
+                ),
 
             "date": str(
                 row.get(
@@ -2501,6 +2779,345 @@ async def signals(
 
         "signals":
             records,
+
+        "live_prices": True,
+
+        "live_price_count":
+            live_meta["live_count"],
+
+        "live_price_unavailable":
+            live_meta["unavailable_count"],
+
+        "live_price_total":
+            live_meta["total_count"],
+
+        "last_update_utc":
+            live_meta["updated_at_utc"],
+
+        "last_update_tr":
+            live_meta["updated_at_tr"],
+
+        "price_source":
+            "Yahoo Finance / yfinance",
+
+        "cache_seconds":
+            LIVE_PRICE_CACHE_SECONDS,
+    }
+
+
+# ============================================================
+# CANLI FİYAT TEST
+#
+# DİKKAT:
+# BURADA USER DEPENDENCY YOK.
+# LOGIN GEREKTİRMEZ.
+# ============================================================
+
+@app.get("/api/live-price/{symbol}")
+async def live_price(symbol: str):
+
+    symbol = (
+        str(symbol)
+        .strip()
+        .upper()
+    )
+
+    if not symbol:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Sembol gerekli."
+        )
+
+    data = get_live_prices(
+        [symbol]
+    )
+
+    item = data.get(
+        symbol
+    )
+
+    if not item:
+
+        return {
+
+            "ok": False,
+
+            "symbol": symbol,
+
+            "price": None,
+
+            "previous_close": None,
+
+            "change": None,
+
+            "change_percent": None,
+
+            "status": "UNAVAILABLE",
+
+            "source":
+                "Yahoo Finance / yfinance",
+
+            "updated_at_utc": None,
+
+            "updated_at_tr": None,
+
+            "message":
+                "Yahoo Finance canlı fiyat verisi alınamadı.",
+        }
+
+    return {
+
+        "ok": True,
+
+        "symbol": symbol,
+
+        "price":
+            _clean_float(
+                item.get("price")
+            ),
+
+        "previous_close":
+            _clean_float(
+                item.get("previous_close")
+            ),
+
+        "change":
+            _clean_float(
+                item.get("change")
+            ),
+
+        "change_percent":
+            _clean_float(
+                item.get("change_percent")
+            ),
+
+        "status":
+            item.get(
+                "status",
+                "LIVE"
+            ),
+
+        "source":
+            item.get(
+                "source",
+                "Yahoo Finance / yfinance"
+            ),
+
+        "updated_at_utc":
+            item.get(
+                "updated_at_utc"
+            ),
+
+        "updated_at_tr":
+            item.get(
+                "updated_at_tr"
+            ),
+    }
+
+
+# ============================================================
+# STATUS
+# ============================================================
+
+@app.get("/api/status")
+async def status(
+    user=Depends(get_current_user)
+):
+
+    signal_file, df = find_signal_file()
+
+    df = normalize_signal_dataframe(
+        df
+    )
+
+    live_df, live_meta = (
+        apply_live_prices_to_dataframe(
+            df
+        )
+    )
+
+    historical_total = len(
+        live_df
+    )
+
+    historical_buy = (
+        int(
+            (
+                live_df["Signal"] == "BUY"
+            ).sum()
+        )
+        if not live_df.empty
+        else 0
+    )
+
+    historical_sell = (
+        int(
+            (
+                live_df["Signal"] == "SELL"
+            ).sum()
+        )
+        if not live_df.empty
+        else 0
+    )
+
+    historical_hold = (
+        int(
+            (
+                live_df["Signal"] == "HOLD"
+            ).sum()
+        )
+        if not live_df.empty
+        else 0
+    )
+
+    current_df = pd.DataFrame()
+
+    if PAPER_SIGNALS.exists():
+
+        try:
+
+            current_df = normalize_signal_dataframe(
+                pd.read_csv(
+                    PAPER_SIGNALS,
+                    low_memory=False
+                )
+            )
+
+            current_df, _ = (
+                apply_live_prices_to_dataframe(
+                    current_df
+                )
+            )
+
+        except Exception:
+
+            current_df = pd.DataFrame()
+
+    current_total = len(
+        current_df
+    )
+
+    current_buy = (
+        int(
+            (
+                current_df["Signal"] == "BUY"
+            ).sum()
+        )
+        if not current_df.empty
+        else 0
+    )
+
+    current_sell = (
+        int(
+            (
+                current_df["Signal"] == "SELL"
+            ).sum()
+        )
+        if not current_df.empty
+        else 0
+    )
+
+    current_hold = (
+        int(
+            (
+                current_df["Signal"] == "HOLD"
+            ).sum()
+        )
+        if not current_df.empty
+        else 0
+    )
+
+    config = get_plan_config(
+        user
+    )
+
+    strong_df = prepare_display_dataframe(
+        live_df,
+        config["display_limit"]
+    )
+
+    return {
+
+        "ok": True,
+
+        "status": "READY",
+
+        "historical_total":
+            historical_total,
+
+        "historical_buy":
+            historical_buy,
+
+        "historical_sell":
+            historical_sell,
+
+        "historical_hold":
+            historical_hold,
+
+        "current_total":
+            current_total,
+
+        "current_buy":
+            current_buy,
+
+        "current_sell":
+            current_sell,
+
+        "current_hold":
+            current_hold,
+
+        "strong_signals":
+            len(strong_df),
+
+        "top":
+            len(strong_df),
+
+        "min_score":
+            MIN_SIGNAL_SCORE,
+
+        "plan":
+            config["name"],
+
+        "plan_level":
+            config["level"],
+
+        "plan_limit":
+            config["display_limit"],
+
+        "plan_features":
+            config,
+
+        "signal_file":
+            (
+                signal_file.name
+                if signal_file
+                else None
+            ),
+
+        "live_prices":
+            True,
+
+        "live_price_cache_seconds":
+            LIVE_PRICE_CACHE_SECONDS,
+
+        "live_price_count":
+            live_meta["live_count"],
+
+        "live_price_unavailable":
+            live_meta["unavailable_count"],
+
+        "live_price_total":
+            live_meta["total_count"],
+
+        "last_update_utc":
+            live_meta["updated_at_utc"],
+
+        "last_update_tr":
+            live_meta["updated_at_tr"],
+
+        "price_source":
+            "Yahoo Finance / yfinance",
     }
 
 
@@ -2529,10 +3146,24 @@ async def paper(
             )
         )
 
+        df, live_meta = (
+            apply_live_prices_to_dataframe(
+                df
+            )
+        )
+
         return {
+
             "ok": True,
+
             "paper":
-                dataframe_to_records(df)
+                dataframe_to_records(df),
+
+            "last_update_utc":
+                live_meta["updated_at_utc"],
+
+            "last_update_tr":
+                live_meta["updated_at_tr"],
         }
 
     except Exception as exc:
@@ -2666,12 +3297,14 @@ run_lock = threading.Lock()
 
 
 # ============================================================
-# SCAN HAKKI
+# SCAN
 # ============================================================
 
 def get_scan_info(user):
 
-    config = get_plan_config(user)
+    config = get_plan_config(
+        user
+    )
 
     used = int(
         user["scan_count"]
@@ -2693,37 +3326,26 @@ def get_scan_info(user):
         )
 
     return {
-
         "used": used,
-
         "limit": limit,
-
         "remaining": remaining,
-
     }
 
-
-# ============================================================
-# SCAN HAKKI KULLAN
-# ============================================================
 
 def consume_scan(user):
 
     if bool(user["is_admin"]):
 
         return {
-
             "ok": True,
-
             "used": 0,
-
             "limit": 999999,
-
             "remaining": 999999,
-
         }
 
-    config = get_plan_config(user)
+    config = get_plan_config(
+        user
+    )
 
     limit = int(
         config["scan_limit"]
@@ -2776,20 +3398,15 @@ def consume_scan(user):
     )
 
     return {
-
         "ok": True,
-
         "used": used,
-
         "limit": limit,
-
         "remaining": remaining,
-
     }
 
 
 # ============================================================
-# RUN LEVEL 1000
+# LEVEL 1000 ÇALIŞTIR
 # ============================================================
 
 def run_level1000_process():
@@ -2862,12 +3479,9 @@ async def run_analysis(
         if run_state["running"]:
 
             return {
-
                 "ok": False,
-
                 "error":
                     "Analiz zaten çalışıyor."
-
             }
 
         scan_info = get_scan_info(
@@ -2880,15 +3494,10 @@ async def run_analysis(
         ):
 
             raise HTTPException(
-
                 status_code=403,
-
                 detail=(
-                    "Tarama hakkınız bitti. "
-                    "FREE plan ile toplam 3 tarama "
-                    "kullanabilirsiniz."
+                    "Tarama hakkınız bitti."
                 )
-
             )
 
         consumed = consume_scan(
@@ -2898,12 +3507,8 @@ async def run_analysis(
         if not consumed["ok"]:
 
             raise HTTPException(
-
                 status_code=403,
-
-                detail=
-                    "Tarama hakkınız kalmadı."
-
+                detail="Tarama hakkınız kalmadı."
             )
 
         run_state["last_user"] = (
@@ -2911,23 +3516,15 @@ async def run_analysis(
         )
 
         thread = threading.Thread(
-
-            target=
-                run_level1000_process,
-
+            target=run_level1000_process,
             daemon=True
-
         )
 
         thread.start()
 
     return {
-
         "ok": True,
-
-        "message":
-            "Analiz başlatıldı."
-
+        "message": "Analiz başlatıldı."
     }
 
 
@@ -2941,29 +3538,22 @@ async def run_status(
 ):
 
     return {
-
         "ok": True,
-
         "running":
             run_state["running"],
-
         "started_at":
             run_state["started_at"],
-
         "finished_at":
             run_state["finished_at"],
-
         "error":
             run_state["error"],
-
         "last_user":
             run_state["last_user"],
-
     }
 
 
 # ============================================================
-# MAKE ADMIN
+# ADMIN MAKE
 # ============================================================
 
 @app.post(
@@ -3003,12 +3593,9 @@ async def make_admin(
         )
 
     return {
-
         "ok": True,
-
         "message":
             "Kullanıcı admin ve MAX PRO yapıldı."
-
     }
 
 
@@ -3044,7 +3631,9 @@ async def admin_users(
 
     for row in users:
 
-        item = user_dict(row)
+        item = user_dict(
+            row
+        )
 
         config = get_plan_config(
             row
@@ -3054,17 +3643,14 @@ async def admin_users(
             row["scan_count"]
         )
 
+        item["scan_count"] = used
+
         if bool(row["is_admin"]):
 
-            item["scan_count"] = used
-
             item["scan_limit"] = 999999
-
             item["scan_remaining"] = 999999
 
         else:
-
-            item["scan_count"] = used
 
             item["scan_limit"] = (
                 config["scan_limit"]
@@ -3078,11 +3664,8 @@ async def admin_users(
         result.append(item)
 
     return {
-
         "ok": True,
-
         "users": result
-
     }
 
 
@@ -3110,14 +3693,10 @@ async def set_plan(
     ]:
 
         raise HTTPException(
-
             status_code=400,
-
             detail=(
-                "Plan FREE, PRO veya MAX PRO "
-                "olmalıdır."
+                "Plan FREE, PRO veya MAX PRO olmalıdır."
             )
-
         )
 
     email = email.lower().strip()
@@ -3145,23 +3724,15 @@ async def set_plan(
     if changed == 0:
 
         raise HTTPException(
-
             status_code=404,
-
-            detail=
-                "Kullanıcı bulunamadı."
-
+            detail="Kullanıcı bulunamadı."
         )
 
     return {
-
         "ok": True,
-
         "plan": plan,
-
         "message":
             f"Kullanıcı planı {plan} yapıldı."
-
     }
 
 
@@ -3197,11 +3768,20 @@ async def health():
         "signal_count":
             len(df),
 
+        "live_price_service":
+            True,
+
+        "live_price_cache_seconds":
+            LIVE_PRICE_CACHE_SECONDS,
+
+        "live_price_source":
+            "Yahoo Finance / yfinance",
+
     }
 
 
 # ============================================================
-# DEBUG DATA
+# DEBUG
 # ============================================================
 
 @app.get("/api/debug/data")
@@ -3214,21 +3794,24 @@ async def debug_data(
     if df.empty:
 
         return {
-
             "ok": True,
-
             "file": None,
-
             "columns": [],
-
             "count": 0,
-
             "sample": [],
-
+            "live_prices": True,
+            "last_update_utc": None,
+            "last_update_tr": None,
         }
 
     normalized = normalize_signal_dataframe(
         df
+    )
+
+    normalized, live_meta = (
+        apply_live_prices_to_dataframe(
+            normalized
+        )
     )
 
     config = get_plan_config(
@@ -3298,6 +3881,27 @@ async def debug_data(
                 strong.head(10)
             ),
 
+        "live_prices":
+            True,
+
+        "live_price_count":
+            live_meta["live_count"],
+
+        "live_price_unavailable":
+            live_meta["unavailable_count"],
+
+        "live_price_total":
+            live_meta["total_count"],
+
+        "last_update_utc":
+            live_meta["updated_at_utc"],
+
+        "last_update_tr":
+            live_meta["updated_at_tr"],
+
+        "price_source":
+            "Yahoo Finance / yfinance",
+
     }
 
 
@@ -3321,6 +3925,16 @@ if __name__ == "__main__":
         if os.environ.get("PORT")
         else "127.0.0.1"
     )
+
+    print("")
+    print("=" * 70)
+    print(" LEVEL 1000 AI")
+    print(" CANLI FİYAT SİSTEMİ AKTİF")
+    print("=" * 70)
+    print("Kaynak : Yahoo Finance / yfinance")
+    print("Cache  :", LIVE_PRICE_CACHE_SECONDS, "saniye")
+    print("1M     :", LIVE_INTERVAL)
+    print("")
 
     uvicorn.run(
         "app:app",
