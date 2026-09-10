@@ -1,8 +1,10 @@
-﻿# ============================================================
+﻿
+# ============================================================
 # LEVEL 1000 AI - WEB APP
 # FULL APP
 # LIVE PRICE + AUTH + PLAN + SIGNALS + PAPER + ADMIN
 # YAHOO 429 KORUMALI
+# OTOMATİK RENDER ADMIN
 # ============================================================
 
 from pathlib import Path
@@ -28,10 +30,12 @@ from fastapi import (
     Depends,
     HTTPException,
 )
+
 from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
 )
+
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -60,7 +64,6 @@ PAPER_SIGNALS = (
     DATA_DIR /
     "level1000_paper_signals.csv"
 )
-
 
 DATA_DIR.mkdir(
     parents=True,
@@ -121,59 +124,35 @@ password_hash = PasswordHash.recommended()
 PLANS = {
 
     "FREE": {
-
         "name": "FREE",
-
         "level": 1,
-
         "display_limit": 20,
-
         "scan_limit": 3,
-
         "backtest": False,
-
         "paper": False,
-
         "advanced_ai": False,
-
         "all_signals": False,
     },
 
     "PRO": {
-
         "name": "PRO",
-
         "level": 2,
-
         "display_limit": 100,
-
         "scan_limit": 30,
-
         "backtest": True,
-
         "paper": True,
-
         "advanced_ai": True,
-
         "all_signals": False,
     },
 
     "MAX PRO": {
-
         "name": "MAX PRO",
-
         "level": 3,
-
         "display_limit": 300,
-
         "scan_limit": 999999,
-
         "backtest": True,
-
         "paper": True,
-
         "advanced_ai": True,
-
         "all_signals": True,
     },
 }
@@ -186,19 +165,15 @@ MIN_SIGNAL_SCORE = 0
 # YAHOO CANLI FİYAT AYARLARI
 # ============================================================
 
-# 429 azaltmak için 30 yerine 120 saniye cache.
 LIVE_PRICE_CACHE_SECONDS = 120
 
 LIVE_INTERVAL = "1m"
 LIVE_PERIOD = "1d"
 
-# Aynı anda yalnızca tek Yahoo sorgusu.
 LIVE_DOWNLOAD_LOCK = threading.Lock()
 
-# Genel cooldown.
 LIVE_LAST_DOWNLOAD_TIME = 0.0
 
-# Cache.
 live_price_cache = {}
 
 live_price_cache_lock = threading.Lock()
@@ -254,6 +229,207 @@ def init_db():
 
 
 init_db()
+
+
+# ============================================================
+# OTOMATİK RENDER ADMIN
+# ============================================================
+# Render Environment Variables:
+#
+# LEVEL1000_ADMIN_EMAIL
+# LEVEL1000_ADMIN_PASSWORD
+#
+# Uygulama her başladığında:
+# 1. Admin hesabını arar.
+# 2. Yoksa oluşturur.
+# 3. Varsa şifresini ENV ile günceller.
+# 4. ADMIN yapar.
+# 5. MAX PRO yapar.
+# ============================================================
+
+def ensure_env_admin():
+
+    admin_email = os.getenv(
+        "LEVEL1000_ADMIN_EMAIL",
+        ""
+    ).strip().lower()
+
+    admin_password = os.getenv(
+        "LEVEL1000_ADMIN_PASSWORD",
+        ""
+    )
+
+    if not admin_email:
+
+        print(
+            "[ADMIN] LEVEL1000_ADMIN_EMAIL bulunamadı."
+        )
+
+        return
+
+    if not admin_password:
+
+        print(
+            "[ADMIN] LEVEL1000_ADMIN_PASSWORD bulunamadı."
+        )
+
+        return
+
+    if "@" not in admin_email:
+
+        print(
+            "[ADMIN] Geçersiz admin email:",
+            admin_email
+        )
+
+        return
+
+    if len(admin_password) < 6:
+
+        print(
+            "[ADMIN] Admin şifresi en az 6 karakter olmalıdır."
+        )
+
+        return
+
+    conn = get_db()
+
+    try:
+
+        row = conn.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE email = ?
+            """,
+            (
+                admin_email,
+            )
+        ).fetchone()
+
+        # ====================================================
+        # HESAP VAR
+        # ====================================================
+
+        if row:
+
+            new_hash = password_hash.hash(
+                admin_password
+            )
+
+            conn.execute(
+                """
+                UPDATE users
+                SET
+                    password_hash = ?,
+                    is_admin = 1,
+                    plan = 'MAX PRO'
+                WHERE email = ?
+                """,
+                (
+                    new_hash,
+                    admin_email
+                )
+            )
+
+            conn.commit()
+
+            print(
+                "[ADMIN] Admin hesabı güncellendi."
+            )
+
+            print(
+                "[ADMIN] Email:",
+                admin_email
+            )
+
+            print(
+                "[ADMIN] Yetki: ADMIN"
+            )
+
+            print(
+                "[ADMIN] Plan: MAX PRO"
+            )
+
+            return
+
+        # ====================================================
+        # HESAP YOK - OLUŞTUR
+        # ====================================================
+
+        new_hash = password_hash.hash(
+            admin_password
+        )
+
+        created_at = (
+            datetime.now(
+                timezone.utc
+            ).isoformat()
+        )
+
+        conn.execute(
+            """
+            INSERT INTO users
+            (
+                name,
+                email,
+                password_hash,
+                plan,
+                is_admin,
+                scan_count,
+                created_at
+            )
+            VALUES
+            (?, ?, ?, 'MAX PRO', 1, 0, ?)
+            """,
+            (
+                "LEVEL 1000 Admin",
+                admin_email,
+                new_hash,
+                created_at
+            )
+        )
+
+        conn.commit()
+
+        print(
+            "[ADMIN] Yeni admin hesabı oluşturuldu."
+        )
+
+        print(
+            "[ADMIN] Email:",
+            admin_email
+        )
+
+        print(
+            "[ADMIN] Yetki: ADMIN"
+        )
+
+        print(
+            "[ADMIN] Plan: MAX PRO"
+        )
+
+    except sqlite3.IntegrityError as exc:
+
+        print(
+            "[ADMIN] SQLite IntegrityError:",
+            str(exc)
+        )
+
+    except Exception as exc:
+
+        print(
+            "[ADMIN] Admin oluşturma hatası:",
+            str(exc)
+        )
+
+    finally:
+
+        conn.close()
+
+
+# Uygulama başlarken çalıştır.
+ensure_env_admin()
 
 
 # ============================================================
@@ -446,7 +622,9 @@ async def get_current_user(
         FROM users
         WHERE id = ?
         """,
-        (user_id,)
+        (
+            user_id,
+        )
     ).fetchone()
 
     conn.close()
@@ -566,7 +744,6 @@ def find_signal_file():
 
         BASE_DIR /
         "level1000_v10_latest.csv",
-
     ]
 
     for path in candidates:
@@ -666,9 +843,6 @@ def normalize_signal_dataframe(df):
             "close"
         ):
 
-            # Eski CSV fiyatı daha sonra
-            # canlı fiyat tarafından
-            # değiştirilecek.
             if "Price" not in result.columns:
 
                 rename_map[col] = "Old_Price"
@@ -751,8 +925,6 @@ def prepare_display_dataframe(
 
     work = df.copy()
 
-    # Öncelik:
-    # BUY > SELL > HOLD
     order_map = {
 
         "BUY": 0,
@@ -773,7 +945,6 @@ def prepare_display_dataframe(
         errors="coerce"
     ).fillna(0)
 
-    # Güçlü sinyaller.
     strong = work[
         work["Signal"].isin(
             [
@@ -901,11 +1072,6 @@ def _extract_ticker_from_download(
         result.columns,
         pd.MultiIndex
     ):
-
-        # yfinance:
-        # (Close, AAPL)
-        # veya
-        # (AAPL, Close)
 
         try:
 
@@ -1065,9 +1231,6 @@ def _download_live_prices(
 
     now = time.time()
 
-    # Genel cooldown.
-    # Arka arkaya endpoint çağrılarında
-    # Yahoo'ya tekrar gitme.
     if (
         now - LIVE_LAST_DOWNLOAD_TIME
         < 2.0
@@ -1091,10 +1254,6 @@ def _download_live_prices(
         results = {}
 
         utc_now = _utc_now()
-
-        # ====================================================
-        # 1M TEK BATCH
-        # ====================================================
 
         try:
 
@@ -1169,10 +1328,6 @@ def _download_live_prices(
                 "[YAHOO 1M UYARI]",
                 str(exc)
             )
-
-        # ====================================================
-        # GÜNLÜK ÖNCEKİ KAPANIŞ
-        # ====================================================
 
         missing_previous = [
             symbol
@@ -1280,19 +1435,12 @@ def _download_live_prices(
                     str(exc)
                 )
 
-        # ====================================================
-        # FAST_INFO FALLBACK
-        # ====================================================
-
-        # Sadece eksik kalanlarda.
         missing = [
             symbol
             for symbol in symbols
             if symbol not in results
         ]
 
-        # 429'u azaltmak için çok fazla
-        # fallback yapmıyoruz.
         if missing:
 
             for symbol in missing[:10]:
@@ -1369,10 +1517,6 @@ def get_live_prices(
 
     missing = []
 
-    # ========================================================
-    # CACHE
-    # ========================================================
-
     with live_price_cache_lock:
 
         for symbol in symbols:
@@ -1413,10 +1557,6 @@ def get_live_prices(
                     symbol
                 )
 
-    # ========================================================
-    # YENİ VERİ
-    # ========================================================
-
     if missing:
 
         fresh = _download_live_prices(
@@ -1442,10 +1582,6 @@ def get_live_prices(
                 output[symbol] = dict(
                     item
                 )
-
-    # ========================================================
-    # CACHE'DE OLMAYANLAR
-    # ========================================================
 
     for symbol in symbols:
 
@@ -1585,12 +1721,6 @@ def apply_live_prices_to_dataframe(
                 "updated_at_tr"
             )
         )
-
-    # ========================================================
-    # ÖNEMLİ:
-    # ESKİ CSV FİYATINA DÖNME.
-    # CANLI VERİ YOKSA NONE.
-    # ========================================================
 
     work["Price"] = price_values
 
@@ -1869,7 +1999,9 @@ async def register(
         FROM users
         WHERE email = ?
         """,
-        (email,)
+        (
+            email,
+        )
     ).fetchone()
 
     if existing:
@@ -1924,7 +2056,9 @@ async def register(
         FROM users
         WHERE id = ?
         """,
-        (user_id,)
+        (
+            user_id,
+        )
     ).fetchone()
 
     conn.close()
@@ -1969,6 +2103,10 @@ async def login(
         data.password
     )
 
+    # ========================================================
+    # NORMAL DATABASE LOGIN
+    # ========================================================
+
     conn = get_db()
 
     row = conn.execute(
@@ -1977,10 +2115,54 @@ async def login(
         FROM users
         WHERE email = ?
         """,
-        (email,)
+        (
+            email,
+        )
     ).fetchone()
 
     conn.close()
+
+    # ========================================================
+    # GÜVENLİK AĞI:
+    # ENV ADMIN HESABI DB'DE YOKSA TEKRAR OLUŞTUR
+    # ========================================================
+
+    env_admin_email = os.getenv(
+        "LEVEL1000_ADMIN_EMAIL",
+        ""
+    ).strip().lower()
+
+    env_admin_password = os.getenv(
+        "LEVEL1000_ADMIN_PASSWORD",
+        ""
+    )
+
+    if (
+        not row
+        and
+        env_admin_email
+        and
+        env_admin_password
+        and
+        email == env_admin_email
+    ):
+
+        ensure_env_admin()
+
+        conn = get_db()
+
+        row = conn.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE email = ?
+            """,
+            (
+                email,
+            )
+        ).fetchone()
+
+        conn.close()
 
     if not row:
 
@@ -1999,6 +2181,67 @@ async def login(
     except Exception:
 
         valid = False
+
+    # ========================================================
+    # ENV ADMIN ŞİFRE FALLBACK
+    # ========================================================
+    # Sadece ENV admin email için.
+    # ENV şifresi doğruysa DB hash eski olsa bile
+    # hesap güncellenir ve giriş yapılır.
+    # ========================================================
+
+    if (
+        not valid
+        and
+        env_admin_email
+        and
+        env_admin_password
+        and
+        email == env_admin_email
+        and
+        secrets.compare_digest(
+            password,
+            env_admin_password
+        )
+    ):
+
+        conn = get_db()
+
+        new_hash = password_hash.hash(
+            env_admin_password
+        )
+
+        conn.execute(
+            """
+            UPDATE users
+            SET
+                password_hash = ?,
+                is_admin = 1,
+                plan = 'MAX PRO'
+            WHERE email = ?
+            """,
+            (
+                new_hash,
+                email
+            )
+        )
+
+        conn.commit()
+
+        row = conn.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE email = ?
+            """,
+            (
+                email,
+            )
+        ).fetchone()
+
+        conn.close()
+
+        valid = True
 
     if not valid:
 
@@ -2183,10 +2426,6 @@ async def signals(
         df
     )
 
-    # ========================================================
-    # ÖNCE SAYILAR
-    # ========================================================
-
     total = len(df)
 
     buy = int(
@@ -2207,20 +2446,12 @@ async def signals(
         ).sum()
     )
 
-    # ========================================================
-    # ÖNCE TOP LİSTE
-    # ========================================================
-
     display_df = (
         prepare_display_dataframe(
             df,
             config["display_limit"]
         )
     )
-
-    # ========================================================
-    # SADECE TOP LİSTEYE CANLI FİYAT
-    # ========================================================
 
     display_df, live_meta = (
         apply_live_prices_to_dataframe(
@@ -2238,10 +2469,6 @@ async def signals(
 
     for row in raw_records:
 
-        # ----------------------------------------------------
-        # AI TAHMİNİ
-        # ----------------------------------------------------
-
         predicted = _clean_float(
             row.get(
                 "AI_Predicted_Return"
@@ -2252,19 +2479,11 @@ async def signals(
 
             predicted = 0.0
 
-        # ----------------------------------------------------
-        # CANLI FİYAT
-        # ----------------------------------------------------
-
         price = _clean_float(
             row.get(
                 "Price"
             )
         )
-
-        # ----------------------------------------------------
-        # AI SCORE
-        # ----------------------------------------------------
 
         score = _clean_float(
             row.get(
@@ -2275,10 +2494,6 @@ async def signals(
         if score is None:
 
             score = 0.0
-
-        # ----------------------------------------------------
-        # GERÇEK GÜNLÜK DEĞİŞİM
-        # ----------------------------------------------------
 
         daily_change = _clean_float(
             row.get(
@@ -2320,14 +2535,12 @@ async def signals(
                     else None
                 ),
 
-            # SADECE AI TAHMİNİ
             "predicted_return":
                 round(
                     predicted,
                     6
                 ),
 
-            # SADECE GERÇEK GÜNLÜK DEĞİŞİM
             "change":
                 (
                     round(
@@ -2601,11 +2814,6 @@ async def status(
         df
     )
 
-    # ========================================================
-    # ÖNEMLİ:
-    # STATUS YAHOO'YA GİTMEZ
-    # ========================================================
-
     historical_total = len(
         df
     )
@@ -2639,10 +2847,6 @@ async def status(
         if not df.empty
         else 0
     )
-
-    # ========================================================
-    # PAPER SAYILARI
-    # ========================================================
 
     current_df = (
         pd.DataFrame()
@@ -2782,7 +2986,6 @@ async def status(
         "live_price_cache_seconds":
             LIVE_PRICE_CACHE_SECONDS,
 
-        # STATUS CANLI FİYAT İNDİRMİYOR
         "live_price_count":
             0,
 
@@ -2834,8 +3037,6 @@ async def paper(
             )
         )
 
-        # Paper genelde küçük olduğu için
-        # canlı fiyat uygulanabilir.
         df, live_meta = (
             apply_live_prices_to_dataframe(
                 df
@@ -2900,7 +3101,6 @@ async def metrics(
 
         DATA_DIR /
         "level1000_model_metrics.csv",
-
     ]
 
     for path in files:
@@ -2979,7 +3179,6 @@ async def backtest(
 
         DATA_DIR /
         "level1000_variant_summary.csv",
-
     ]
 
     for path in files:
@@ -3712,7 +3911,6 @@ async def debug_data(
         user
     )
 
-    # Önce TOP liste.
     strong = (
         prepare_display_dataframe(
             normalized,
@@ -3720,7 +3918,6 @@ async def debug_data(
         )
     )
 
-    # Sadece TOP liste canlı fiyat.
     strong, live_meta = (
         apply_live_prices_to_dataframe(
             strong
@@ -3875,7 +4072,6 @@ async def single_signal(
                 f"{ticker} bulunamadı."
         )
 
-    # Tek sembol için canlı fiyat.
     result, live_meta = (
         apply_live_prices_to_dataframe(
             result
@@ -4084,6 +4280,7 @@ if __name__ == "__main__":
     print("=" * 70)
     print(" LEVEL 1000 AI")
     print(" CANLI FİYAT + 429 KORUMASI AKTİF")
+    print(" OTOMATİK ADMIN SİSTEMİ AKTİF")
     print("=" * 70)
     print(
         "Kaynak : Yahoo Finance / yfinance"
