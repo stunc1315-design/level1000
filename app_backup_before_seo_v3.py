@@ -4244,323 +4244,99 @@ async def server_error(
 
 
 
-
-
 # ============================================================
-# LEVEL 1000 AI - GOOGLE SEO
-# PUBLIC STOCK PAGES
-# ============================================================
-
-SEO_BASE_URL = "https://level1000-2.onrender.com"
-
-
-# ============================================================
-# PUBLIC TICKER LIST
+# GOOGLE SEO - PUBLIC STOCK PAGES
 # ============================================================
 
 def get_public_tickers():
 
-    result = set()
+    signal_file, df = find_signal_file()
 
-
-    # --------------------------------------------------------
-    # SIGNAL CSV
-    # --------------------------------------------------------
+    if df is None or df.empty:
+        return []
 
     try:
+        df = normalize_signal_dataframe(df)
 
-        signal_file, df = find_signal_file()
+        if "Ticker" not in df.columns:
+            return []
 
-        if df is not None and not df.empty:
-
-            df = normalize_signal_dataframe(
-                df
-            )
-
-            if (
-                df is not None
-                and not df.empty
-                and "Ticker" in df.columns
-            ):
-
-                for value in df["Ticker"].tolist():
-
-                    ticker = str(
-                        value
-                    ).strip().upper()
-
-                    if not ticker:
-                        continue
-
-                    if ticker in {
-                        "-",
-                        "NAN",
-                        "NONE",
-                        "NULL"
-                    }:
-                        continue
-
-                    if len(ticker) > 30:
-                        continue
-
-                    result.add(ticker)
-
-    except Exception:
-        pass
-
-
-    # --------------------------------------------------------
-    # SYMBOLS.TXT
-    # --------------------------------------------------------
-
-    symbols_file = Path(
-        "symbols.txt"
-    )
-
-    if symbols_file.exists():
-
-        try:
-
-            lines = symbols_file.read_text(
-                encoding="utf-8",
-                errors="ignore"
-            ).splitlines()
-
-            for line in lines:
-
-                ticker = str(
-                    line
-                ).strip().upper()
-
-                if not ticker:
-                    continue
-
-                if ticker.startswith("#"):
-                    continue
-
-                if "," in ticker:
-
-                    ticker = ticker.split(
-                        ",",
-                        1
-                    )[0].strip()
-
-                if ticker in {
-                    "-",
-                    "NAN",
-                    "NONE",
-                    "NULL",
-                    "SYMBOL",
-                    "TICKER"
-                }:
-                    continue
-
-                if len(ticker) > 30:
-                    continue
-
-                result.add(ticker)
-
-        except Exception:
-            pass
-
-
-    # --------------------------------------------------------
-    # POPÜLER ABD HİSSELERİ
-    # --------------------------------------------------------
-
-    result.update({
-
-        "AAPL",
-        "NVDA",
-        "MSFT",
-        "AMZN",
-        "GOOGL",
-        "GOOG",
-        "META",
-        "TSLA",
-        "AVGO",
-        "NFLX",
-        "AMD",
-        "INTC",
-        "QCOM",
-        "MU",
-        "AMAT",
-        "ADBE",
-        "CRM",
-        "ORCL",
-        "IBM",
-        "CSCO",
-        "UBER",
-        "ABNB",
-        "PLTR",
-        "COIN",
-        "HOOD",
-        "MSTR",
-        "PYPL",
-        "SHOP",
-        "SNOW",
-        "SOFI",
-        "RIVN",
-        "LCID",
-        "NIO",
-        "F",
-        "GM",
-        "BA",
-        "JPM",
-        "BAC",
-        "WMT",
-        "COST",
-        "DIS",
-        "V",
-        "MA",
-        "JNJ",
-        "PFE",
-        "XOM",
-        "CVX",
-        "CAT",
-        "GE",
-        "T",
-        "VZ"
-
-    })
-
-
-    # --------------------------------------------------------
-    # ETF
-    # --------------------------------------------------------
-
-    result.update({
-
-        "SPY",
-        "QQQ",
-        "IWM",
-        "DIA",
-        "VOO",
-        "VTI",
-        "VEA",
-        "VWO",
-        "ARKK",
-        "SMH",
-        "XLK",
-        "XLF",
-        "XLE",
-        "XLV",
-        "XLI",
-        "XLP",
-        "XLY",
-        "GLD",
-        "SLV",
-        "TLT",
-        "HYG",
-        "LQD"
-
-    })
-
-
-    # --------------------------------------------------------
-    # KRİPTO
-    # --------------------------------------------------------
-
-    result.update({
-
-        "BTC-USD",
-        "ETH-USD",
-        "SOL-USD",
-        "XRP-USD",
-        "DOGE-USD",
-        "ADA-USD",
-        "AVAX-USD",
-        "LINK-USD",
-        "DOT-USD",
-        "LTC-USD"
-
-    })
-
-
-    return sorted(
-        result
-    )
-
-
-# ============================================================
-# PUBLIC SIGNAL
-# ============================================================
-
-def get_public_signal(ticker):
-
-    ticker = str(
-        ticker
-    ).strip().upper()
-
-
-    try:
-
-        signal_file, df = find_signal_file()
-
-        if df is None or df.empty:
-            return None
-
-
-        df = normalize_signal_dataframe(
-            df
-        )
-
-        if (
-            df is None
-            or df.empty
-            or "Ticker" not in df.columns
-        ):
-            return None
-
-
-        result = df[
+        tickers = (
             df["Ticker"]
             .astype(str)
             .str.strip()
             .str.upper()
+            .tolist()
+        )
+
+        result = set()
+
+        for ticker in tickers:
+
+            if not ticker:
+                continue
+
+            if ticker == "-":
+                continue
+
+            if len(ticker) > 30:
+                continue
+
+            result.add(ticker)
+
+        return sorted(result)
+
+    except Exception:
+        return []
+
+
+def get_public_signal(ticker):
+
+    signal_file, df = find_signal_file()
+
+    if df is None or df.empty:
+        return None
+
+    try:
+
+        df = normalize_signal_dataframe(df)
+
+        ticker = (
+            str(ticker)
+            .strip()
+            .upper()
+        )
+
+        result = df[
+            df["Ticker"]
+            .astype(str)
+            .str.upper()
             == ticker
         ].copy()
-
 
         if result.empty:
             return None
 
-
         row = result.iloc[0]
 
-
         probability = _clean_float(
-            row.get(
-                "AI_Probability"
-            )
+            row.get("AI_Probability")
         )
-
 
         predicted_return = _clean_float(
-            row.get(
-                "AI_Predicted_Return"
-            )
+            row.get("AI_Predicted_Return")
         )
-
 
         price = _clean_float(
-            row.get(
-                "Price"
-            )
+            row.get("Price")
         )
-
 
         signal = str(
             row.get(
                 "Signal",
-                "VERİ YOK"
+                "HOLD"
             )
-        ).strip().upper()
-
-
-        if not signal:
-            signal = "VERİ YOK"
-
+        ).upper()
 
         date = str(
             row.get(
@@ -4569,34 +4345,18 @@ def get_public_signal(ticker):
             )
         )
 
-
         return {
-
             "ticker": ticker,
-
             "signal": signal,
-
             "probability": probability,
-
             "predicted_return": predicted_return,
-
             "price": price,
-
             "date": date,
-
-            "has_signal": True
-
         }
 
-
     except Exception:
-
         return None
 
-
-# ============================================================
-# PUBLIC STOCK PAGE
-# ============================================================
 
 @app.get(
     "/hisse/{ticker}",
@@ -4606,251 +4366,156 @@ async def public_stock_page(
     ticker: str
 ):
 
-    ticker = str(
-        ticker
-    ).strip().upper()
-
-
-    if not ticker:
-
-        raise HTTPException(
-            status_code=404,
-            detail="Hisse bulunamadı."
-        )
-
-
-    if len(ticker) > 30:
-
-        raise HTTPException(
-            status_code=404,
-            detail="Geçersiz sembol."
-        )
-
-
-    # --------------------------------------------------------
-    # CSV'DEN SİNYAL
-    # --------------------------------------------------------
+    ticker = (
+        str(ticker)
+        .strip()
+        .upper()
+    )
 
     data = get_public_signal(
         ticker
     )
 
-
-    # --------------------------------------------------------
-    # CSV'DE YOKSA DA SAYFA AÇ
-    # --------------------------------------------------------
-
     if data is None:
 
-        data = {
-
-            "ticker": ticker,
-
-            "signal": "SİNYAL YOK",
-
-            "probability": None,
-
-            "predicted_return": None,
-
-            "price": None,
-
-            "date": "-",
-
-            "has_signal": False
-
-        }
-
+        raise HTTPException(
+            status_code=404,
+            detail=f"{ticker} bulunamadı."
+        )
 
     safe_ticker = escape(
         data["ticker"]
     )
 
-
-    safe_signal = escape(
+    signal = escape(
         data["signal"]
     )
-
 
     probability = data[
         "probability"
     ]
 
-
     predicted_return = data[
         "predicted_return"
     ]
-
 
     price = data[
         "price"
     ]
 
-
     date = escape(
-        str(
-            data["date"]
-        )
+        data["date"]
     )
 
-
-    if probability is not None:
-
-        probability_text = (
-            f"{probability:.2f}%"
-        )
-
-    else:
-
-        probability_text = "Henüz yok"
-
-
-    if predicted_return is not None:
-
-        predicted_text = (
-            f"{predicted_return:.2f}%"
-        )
-
-    else:
-
-        predicted_text = "Henüz yok"
-
-
-    if price is not None:
-
-        price_text = (
-            f"{price:.4f}"
-        )
-
-    else:
-
-        price_text = "Henüz yok"
-
-
-    encoded_ticker = quote(
-        ticker,
-        safe=".-_"
+    probability_text = (
+        f"{probability:.2f}%"
+        if probability is not None
+        else "Veri yok"
     )
 
-
-    canonical = (
-        f"{SEO_BASE_URL}/hisse/"
-        f"{encoded_ticker}"
+    predicted_text = (
+        f"{predicted_return:.2f}%"
+        if predicted_return is not None
+        else "Veri yok"
     )
 
+    price_text = (
+        f"{price:.4f}"
+        if price is not None
+        else "Veri yok"
+    )
+
+    base_url = (
+        "https://level1000-2.onrender.com"
+    )
+
+    canonical_url = (
+        f"{base_url}/hisse/"
+        f"{quote(ticker, safe='.-_')}"
+    )
 
     title = (
         f"{safe_ticker} Hisse Senedi Analizi | "
-        f"Fiyat ve AI Sinyali | LEVEL 1000 AI"
+        f"LEVEL 1000 AI"
     )
-
 
     description = (
-        f"{safe_ticker} hisse senedi analizi, "
-        f"fiyat, AI sinyali, AI olasılığı ve "
-        f"tahmini getiri bilgilerini inceleyin."
+        f"{safe_ticker} hisse senedi analizi. "
+        f"LEVEL 1000 AI ile BUY, SELL, HOLD sinyali, "
+        f"AI olasılığı, tahmini getiri ve analiz tarihini "
+        f"inceleyin."
     )
 
-
     return HTMLResponse(
-
         f"""
 <!DOCTYPE html>
-
 <html lang="tr">
 
 <head>
 
 <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
 <title>{title}</title>
 
-<meta
-    name="description"
-    content="{escape(description)}"
->
+<meta name="description"
+      content="{escape(description)}">
 
-<meta
-    name="robots"
-    content="index, follow"
->
+<meta name="robots"
+      content="index, follow">
 
-<link
-    rel="canonical"
-    href="{canonical}"
->
+<link rel="canonical"
+      href="{canonical_url}">
 
+<meta property="og:title"
+      content="{title}">
 
-<meta
-    property="og:type"
-    content="website"
->
+<meta property="og:description"
+      content="{escape(description)}">
 
-<meta
-    property="og:title"
-    content="{title}"
->
+<meta property="og:type"
+      content="website">
 
-<meta
-    property="og:description"
-    content="{escape(description)}"
->
-
-<meta
-    property="og:url"
-    content="{canonical}"
->
-
-<meta
-    property="og:site_name"
-    content="LEVEL 1000 AI"
->
-
+<meta property="og:url"
+      content="{canonical_url}">
 
 <script type="application/ld+json">
-
 {{
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "{escape(title)}",
     "description": "{escape(description)}",
-    "url": "{canonical}",
+    "url": "{canonical_url}",
     "isPartOf": {{
         "@type": "WebSite",
         "name": "LEVEL 1000 AI",
-        "url": "{SEO_BASE_URL}/"
+        "url": "{base_url}/"
     }}
 }}
-
 </script>
-
 
 <style>
 
 * {{
-    box-sizing:
-        border-box;
+    box-sizing: border-box;
 }}
 
 body {{
 
-    margin:
-        0;
+    margin: 0;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 
     background:
         #080d18;
 
     color:
         #ffffff;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
 }}
 
 .container {{
@@ -4859,10 +4524,10 @@ body {{
         1100px;
 
     margin:
-        auto;
+        0 auto;
 
     padding:
-        30px 20px;
+        40px 20px;
 }}
 
 .topbar {{
@@ -4877,7 +4542,7 @@ body {{
         center;
 
     margin-bottom:
-        30px;
+        35px;
 }}
 
 .logo {{
@@ -4886,7 +4551,10 @@ body {{
         24px;
 
     font-weight:
-        900;
+        800;
+
+    color:
+        #ffffff;
 }}
 
 .home {{
@@ -4898,7 +4566,7 @@ body {{
         none;
 
     font-weight:
-        700;
+        600;
 }}
 
 .card {{
@@ -4907,7 +4575,7 @@ body {{
         #111827;
 
     border:
-        1px solid #26344c;
+        1px solid #243047;
 
     border-radius:
         18px;
@@ -4917,6 +4585,9 @@ body {{
 
     margin-bottom:
         20px;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.25);
 }}
 
 h1 {{
@@ -4925,7 +4596,7 @@ h1 {{
         38px;
 
     margin:
-        0 0 15px;
+        0 0 12px;
 }}
 
 h2 {{
@@ -4933,8 +4604,8 @@ h2 {{
     font-size:
         24px;
 
-    margin:
-        0 0 15px;
+    margin-top:
+        0;
 }}
 
 .subtitle {{
@@ -4943,7 +4614,7 @@ h2 {{
         #94a3b8;
 
     line-height:
-        1.8;
+        1.7;
 }}
 
 .grid {{
@@ -4952,10 +4623,7 @@ h2 {{
         grid;
 
     grid-template-columns:
-        repeat(
-            auto-fit,
-            minmax(190px, 1fr)
-        );
+        repeat(auto-fit, minmax(200px, 1fr));
 
     gap:
         15px;
@@ -4994,10 +4662,10 @@ h2 {{
 .stat-value {{
 
     font-size:
-        24px;
+        26px;
 
     font-weight:
-        900;
+        800;
 }}
 
 .text {{
@@ -5006,7 +4674,7 @@ h2 {{
         #cbd5e1;
 
     line-height:
-        1.85;
+        1.8;
 }}
 
 .warning {{
@@ -5015,7 +4683,7 @@ h2 {{
         #fbbf24;
 
     line-height:
-        1.8;
+        1.7;
 }}
 
 .button {{
@@ -5024,7 +4692,7 @@ h2 {{
         inline-block;
 
     margin-top:
-        15px;
+        10px;
 
     padding:
         12px 20px;
@@ -5036,36 +4704,13 @@ h2 {{
         #2563eb;
 
     color:
-        white;
+        #ffffff;
 
     text-decoration:
         none;
 
     font-weight:
-        800;
-}}
-
-.links {{
-
-    display:
-        flex;
-
-    flex-wrap:
-        wrap;
-
-    gap:
-        12px;
-
-}}
-
-.links a {{
-
-    color:
-        #93c5fd;
-
-    text-decoration:
-        none;
-
+        700;
 }}
 
 footer {{
@@ -5080,216 +4725,217 @@ footer {{
         35px;
 
     line-height:
-        1.7;
+        1.6;
 }}
 
 </style>
 
 </head>
 
-
 <body>
-
 
 <div class="container">
 
+    <div class="topbar">
 
-<div class="topbar">
-
-    <div class="logo">
-        LEVEL 1000 AI
-    </div>
-
-    <a
-        class="home"
-        href="/"
-    >
-        Ana Sayfa
-    </a>
-
-</div>
-
-
-<div class="card">
-
-    <h1>
-        {safe_ticker} Hisse Senedi Analizi
-    </h1>
-
-    <p class="subtitle">
-
-        {safe_ticker} için LEVEL 1000 AI
-        piyasa analiz ve araştırma sayfası.
-
-    </p>
-
-
-    <div class="grid">
-
-
-        <div class="stat">
-
-            <div class="stat-title">
-                AI Sinyali
-            </div>
-
-            <div class="stat-value">
-                {safe_signal}
-            </div>
-
+        <div class="logo">
+            LEVEL 1000 AI
         </div>
 
-
-        <div class="stat">
-
-            <div class="stat-title">
-                AI Olasılığı
-            </div>
-
-            <div class="stat-value">
-                {probability_text}
-            </div>
-
-        </div>
-
-
-        <div class="stat">
-
-            <div class="stat-title">
-                Tahmini Getiri
-            </div>
-
-            <div class="stat-value">
-                {predicted_text}
-            </div>
-
-        </div>
-
-
-        <div class="stat">
-
-            <div class="stat-title">
-                Fiyat
-            </div>
-
-            <div class="stat-value">
-                {price_text}
-            </div>
-
-        </div>
-
-
-        <div class="stat">
-
-            <div class="stat-title">
-                Analiz Tarihi
-            </div>
-
-            <div class="stat-value">
-                {date}
-            </div>
-
-        </div>
-
+        <a
+            class="home"
+            href="/"
+        >
+            Ana Sayfa
+        </a>
 
     </div>
 
-</div>
+
+    <div class="card">
+
+        <h1>
+            {safe_ticker} Hisse Senedi Analizi
+        </h1>
+
+        <p class="subtitle">
+            {safe_ticker} için LEVEL 1000 AI tarafından
+            oluşturulan piyasa analiz verilerini
+            inceleyin.
+        </p>
 
 
-<div class="card">
+        <div class="grid">
 
-    <h2>
-        {safe_ticker} hisse senedi
-    </h2>
+            <div class="stat">
 
-    <p class="text">
+                <div class="stat-title">
+                    AI Sinyali
+                </div>
 
-        {safe_ticker} hakkında piyasa verileri,
-        AI analiz sonuçları ve teknik araştırma
-        bilgileri LEVEL 1000 AI platformunda
-        sunulmaktadır.
+                <div class="stat-value">
+                    {signal}
+                </div>
 
-        Sistem mevcut verilere göre BUY, SELL
-        veya HOLD benzeri analiz sonuçları
-        üretebilir.
-
-    </p>
-
-</div>
+            </div>
 
 
-<div class="card">
+            <div class="stat">
 
-    <h2>
-        LEVEL 1000 AI
-    </h2>
+                <div class="stat-title">
+                    AI Olasılığı
+                </div>
 
-    <p class="text">
+                <div class="stat-value">
+                    {probability_text}
+                </div>
 
-        LEVEL 1000 AI; hisse senetleri, ETF'ler,
-        kripto varlıklar ve farklı piyasa
-        sembolleri üzerinde yapay zeka destekli
-        piyasa araştırması yapılmasına yardımcı
-        olmak amacıyla geliştirilmiştir.
+            </div>
 
-    </p>
 
-    <div class="links">
+            <div class="stat">
 
-        <a href="/hisse/AAPL">AAPL</a>
+                <div class="stat-title">
+                    Tahmini Getiri
+                </div>
 
-        <a href="/hisse/NVDA">NVDA</a>
+                <div class="stat-value">
+                    {predicted_text}
+                </div>
 
-        <a href="/hisse/TSLA">TSLA</a>
+            </div>
 
-        <a href="/hisse/MSFT">MSFT</a>
 
-        <a href="/hisse/AMZN">AMZN</a>
+            <div class="stat">
 
-        <a href="/hisse/GOOGL">GOOGL</a>
+                <div class="stat-title">
+                    Fiyat
+                </div>
+
+                <div class="stat-value">
+                    {price_text}
+                </div>
+
+            </div>
+
+
+            <div class="stat">
+
+                <div class="stat-title">
+                    Analiz Tarihi
+                </div>
+
+                <div class="stat-value">
+                    {date}
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
-    <br>
 
-    <a
-        class="button"
-        href="/"
-    >
-        LEVEL 1000 AI'ı Aç
-    </a>
+    <div class="card">
 
-</div>
+        <h2>
+            {safe_ticker} hisse analizi nedir?
+        </h2>
 
+        <p class="text">
 
-<div class="card">
+            LEVEL 1000 AI, piyasa verilerini ve çeşitli
+            analiz metriklerini kullanarak hisse senetleri
+            için BUY, SELL veya HOLD şeklinde sinyaller
+            üretir.
 
-    <h2>
-        Risk Uyarısı
-    </h2>
+            Bu sayfada {safe_ticker} için mevcut sinyal,
+            AI olasılığı, tahmini getiri ve analiz tarihi
+            gibi bilgiler gösterilmektedir.
 
-    <p class="warning">
+        </p>
 
-        LEVEL 1000 AI tarafından sunulan bilgiler
-        yatırım tavsiyesi veya finansal danışmanlık
-        değildir.
-
-        Geçmiş performans gelecekteki sonuçların
-        garantisi değildir.
-
-    </p>
-
-</div>
+    </div>
 
 
-<footer>
+    <div class="card">
 
-    LEVEL 1000 AI —
-    Yapay zeka destekli piyasa araştırma platformu.
+        <h2>
+            LEVEL 1000 AI nasıl çalışır?
+        </h2>
 
-</footer>
+        <p class="text">
 
+            Sistem geçmiş piyasa verileri, teknik göstergeler,
+            fiyat hareketleri ve makine öğrenmesi tabanlı
+            analizlerden yararlanarak piyasa araştırmasına
+            yardımcı olacak sonuçlar üretir.
+
+            Sonuçlar otomatik olarak oluşturulur ve piyasa
+            koşullarına göre değişebilir.
+
+        </p>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>
+            Önemli Risk Uyarısı
+        </h2>
+
+        <p class="warning">
+
+            LEVEL 1000 AI tarafından gösterilen bilgiler
+            yatırım tavsiyesi, finansal danışmanlık veya
+            kesin getiri garantisi değildir.
+
+            Geçmiş performans gelecekteki sonuçların
+            garantisi değildir.
+
+            Yatırım kararlarınızı kendi araştırmanız ve
+            risk değerlendirmeniz doğrultusunda vermelisiniz.
+
+        </p>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>
+            Daha fazla piyasa analizi
+        </h2>
+
+        <p class="text">
+
+            LEVEL 1000 AI platformunda daha fazla hisse,
+            ETF, kripto varlık ve piyasa sinyalini
+            inceleyebilirsiniz.
+
+        </p>
+
+        <a
+            class="button"
+            href="/"
+        >
+            LEVEL 1000 AI'ı Aç
+        </a>
+
+    </div>
+
+
+    <footer>
+
+        LEVEL 1000 AI —
+        Yapay zeka destekli piyasa araştırma platformu.
+
+        <br>
+
+        Yatırım tavsiyesi değildir.
+
+    </footer>
 
 </div>
 
@@ -5301,7 +4947,7 @@ footer {{
 
 
 # ============================================================
-# SITEMAP
+# GOOGLE SITEMAP
 # ============================================================
 
 @app.get(
@@ -5310,26 +4956,28 @@ footer {{
 )
 async def sitemap():
 
+    base = (
+        "https://level1000-2.onrender.com"
+    )
+
     urls = [
 
-        f"{SEO_BASE_URL}/",
+        f"{base}/",
 
-        f"{SEO_BASE_URL}/about",
+        f"{base}/about",
 
-        f"{SEO_BASE_URL}/guide",
+        f"{base}/guide",
 
-        f"{SEO_BASE_URL}/risk",
+        f"{base}/risk",
 
-        f"{SEO_BASE_URL}/privacy",
+        f"{base}/privacy",
 
-        f"{SEO_BASE_URL}/cookies",
+        f"{base}/cookies",
 
-        f"{SEO_BASE_URL}/terms",
+        f"{base}/terms",
 
-        f"{SEO_BASE_URL}/contact"
-
+        f"{base}/contact",
     ]
-
 
     for ticker in get_public_tickers():
 
@@ -5339,39 +4987,25 @@ async def sitemap():
         )
 
         urls.append(
-            f"{SEO_BASE_URL}/hisse/{encoded}"
+            f"{base}/hisse/{encoded}"
         )
-
-
-    urls = list(
-        dict.fromkeys(
-            urls
-        )
-    )
-
 
     xml = [
 
         '<?xml version="1.0" encoding="UTF-8"?>',
 
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-
     ]
-
 
     for url in urls:
 
         xml.append(
-            f"<url>"
-            f"<loc>{escape(url)}</loc>"
-            f"</url>"
+            f"<url><loc>{escape(url)}</loc></url>"
         )
-
 
     xml.append(
         "</urlset>"
     )
-
 
     return PlainTextResponse(
 
@@ -5382,7 +5016,7 @@ async def sitemap():
 
 
 # ============================================================
-# ROBOTS
+# GOOGLE ROBOTS
 # ============================================================
 
 @app.get(
@@ -5393,15 +5027,14 @@ async def robots():
 
     return PlainTextResponse(
 
-        f"""User-agent: *
+        """User-agent: *
 Allow: /
 
-Sitemap: {SEO_BASE_URL}/sitemap.xml
+Sitemap: https://level1000-2.onrender.com/sitemap.xml
 """,
 
         media_type="text/plain"
     )
-
 
 
 
