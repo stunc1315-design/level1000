@@ -1,4 +1,3 @@
-﻿
 # ============================================================
 # LEVEL 1000 AI - WEB APP
 # FULL APP
@@ -237,18 +236,6 @@ init_db()
 # ============================================================
 # OTOMATİK RENDER ADMIN
 # ============================================================
-# Render Environment Variables:
-#
-# LEVEL1000_ADMIN_EMAIL
-# LEVEL1000_ADMIN_PASSWORD
-#
-# Uygulama her başladığında:
-# 1. Admin hesabını arar.
-# 2. Yoksa oluşturur.
-# 3. Varsa şifresini ENV ile günceller.
-# 4. ADMIN yapar.
-# 5. MAX PRO yapar.
-# ============================================================
 
 def ensure_env_admin():
 
@@ -310,10 +297,6 @@ def ensure_env_admin():
             )
         ).fetchone()
 
-        # ====================================================
-        # HESAP VAR
-        # ====================================================
-
         if row:
 
             new_hash = password_hash.hash(
@@ -355,10 +338,6 @@ def ensure_env_admin():
             )
 
             return
-
-        # ====================================================
-        # HESAP YOK - OLUŞTUR
-        # ====================================================
 
         new_hash = password_hash.hash(
             admin_password
@@ -431,7 +410,6 @@ def ensure_env_admin():
         conn.close()
 
 
-# Uygulama başlarken çalıştır.
 ensure_env_admin()
 
 
@@ -2106,10 +2084,6 @@ async def login(
         data.password
     )
 
-    # ========================================================
-    # NORMAL DATABASE LOGIN
-    # ========================================================
-
     conn = get_db()
 
     row = conn.execute(
@@ -2124,11 +2098,6 @@ async def login(
     ).fetchone()
 
     conn.close()
-
-    # ========================================================
-    # GÜVENLİK AĞI:
-    # ENV ADMIN HESABI DB'DE YOKSA TEKRAR OLUŞTUR
-    # ========================================================
 
     env_admin_email = os.getenv(
         "LEVEL1000_ADMIN_EMAIL",
@@ -2184,14 +2153,6 @@ async def login(
     except Exception:
 
         valid = False
-
-    # ========================================================
-    # ENV ADMIN ŞİFRE FALLBACK
-    # ========================================================
-    # Sadece ENV admin email için.
-    # ENV şifresi doğruysa DB hash eski olsa bile
-    # hesap güncellenir ve giriş yapılır.
-    # ========================================================
 
     if (
         not valid
@@ -4240,12 +4201,6 @@ async def server_error(
     )
 
 
-
-
-
-
-
-
 # ============================================================
 # LEVEL 1000 AI - GOOGLE SEO
 # PUBLIC STOCK PAGES
@@ -4366,6 +4321,7 @@ def get_public_tickers():
 
     # --------------------------------------------------------
     # POPÜLER ABD HİSSELERİ
+    # TAM 50 TICKER
     # --------------------------------------------------------
 
     result.update({
@@ -4375,52 +4331,51 @@ def get_public_tickers():
         "MSFT",
         "AMZN",
         "GOOGL",
-        "GOOG",
         "META",
         "TSLA",
         "AVGO",
-        "NFLX",
         "AMD",
+        "NFLX",
+        "PLTR",
         "INTC",
         "QCOM",
         "MU",
-        "AMAT",
-        "ADBE",
-        "CRM",
+        "ARM",
         "ORCL",
-        "IBM",
-        "CSCO",
+        "CRM",
+        "ADBE",
         "UBER",
-        "ABNB",
-        "PLTR",
+        "SHOP",
         "COIN",
-        "HOOD",
         "MSTR",
         "PYPL",
-        "SHOP",
-        "SNOW",
-        "SOFI",
-        "RIVN",
-        "LCID",
-        "NIO",
-        "F",
-        "GM",
-        "BA",
         "JPM",
-        "BAC",
-        "WMT",
-        "COST",
-        "DIS",
         "V",
         "MA",
-        "JNJ",
-        "PFE",
-        "XOM",
-        "CVX",
-        "CAT",
-        "GE",
-        "T",
-        "VZ"
+        "WMT",
+        "COST",
+        "KO",
+        "DIS",
+        "BRK-B",
+        "LLY",
+        "UNH",
+        "HD",
+        "PG",
+        "MRK",
+        "ABBV",
+        "PEP",
+        "TMO",
+        "LIN",
+        "DHR",
+        "NKE",
+        "MCD",
+        "RTX",
+        "C",
+        "GS",
+        "LOW",
+        "SBUX",
+        "DE",
+        "UPS"
 
     })
 
