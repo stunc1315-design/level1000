@@ -6,27 +6,29 @@ const PAGE_SIZE = 50;
 let allSignals = [];
 let filteredSignals = [];
 let currentPage = 1;
-let activeSignalFilter = "ALL";
 
 let isLoadingSignals = false;
-let runPollTimer = null;
 let refreshTimer = null;
+let runPollTimer = null;
 
 
 /* =========================================================
-   GENEL YARDIMCILAR
-   ========================================================= */
+   YARDIMCILAR
+========================================================= */
 
 function byId(id) {
     return document.getElementById(id);
 }
 
+
 function setText(id, value) {
     const el = byId(id);
+
     if (el) {
         el.textContent = value ?? "";
     }
 }
+
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -37,18 +39,13 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
-function escapeJs(value) {
-    return String(value ?? "")
-        .replaceAll("\\", "\\\\")
-        .replaceAll("'", "\\'")
-        .replaceAll("\n", "\\n")
-        .replaceAll("\r", "\\r");
-}
 
 function numberValue(value) {
     const n = Number(value);
+
     return Number.isFinite(n) ? n : null;
 }
+
 
 function formatNumber(value, decimals = 2) {
     const n = numberValue(value);
@@ -63,6 +60,7 @@ function formatNumber(value, decimals = 2) {
     });
 }
 
+
 function formatPercent(value) {
     const n = numberValue(value);
 
@@ -73,9 +71,11 @@ function formatPercent(value) {
     let percent = n;
 
     /*
-       AI olasılığı ve model getirisi API'de
-       0.7467 gibi geliyorsa bunu 74.67% yap.
+       API:
+       0.7467 = 74.67%
+       0.0336 = 3.36%
     */
+
     if (Math.abs(percent) <= 1) {
         percent *= 100;
     }
@@ -85,6 +85,7 @@ function formatPercent(value) {
         maximumFractionDigits: 2
     }) + "%";
 }
+
 
 function valueClass(value) {
     const n = numberValue(value);
@@ -104,6 +105,7 @@ function valueClass(value) {
     return "neutral";
 }
 
+
 function signalClass(signal) {
     const s = String(signal || "").toUpperCase();
 
@@ -120,108 +122,28 @@ function signalClass(signal) {
 
 
 /* =========================================================
-   TABLO
-   ========================================================= */
-
-function getTableBody() {
-
-    /*
-       index.html'deki gerçek ID:
-       <tbody id="signalsBody">
-    */
-
-    return document.getElementById("signalsBody");
-}
-
-
-function showTableLoading() {
-
-    const tbody = getTableBody();
-
-    if (!tbody) {
-        console.error("signalsBody bulunamadı.");
-        return;
-    }
-
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="7"
-                style="
-                    text-align:center;
-                    padding:45px 20px;
-                    color:#94a3b8;
-                ">
-                <div style="font-size:30px;margin-bottom:10px;">
-                    ⏳
-                </div>
-
-                <strong>
-                    Veriler yükleniyor...
-                </strong>
-
-                <div style="margin-top:8px;">
-                    Sinyal verileri alınıyor.
-                </div>
-            </td>
-        </tr>
-    `;
-}
-
-
-function showTableError(message) {
-
-    const tbody = getTableBody();
-
-    if (!tbody) {
-        return;
-    }
-
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="7"
-                style="
-                    text-align:center;
-                    padding:40px;
-                    color:#f87171;
-                ">
-                <strong>
-                    ${escapeHtml(message)}
-                </strong>
-
-                <div style="margin-top:8px;color:#94a3b8;">
-                    Sayfayı yenileyerek tekrar deneyin.
-                </div>
-            </td>
-        </tr>
-    `;
-}
-
-
-/* =========================================================
    API
-   ========================================================= */
+========================================================= */
 
 async function publicFetch(url, options = {}) {
 
-    const config = {
-        ...options,
-
-        headers: {
-            "Accept": "application/json",
-
-            ...(options.body
-                ? {
-                    "Content-Type": "application/json"
-                }
-                : {}),
-
-            ...(options.headers || {})
-        }
-    };
-
     return fetch(
         API_BASE + url,
-        config
+        {
+            ...options,
+
+            headers: {
+                "Accept": "application/json",
+
+                ...(options.body
+                    ? {
+                        "Content-Type": "application/json"
+                    }
+                    : {}),
+
+                ...(options.headers || {})
+            }
+        }
     );
 }
 
@@ -232,7 +154,7 @@ async function readJson(response) {
         return await response.json();
     }
 
-    catch (error) {
+    catch {
         return {};
     }
 }
@@ -240,7 +162,7 @@ async function readJson(response) {
 
 /* =========================================================
    SİNYAL NORMALİZASYONU
-   ========================================================= */
+========================================================= */
 
 function normalizeSignal(row) {
 
@@ -253,7 +175,9 @@ function normalizeSignal(row) {
         row.Sinyal ??
         "HOLD";
 
+
     signal = String(signal).toUpperCase();
+
 
     if (signal === "AL") {
         signal = "BUY";
@@ -293,6 +217,13 @@ function normalizeSignal(row) {
             row.Close ??
             null,
 
+        change:
+            row.change ??
+            row.Change ??
+            row.daily_change_percent ??
+            row.Daily_Change_Percent ??
+            null,
+
         predictedReturn:
             row.predicted_return ??
             row.Predicted_Return ??
@@ -300,13 +231,6 @@ function normalizeSignal(row) {
             row.AI_Predicted_Return ??
             row.expected_return ??
             row.Expected_Return ??
-            null,
-
-        change:
-            row.change ??
-            row.Change ??
-            row.daily_change_percent ??
-            row.Daily_Change_Percent ??
             null,
 
         priceStatus:
@@ -328,98 +252,180 @@ function normalizeSignal(row) {
 
 
 /* =========================================================
+   TABLO BODY
+========================================================= */
+
+function getTableBody() {
+
+    /*
+       HTML'de:
+       <tbody id="signalsBody">
+    */
+
+    return byId("signalsBody");
+}
+
+
+/* =========================================================
+   YÜKLENİYOR
+========================================================= */
+
+function showTableLoading() {
+
+    const tbody = getTableBody();
+
+    if (!tbody) {
+
+        console.error(
+            "LEVEL 1000: signalsBody bulunamadı."
+        );
+
+        return;
+    }
+
+
+    tbody.innerHTML = `
+        <tr>
+            <td
+                colspan="7"
+                style="
+                    text-align:center;
+                    padding:45px 20px;
+                    color:#94a3b8;
+                "
+            >
+
+                <div
+                    style="
+                        font-size:30px;
+                        margin-bottom:10px;
+                    "
+                >
+                    ⏳
+                </div>
+
+                <strong>
+                    Veriler yükleniyor...
+                </strong>
+
+                <div
+                    style="
+                        margin-top:8px;
+                        font-size:12px;
+                    "
+                >
+                    Sinyal verileri alınıyor.
+                </div>
+
+            </td>
+        </tr>
+    `;
+}
+
+
+/* =========================================================
+   HATA
+========================================================= */
+
+function showTableError(message) {
+
+    const tbody = getTableBody();
+
+    if (!tbody) {
+        return;
+    }
+
+
+    tbody.innerHTML = `
+        <tr>
+            <td
+                colspan="7"
+                style="
+                    text-align:center;
+                    padding:40px;
+                    color:#f87171;
+                "
+            >
+
+                <strong>
+                    ${escapeHtml(message)}
+                </strong>
+
+                <div
+                    style="
+                        margin-top:8px;
+                        color:#94a3b8;
+                    "
+                >
+                    Sayfayı yenileyerek tekrar deneyin.
+                </div>
+
+            </td>
+        </tr>
+    `;
+}
+
+
+/* =========================================================
    KPI
-   ========================================================= */
+========================================================= */
 
-function updateKPIsFromAPI(data) {
+function updateKPIs(data) {
 
-    const buy = Number(data.buy || 0);
-    const sell = Number(data.sell || 0);
-    const hold = Number(data.hold || 0);
-    const total = Number(
-        data.total ||
-        allSignals.length ||
-        0
-    );
+    const buy =
+        Number(data.buy || 0);
+
+    const sell =
+        Number(data.sell || 0);
+
+    const hold =
+        Number(data.hold || 0);
+
+    const total =
+        Number(
+            data.total ||
+            allSignals.length ||
+            0
+        );
+
 
     setText(
         "buyCount",
         buy.toLocaleString("tr-TR")
     );
 
+
     setText(
         "sellCount",
         sell.toLocaleString("tr-TR")
     );
+
 
     setText(
         "holdCount",
         hold.toLocaleString("tr-TR")
     );
 
-    /*
-       TOP SIGNALS
-    */
+
     setText(
         "topCount",
-        Math.min(20, total).toLocaleString("tr-TR")
+        Math.min(
+            20,
+            total
+        ).toLocaleString("tr-TR")
     );
+
 
     setText(
         "totalCount",
         total.toLocaleString("tr-TR")
     );
-
-    setText(
-        "signalCount",
-        total.toLocaleString("tr-TR")
-    );
-}
-
-
-function updateKPIsFromFilteredData() {
-
-    let buy = 0;
-    let sell = 0;
-    let hold = 0;
-
-    for (const row of filteredSignals) {
-
-        const s = normalizeSignal(row);
-
-        if (s.signal === "BUY") {
-            buy++;
-        }
-
-        else if (s.signal === "SELL") {
-            sell++;
-        }
-
-        else {
-            hold++;
-        }
-    }
-
-    setText(
-        "buyCount",
-        buy.toLocaleString("tr-TR")
-    );
-
-    setText(
-        "sellCount",
-        sell.toLocaleString("tr-TR")
-    );
-
-    setText(
-        "holdCount",
-        hold.toLocaleString("tr-TR")
-    );
 }
 
 
 /* =========================================================
-   SİNYALLERİ API'DEN ÇEK
-   ========================================================= */
+   SİNYALLERİ YÜKLE
+========================================================= */
 
 async function loadSignals() {
 
@@ -427,25 +433,30 @@ async function loadSignals() {
         return;
     }
 
+
     isLoadingSignals = true;
 
+
     showTableLoading();
+
 
     try {
 
         console.log(
-            "LEVEL 1000: /api/signals yükleniyor..."
+            "LEVEL 1000: API sinyalleri yükleniyor..."
         );
+
 
         const response =
             await publicFetch(
                 "/api/signals"
             );
 
+
         if (!response.ok) {
 
             throw new Error(
-                `HTTP ${response.status}`
+                "HTTP " + response.status
             );
         }
 
@@ -460,60 +471,52 @@ async function loadSignals() {
         ) {
 
             throw new Error(
-                "API sinyal listesi döndürmedi."
+                "API sinyal verisi döndürmedi."
             );
         }
 
 
         console.log(
-            "LEVEL 1000 sinyal sayısı:",
-            data.signals.length
+            "LEVEL 1000:",
+            data.signals.length,
+            "sinyal alındı."
         );
 
 
-        allSignals = data.signals;
+        allSignals =
+            data.signals;
 
-        filteredSignals = allSignals;
+
+        filteredSignals =
+            allSignals;
+
 
         currentPage = 1;
 
-        updateKPIsFromAPI(data);
+
+        updateKPIs(data);
+
 
         renderCurrentPage();
 
-
-        setText(
-            "signalUpdated",
-            data.updated_at ||
-            data.last_update ||
-            new Date().toLocaleString("tr-TR")
-        );
-
-
-        setText(
-            "totalSignalInfo",
-            `${allSignals.length.toLocaleString("tr-TR")} sinyal`
-        );
-
-
-        /*
-           Sistem durumlarını güncelle
-        */
 
         setText(
             "apiStatus",
             "ONLINE"
         );
 
+
         setText(
             "marketStatus",
             "AKTİF"
         );
 
+
         setText(
             "liveStatus",
             "Aktif"
         );
+
 
         setText(
             "accessStatus",
@@ -528,18 +531,21 @@ async function loadSignals() {
     catch (error) {
 
         console.error(
-            "LEVEL 1000 signals error:",
+            "LEVEL 1000 API HATASI:",
             error
         );
+
 
         showTableError(
             "Sinyal verileri yüklenemedi."
         );
 
+
         setText(
             "marketStatus",
             "HATA"
         );
+
 
         return null;
 
@@ -553,147 +559,8 @@ async function loadSignals() {
 
 
 /* =========================================================
-   FİLTRE
-   ========================================================= */
-
-function filterSignals() {
-
-    const input =
-        document.getElementById(
-            "signalSearch"
-        );
-
-    const query =
-        input
-            ? input.value.trim().toLowerCase()
-            : "";
-
-
-    filteredSignals =
-        allSignals.filter(
-            row => {
-
-                const s =
-                    normalizeSignal(row);
-
-                const matchesSearch =
-                    !query ||
-                    String(
-                        s.symbol
-                    )
-                    .toLowerCase()
-                    .includes(query);
-
-
-                const matchesFilter =
-                    activeSignalFilter === "ALL" ||
-                    s.signal === activeSignalFilter;
-
-
-                return (
-                    matchesSearch &&
-                    matchesFilter
-                );
-            }
-        );
-
-
-    currentPage = 1;
-
-    updateKPIsFromFilteredData();
-
-    renderCurrentPage();
-}
-
-
-function searchSignals() {
-    filterSignals();
-}
-
-
-function setSignalFilter(filter) {
-
-    activeSignalFilter =
-        String(
-            filter || "ALL"
-        ).toUpperCase();
-
-    filterSignals();
-}
-
-
-/* =========================================================
-   SAYFALAMA
-   ========================================================= */
-
-function getPageCount() {
-
-    return Math.max(
-        1,
-        Math.ceil(
-            filteredSignals.length /
-            PAGE_SIZE
-        )
-    );
-}
-
-
-function getPageRows() {
-
-    const start =
-        (currentPage - 1) *
-        PAGE_SIZE;
-
-    return filteredSignals.slice(
-        start,
-        start + PAGE_SIZE
-    );
-}
-
-
-function changePage(page) {
-
-    const maxPage =
-        getPageCount();
-
-    page = Number(page);
-
-    if (
-        !Number.isFinite(page)
-    ) {
-        return;
-    }
-
-    currentPage =
-        Math.max(
-            1,
-            Math.min(
-                maxPage,
-                page
-            )
-        );
-
-    renderCurrentPage();
-
-
-    const table =
-        document.getElementById(
-            "signalsSection"
-        );
-
-    if (table) {
-
-        table.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-    }
-}
-
-
-/* =========================================================
-   TABLOYU OLUŞTUR
-   ========================================================= */
+   TABLOYU RENDER ET
+========================================================= */
 
 function renderCurrentPage() {
 
@@ -704,31 +571,46 @@ function renderCurrentPage() {
     if (!tbody) {
 
         console.error(
-            "HATA: signalsBody bulunamadı!"
+            "LEVEL 1000: signalsBody bulunamadı!"
         );
 
         return;
     }
 
 
+    const total =
+        filteredSignals.length;
+
+
+    const start =
+        (currentPage - 1) *
+        PAGE_SIZE;
+
+
     const rows =
-        getPageRows();
+        filteredSignals.slice(
+            start,
+            start + PAGE_SIZE
+        );
 
 
     if (!rows.length) {
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="7"
+                <td
+                    colspan="7"
                     style="
                         text-align:center;
                         padding:40px;
                         color:#94a3b8;
-                    ">
+                    "
+                >
                     Sonuç bulunamadı.
                 </td>
             </tr>
         `;
+
 
         renderPagination();
 
@@ -737,8 +619,7 @@ function renderCurrentPage() {
 
 
     /*
-       SADECE 50 SATIR RENDER EDİLİYOR.
-       166.200 satırın tamamı DOM'a basılmıyor.
+       SADECE 50 SATIR ÇİZİLİYOR.
     */
 
     tbody.innerHTML =
@@ -747,11 +628,6 @@ function renderCurrentPage() {
 
                 const s =
                     normalizeSignal(row);
-
-                const cls =
-                    signalClass(
-                        s.signal
-                    );
 
 
                 return `
@@ -765,12 +641,15 @@ function renderCurrentPage() {
                             </strong>
                         </td>
 
+
                         <td>
 
                             <span
                                 class="
                                     signal-badge
-                                    ${cls}
+                                    ${signalClass(
+                                        s.signal
+                                    )}
                                 "
                             >
                                 ${escapeHtml(
@@ -780,6 +659,7 @@ function renderCurrentPage() {
 
                         </td>
 
+
                         <td>
                             <strong>
                                 ${formatPercent(
@@ -788,12 +668,14 @@ function renderCurrentPage() {
                             </strong>
                         </td>
 
+
                         <td>
                             ${formatNumber(
                                 s.price
                             )}
                         </td>
 
+
                         <td
                             class="${valueClass(
                                 s.change
@@ -804,6 +686,7 @@ function renderCurrentPage() {
                             )}
                         </td>
 
+
                         <td
                             class="${valueClass(
                                 s.predictedReturn
@@ -813,6 +696,7 @@ function renderCurrentPage() {
                                 s.predictedReturn
                             )}
                         </td>
+
 
                         <td>
                             ${escapeHtml(
@@ -831,33 +715,127 @@ function renderCurrentPage() {
 
 
 /* =========================================================
-   SAYFALAMA BUTONLARI
-   ========================================================= */
+   ARAMA
+========================================================= */
 
-function renderPagination() {
+function filterSignals() {
 
-    let container =
-        document.getElementById(
-            "signalsPagination"
+    const input =
+        byId("signalSearch");
+
+
+    const query =
+        input
+            ? input.value
+                .trim()
+                .toLowerCase()
+            : "";
+
+
+    filteredSignals =
+        allSignals.filter(
+            row => {
+
+                const s =
+                    normalizeSignal(row);
+
+
+                return String(
+                    s.symbol
+                )
+                .toLowerCase()
+                .includes(query);
+            }
         );
 
 
+    currentPage = 1;
+
+
+    renderCurrentPage();
+}
+
+
+function searchSignals() {
+    filterSignals();
+}
+
+
+/* =========================================================
+   SAYFALAMA
+========================================================= */
+
+function getPageCount() {
+
+    return Math.max(
+        1,
+        Math.ceil(
+            filteredSignals.length /
+            PAGE_SIZE
+        )
+    );
+}
+
+
+function changePage(page) {
+
+    const maxPage =
+        getPageCount();
+
+
+    currentPage =
+        Math.max(
+            1,
+            Math.min(
+                maxPage,
+                Number(page)
+            )
+        );
+
+
+    renderCurrentPage();
+
+
+    const section =
+        byId("signalsSection");
+
+
+    if (section) {
+
+        section.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+}
+
+
+/* =========================================================
+   SAYFALAMA UI
+========================================================= */
+
+function renderPagination() {
+
+    const section =
+        byId("signalsSection");
+
+
+    if (!section) {
+        return;
+    }
+
+
+    let container =
+        byId("signalsPagination");
+
+
     if (!container) {
-
-        const section =
-            document.getElementById(
-                "signalsSection"
-            );
-
-        if (!section) {
-            return;
-        }
-
 
         container =
             document.createElement(
                 "div"
             );
+
 
         container.id =
             "signalsPagination";
@@ -865,11 +843,11 @@ function renderPagination() {
 
         container.style.cssText = `
             display:flex;
-            align-items:center;
             justify-content:center;
-            gap:8px;
+            align-items:center;
             flex-wrap:wrap;
-            padding:18px 15px 22px;
+            gap:7px;
+            padding:18px;
         `;
 
 
@@ -886,17 +864,15 @@ function renderPagination() {
     if (pages <= 1) {
 
         container.innerHTML = `
-            <div
+            <span
                 style="
-                    width:100%;
-                    text-align:center;
                     color:#94a3b8;
                     font-size:12px;
                 "
             >
                 ${filteredSignals.length.toLocaleString("tr-TR")}
                 sonuç
-            </div>
+            </span>
         `;
 
         return;
@@ -913,10 +889,11 @@ function renderPagination() {
             ${currentPage <= 1 ? "disabled" : ""}
             style="
                 padding:8px 12px;
-                border-radius:8px;
                 border:1px solid #334155;
+                border-radius:8px;
                 background:#111827;
                 color:white;
+                cursor:pointer;
             "
         >
             ‹
@@ -924,13 +901,14 @@ function renderPagination() {
     `;
 
 
-    let start =
+    const start =
         Math.max(
             1,
             currentPage - 2
         );
 
-    let end =
+
+    const end =
         Math.min(
             pages,
             currentPage + 2
@@ -945,8 +923,8 @@ function renderPagination() {
                 onclick="changePage(1)"
                 style="
                     padding:8px 12px;
-                    border-radius:8px;
                     border:1px solid #334155;
+                    border-radius:8px;
                     background:#111827;
                     color:white;
                 "
@@ -956,7 +934,11 @@ function renderPagination() {
         `;
 
         if (start > 2) {
-            html += `<span style="color:#94a3b8;">…</span>`;
+            html += `
+                <span style="color:#94a3b8;">
+                    …
+                </span>
+            `;
         }
     }
 
@@ -973,12 +955,12 @@ function renderPagination() {
                 onclick="changePage(${i})"
                 style="
                     padding:8px 12px;
-                    border-radius:8px;
                     border:1px solid ${
                         i === currentPage
                             ? "#3b82f6"
                             : "#334155"
                     };
+                    border-radius:8px;
                     background:${
                         i === currentPage
                             ? "#2563eb"
@@ -997,12 +979,9 @@ function renderPagination() {
     if (end < pages) {
 
         if (end < pages - 1) {
+
             html += `
-                <span
-                    style="
-                        color:#94a3b8;
-                    "
-                >
+                <span style="color:#94a3b8;">
                     …
                 </span>
             `;
@@ -1015,8 +994,8 @@ function renderPagination() {
                 onclick="changePage(${pages})"
                 style="
                     padding:8px 12px;
-                    border-radius:8px;
                     border:1px solid #334155;
+                    border-radius:8px;
                     background:#111827;
                     color:white;
                 "
@@ -1034,10 +1013,11 @@ function renderPagination() {
             ${currentPage >= pages ? "disabled" : ""}
             style="
                 padding:8px 12px;
-                border-radius:8px;
                 border:1px solid #334155;
+                border-radius:8px;
                 background:#111827;
                 color:white;
+                cursor:pointer;
             "
         >
             ›
@@ -1046,18 +1026,13 @@ function renderPagination() {
 
 
     const startItem =
-        filteredSignals.length
-            ? (
-                (currentPage - 1) *
-                PAGE_SIZE
-            ) + 1
-            : 0;
+        (currentPage - 1) *
+        PAGE_SIZE + 1;
 
 
     const endItem =
         Math.min(
-            currentPage *
-            PAGE_SIZE,
+            currentPage * PAGE_SIZE,
             filteredSignals.length
         );
 
@@ -1067,9 +1042,9 @@ function renderPagination() {
             style="
                 width:100%;
                 text-align:center;
-                margin-top:5px;
                 color:#94a3b8;
                 font-size:12px;
+                margin-top:4px;
             "
         >
             ${startItem.toLocaleString("tr-TR")}
@@ -1088,7 +1063,7 @@ function renderPagination() {
 
 /* =========================================================
    STATUS
-   ========================================================= */
+========================================================= */
 
 async function loadStatus() {
 
@@ -1125,24 +1100,6 @@ async function loadStatus() {
         }
 
 
-        if (data.last_update) {
-
-            setText(
-                "lastUpdate",
-                data.last_update
-            );
-        }
-
-
-        if (data.updated_at) {
-
-            setText(
-                "lastUpdate",
-                data.updated_at
-            );
-        }
-
-
         setText(
             "apiStatus",
             "ONLINE"
@@ -1156,14 +1113,16 @@ async function loadStatus() {
     catch (error) {
 
         console.error(
-            "Status error:",
+            "Status:",
             error
         );
 
+
         setText(
             "apiStatus",
-            "BAĞLANTI HATASI"
+            "HATA"
         );
+
 
         return null;
     }
@@ -1171,8 +1130,8 @@ async function loadStatus() {
 
 
 /* =========================================================
-   YENİLE
-   ========================================================= */
+   REFRESH
+========================================================= */
 
 async function refreshData() {
 
@@ -1184,29 +1143,22 @@ async function refreshData() {
 
 
 /* =========================================================
-   ANALİZ BAŞLAT
-   ========================================================= */
+   ANALİZ
+========================================================= */
 
 async function runAnalysis() {
 
-    const buttons =
-        document.querySelectorAll(
-            "#runAnalysisButton, #runAnalysisBtn, .run-analysis-btn"
-        );
+    const button =
+        byId("runAnalysisButton");
 
 
-    buttons.forEach(
-        button => {
+    if (button) {
 
-            button.disabled = true;
+        button.disabled = true;
 
-            button.dataset.oldText =
-                button.textContent;
-
-            button.textContent =
-                "Analiz Başlatılıyor...";
-        }
-    );
+        button.textContent =
+            "Analiz Başlatılıyor...";
+    }
 
 
     setText(
@@ -1249,13 +1201,6 @@ async function runAnalysis() {
         );
 
 
-        showToast(
-            data.message ||
-            "Analiz başlatıldı.",
-            "success"
-        );
-
-
         monitorRun();
 
     }
@@ -1263,42 +1208,32 @@ async function runAnalysis() {
     catch (error) {
 
         console.error(
-            "Run error:",
+            "Run:",
             error
         );
 
 
         setText(
             "runStatus",
+            error.message ||
             "Analiz başlatılamadı."
         );
 
 
-        showToast(
-            error.message ||
-            "Analiz başlatılamadı.",
-            "error"
-        );
+        if (button) {
 
+            button.disabled = false;
 
-        buttons.forEach(
-            button => {
-
-                button.disabled =
-                    false;
-
-                button.textContent =
-                    button.dataset.oldText ||
-                    "⚡ AI ANALİZİNİ BAŞLAT";
-            }
-        );
+            button.textContent =
+                "⚡ AI ANALİZİNİ BAŞLAT";
+        }
     }
 }
 
 
 /* =========================================================
-   ANALİZ DURUMUNU TAKİP ET
-   ========================================================= */
+   RUN STATUS
+========================================================= */
 
 async function monitorRun() {
 
@@ -1310,136 +1245,83 @@ async function monitorRun() {
     }
 
 
-    let attempts = 0;
+    runPollTimer =
+        setInterval(
+            async () => {
+
+                try {
+
+                    const response =
+                        await publicFetch(
+                            "/api/run-status"
+                        );
 
 
-    async function check() {
-
-        attempts++;
-
-
-        try {
-
-            const response =
-                await publicFetch(
-                    "/api/run-status"
-                );
+                    const data =
+                        await readJson(response);
 
 
-            const data =
-                await readJson(response);
+                    const running =
+                        data.running === true ||
+                        data.status === "running";
 
 
-            const running =
-                data.running === true ||
-                data.status === "running";
+                    if (running) {
+
+                        setText(
+                            "runStatus",
+                            data.message ||
+                            "Analiz çalışıyor..."
+                        );
+
+                        return;
+                    }
 
 
-            if (running) {
-
-                setText(
-                    "runStatus",
-                    data.message ||
-                    "Analiz çalışıyor..."
-                );
-
-                return;
-            }
-
-
-            clearInterval(
-                runPollTimer
-            );
-
-            runPollTimer = null;
-
-
-            setText(
-                "runStatus",
-                data.error
-                    ? data.error
-                    : "Analiz tamamlandı."
-            );
-
-
-            const buttons =
-                document.querySelectorAll(
-                    "#runAnalysisButton, #runAnalysisBtn, .run-analysis-btn"
-                );
-
-
-            buttons.forEach(
-                button => {
-
-                    button.disabled =
-                        false;
-
-                    button.textContent =
-                        button.dataset.oldText ||
-                        "⚡ AI ANALİZİNİ BAŞLAT";
-                }
-            );
-
-
-            await loadSignals();
-
-
-            showToast(
-                data.error
-                    ? data.error
-                    : "Analiz tamamlandı.",
-                data.error
-                    ? "error"
-                    : "success"
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Run status:",
-                error
-            );
-
-
-            if (attempts >= 10) {
-
-                clearInterval(
-                    runPollTimer
-                );
-
-                runPollTimer = null;
-
-
-                const buttons =
-                    document.querySelectorAll(
-                        "#runAnalysisButton, #runAnalysisBtn, .run-analysis-btn"
+                    clearInterval(
+                        runPollTimer
                     );
 
 
-                buttons.forEach(
-                    button => {
+                    runPollTimer = null;
+
+
+                    setText(
+                        "runStatus",
+                        data.error ||
+                        "Analiz tamamlandı."
+                    );
+
+
+                    const button =
+                        byId(
+                            "runAnalysisButton"
+                        );
+
+
+                    if (button) {
 
                         button.disabled =
                             false;
 
                         button.textContent =
-                            button.dataset.oldText ||
                             "⚡ AI ANALİZİNİ BAŞLAT";
                     }
-                );
-            }
-        }
-    }
 
 
-    await check();
+                    await loadSignals();
 
+                }
 
-    runPollTimer =
-        setInterval(
-            check,
+                catch (error) {
+
+                    console.error(
+                        "Run status:",
+                        error
+                    );
+                }
+
+            },
             3000
         );
 }
@@ -1447,29 +1329,7 @@ async function monitorRun() {
 
 /* =========================================================
    GELİŞMİŞ ANALİZ
-   ========================================================= */
-
-function getAdvancedBox() {
-
-    return (
-        byId("advancedResultsBody") ||
-        byId("advancedResults")
-    );
-}
-
-
-function showAdvancedSection() {
-
-    const section =
-        byId("advancedResults");
-
-    if (section) {
-
-        section.style.display =
-            "block";
-    }
-}
-
+========================================================= */
 
 function renderAdvancedResult(
     title,
@@ -1516,12 +1376,7 @@ function renderAdvancedResult(
     if (data.error) {
 
         box.innerHTML = `
-            <div
-                style="
-                    color:#f87171;
-                    padding:15px;
-                "
-            >
+            <div style="color:#f87171;">
                 ${escapeHtml(
                     data.error
                 )}
@@ -1535,12 +1390,7 @@ function renderAdvancedResult(
     if (data.loading) {
 
         box.innerHTML = `
-            <div
-                style="
-                    padding:20px;
-                    color:#94a3b8;
-                "
-            >
+            <div style="color:#94a3b8;">
                 ⏳
                 ${escapeHtml(
                     data.loading
@@ -1555,10 +1405,7 @@ function renderAdvancedResult(
     const entries = [];
 
 
-    function walk(
-        object,
-        prefix = ""
-    ) {
+    function walk(object, prefix = "") {
 
         if (
             object === null ||
@@ -1620,24 +1467,13 @@ function renderAdvancedResult(
                             label
                         );
 
-                    }
-
-                    else if (
-                        Array.isArray(value)
-                    ) {
+                    } else {
 
                         entries.push([
                             label,
-                            `${value.length} kayıt`
-                        ]);
-
-                    }
-
-                    else {
-
-                        entries.push([
-                            label,
-                            value
+                            Array.isArray(value)
+                                ? `${value.length} kayıt`
+                                : value
                         ]);
                     }
                 }
@@ -1685,11 +1521,7 @@ function renderAdvancedResult(
                                 ${escapeHtml(key)}
                             </div>
 
-                            <div
-                                style="
-                                    font-weight:800;
-                                "
-                            >
+                            <div>
                                 ${escapeHtml(value)}
                             </div>
 
@@ -1702,10 +1534,6 @@ function renderAdvancedResult(
     `;
 }
 
-
-/* =========================================================
-   BACKTEST
-   ========================================================= */
 
 async function loadBacktest() {
 
@@ -1745,9 +1573,6 @@ async function loadBacktest() {
             data
         );
 
-
-        return data;
-
     }
 
     catch (error) {
@@ -1759,15 +1584,9 @@ async function loadBacktest() {
                     error.message
             }
         );
-
-        return null;
     }
 }
 
-
-/* =========================================================
-   PAPER TRADING
-   ========================================================= */
 
 async function loadPaper() {
 
@@ -1807,9 +1626,6 @@ async function loadPaper() {
             data
         );
 
-
-        return data;
-
     }
 
     catch (error) {
@@ -1821,15 +1637,9 @@ async function loadPaper() {
                     error.message
             }
         );
-
-        return null;
     }
 }
 
-
-/* =========================================================
-   MONTE CARLO
-   ========================================================= */
 
 async function loadMonteCarlo() {
 
@@ -1869,9 +1679,6 @@ async function loadMonteCarlo() {
             data
         );
 
-
-        return data;
-
     }
 
     catch (error) {
@@ -1883,15 +1690,9 @@ async function loadMonteCarlo() {
                     error.message
             }
         );
-
-        return null;
     }
 }
 
-
-/* =========================================================
-   GELİŞMİŞ AI
-   ========================================================= */
 
 async function loadAdvancedAI() {
 
@@ -1931,9 +1732,6 @@ async function loadAdvancedAI() {
             data
         );
 
-
-        return data;
-
     }
 
     catch (error) {
@@ -1945,15 +1743,13 @@ async function loadAdvancedAI() {
                     error.message
             }
         );
-
-        return null;
     }
 }
 
 
 /* =========================================================
-   TEK SİNYAL DETAYI
-   ========================================================= */
+   SİNYAL DETAYI
+========================================================= */
 
 async function openSignal(ticker) {
 
@@ -1966,7 +1762,8 @@ async function openSignal(ticker) {
 
         const response =
             await publicFetch(
-                `/api/signal/${encodeURIComponent(ticker)}`
+                "/api/signal/" +
+                encodeURIComponent(ticker)
             );
 
 
@@ -1989,20 +1786,6 @@ async function openSignal(ticker) {
             data
         );
 
-
-        const section =
-            byId("advancedResults");
-
-
-        if (section) {
-
-            section.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }
-
-
     }
 
     catch (error) {
@@ -2011,113 +1794,13 @@ async function openSignal(ticker) {
             "Signal detail:",
             error
         );
-
-
-        showToast(
-            `${ticker} detay verisi alınamadı.`,
-            "error"
-        );
     }
-}
-
-
-/* =========================================================
-   TOAST
-   ========================================================= */
-
-function showToast(
-    message,
-    type = "info"
-) {
-
-    const old =
-        document.querySelector(
-            ".level-toast"
-        );
-
-
-    if (old) {
-        old.remove();
-    }
-
-
-    const toast =
-        document.createElement(
-            "div"
-        );
-
-
-    toast.className =
-        "level-toast";
-
-
-    toast.textContent =
-        message;
-
-
-    Object.assign(
-        toast.style,
-        {
-            position: "fixed",
-            right: "20px",
-            bottom: "20px",
-            zIndex: "999999",
-
-            padding: "13px 18px",
-
-            borderRadius: "12px",
-
-            background: "#ffffff",
-
-            color: "#111827",
-
-            border:
-                "1px solid #e5e7eb",
-
-            boxShadow:
-                "0 10px 35px rgba(0,0,0,.18)",
-
-            fontSize: "14px",
-
-            fontWeight: "700",
-
-            maxWidth: "380px"
-        }
-    );
-
-
-    document.body.appendChild(
-        toast
-    );
-
-
-    setTimeout(
-        () => {
-
-            if (
-                toast.parentNode
-            ) {
-
-                toast.remove();
-            }
-
-        },
-        3500
-    );
 }
 
 
 /* =========================================================
    PUBLIC MODE
-   ========================================================= */
-
-async function checkSession() {
-
-    showAppScreen();
-
-    return true;
-}
-
+========================================================= */
 
 function showAppScreen() {
 
@@ -2129,15 +1812,21 @@ function showAppScreen() {
 
 
     if (auth) {
-        auth.style.display =
-            "none";
+        auth.style.display = "none";
     }
 
 
     if (app) {
-        app.style.display =
-            "block";
+        app.style.display = "block";
     }
+}
+
+
+async function checkSession() {
+
+    showAppScreen();
+
+    return true;
 }
 
 
@@ -2171,6 +1860,7 @@ async function loadPlan() {
         "OPEN"
     );
 
+
     return {
         ok: true,
         plan: "OPEN",
@@ -2179,22 +1869,11 @@ async function loadPlan() {
 }
 
 
-/* =========================================================
-   LOGIN / REGISTER - PUBLIC MODE
-   ========================================================= */
-
 async function loginUser(event) {
 
     if (event) {
         event.preventDefault();
     }
-
-
-    showToast(
-        "Üyelik gerekmiyor. Site doğrudan kullanılabilir.",
-        "info"
-    );
-
 
     showAppScreen();
 
@@ -2207,13 +1886,6 @@ async function registerUser(event) {
     if (event) {
         event.preventDefault();
     }
-
-
-    showToast(
-        "Kayıt gerekmiyor. Site doğrudan kullanılabilir.",
-        "info"
-    );
-
 
     showAppScreen();
 
@@ -2237,75 +1909,8 @@ function openAdmin() {
 
 
 /* =========================================================
-   EVENTLER
-   ========================================================= */
-
-function setupEvents() {
-
-    const search =
-        byId("signalSearch");
-
-
-    if (search) {
-
-        search.addEventListener(
-            "input",
-            filterSignals
-        );
-    }
-
-
-    const runButton =
-        byId("runAnalysisButton");
-
-
-    if (runButton) {
-
-        runButton.addEventListener(
-            "click",
-            event => {
-
-                event.preventDefault();
-
-                runAnalysis();
-            }
-        );
-    }
-}
-
-
-/* =========================================================
-   KLAVYE
-   ========================================================= */
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key === "/" &&
-            document.activeElement?.tagName !== "INPUT" &&
-            document.activeElement?.tagName !== "TEXTAREA"
-        ) {
-
-            event.preventDefault();
-
-
-            const search =
-                byId("signalSearch");
-
-
-            if (search) {
-                search.focus();
-            }
-        }
-    }
-);
-
-
-/* =========================================================
    BAŞLAT
-   ========================================================= */
+========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -2318,7 +1923,19 @@ document.addEventListener(
 
         showAppScreen();
 
-        setupEvents();
+
+        const search =
+            byId("signalSearch");
+
+
+        if (search) {
+
+            search.addEventListener(
+                "input",
+                filterSignals
+            );
+        }
+
 
         await refreshData();
 
@@ -2331,10 +1948,6 @@ document.addEventListener(
         }
 
 
-        /*
-           30 saniyede bir verileri yenile.
-        */
-
         refreshTimer =
             setInterval(
                 refreshData,
@@ -2345,8 +1958,8 @@ document.addEventListener(
 
 
 /* =========================================================
-   GLOBAL FONKSİYONLAR
-   ========================================================= */
+   GLOBAL
+========================================================= */
 
 window.loadSignals =
     loadSignals;
@@ -2359,9 +1972,6 @@ window.filterSignals =
 
 window.searchSignals =
     searchSignals;
-
-window.setSignalFilter =
-    setSignalFilter;
 
 window.changePage =
     changePage;
