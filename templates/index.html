@@ -3,1951 +3,2981 @@
 <html lang="tr">
 
 <head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>LEVEL 1000 AI | AI Market Intelligence</title>
-
-    <meta
-        name="description"
-        content="LEVEL 1000 AI - Yapay zeka destekli piyasa analiz, BUY SELL HOLD sinyalleri, backtest, paper trading ve gelişmiş AI analiz platformu."
-    >
-
-    <meta name="robots" content="index, follow">
-    <meta name="googlebot" content="index, follow">
-
-    <meta
-        name="google-site-verification"
-        content="v6Pkn_EJCKqnxuI8-4z0hhF-qjBw7oey4zhaGWPKtZU"
-    >
-
-    <link
-        rel="canonical"
-        href="https://level1000-2.onrender.com/"
-    >
-
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="LEVEL 1000 AI">
-    <meta
-        property="og:description"
-        content="Yapay zeka destekli piyasa analiz platformu."
-    >
-    <meta
-        property="og:url"
-        content="https://level1000-2.onrender.com/"
-    >
-    <meta property="og:site_name" content="LEVEL 1000 AI">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="LEVEL 1000 AI">
-    <meta
-        name="twitter:description"
-        content="AI destekli piyasa analiz ve istihbarat platformu."
-    >
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet"
-    >
-
-    <link
-        rel="stylesheet"
-        href="/static/style.css?v=18"
-    >
-
-    <style>
-
-        :root {
-            --bg: #05070c;
-            --panel: #0a0f18;
-            --panel2: #0e1521;
-            --panel3: #111a28;
-            --border: #1d2a3d;
-            --border-light: #273750;
-
-            --text: #f8fafc;
-            --muted: #8190a5;
-
-            --blue: #3b82f6;
-            --blue2: #60a5fa;
-
-            --green: #22c55e;
-            --red: #ef4444;
-            --yellow: #eab308;
-
-            --shadow:
-                0 20px 60px rgba(0,0,0,.28);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-
-            background:
-                radial-gradient(
-                    circle at 50% -15%,
-                    rgba(37,99,235,.16),
-                    transparent 34%
-                ),
-                radial-gradient(
-                    circle at 100% 40%,
-                    rgba(124,58,237,.08),
-                    transparent 30%
-                ),
-                var(--bg);
 
-            color: var(--text);
-
-            font-family:
-                "Inter",
-                Arial,
-                sans-serif;
-        }
+<meta charset="UTF-8">
 
-        button,
-        input {
-            font-family: inherit;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        a {
-            color: inherit;
-        }
-
-        /* PUBLIC MODE */
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        #authScreen,
-        #loginBox,
-        #registerBox,
-        #planModal,
-        #planInfoBar,
-        .plans-section,
-        .user-plan,
-        .feature-lock {
-            display: none !important;
-        }
-
-        #appScreen {
-            display: block !important;
-            min-height: 100vh;
-        }
+<title>LEVEL 1000 AI — Market Intelligence</title>
 
-        .app-container {
-            width: min(1500px, calc(100% - 40px));
-            margin: auto;
-            padding: 18px 0 60px;
-        }
+<meta
+    name="description"
+    content="LEVEL 1000 AI — Yapay zeka destekli piyasa istihbarat ve sinyal analiz platformu."
+>
 
-        /* HEADER */
+<meta name="robots" content="index, follow">
 
-        .top-header {
-            position: sticky;
-            top: 12px;
-            z-index: 100;
+<meta
+    name="google-site-verification"
+    content="v6Pkn_EJCKqnxuI8-4z0hhF-qjBw7oey4zhaGWPKtZU"
+>
 
-            margin-bottom: 14px;
+<link
+    rel="canonical"
+    href="https://level1000-2.onrender.com/"
+>
 
-            background:
-                rgba(5,7,12,.82);
+<meta property="og:type" content="website">
+<meta property="og:title" content="LEVEL 1000 AI">
+<meta
+    property="og:description"
+    content="AI Market Intelligence Platform"
+>
+<meta
+    property="og:url"
+    content="https://level1000-2.onrender.com/"
+>
 
-            backdrop-filter:
-                blur(22px);
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-            border:
-                1px solid rgba(39,55,80,.8);
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+>
 
-            border-radius: 18px;
+<style>
 
-            box-shadow:
-                0 10px 40px rgba(0,0,0,.25);
-        }
+:root {
 
-        .header-inner {
-            min-height: 66px;
+    --bg:
+        #030507;
 
-            padding: 10px 16px;
+    --surface:
+        #080b10;
 
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+    --surface-2:
+        #0c1118;
 
-            gap: 20px;
-        }
+    --surface-3:
+        #101720;
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+    --line:
+        #19222e;
 
-        .brand-logo {
-            width: 43px;
-            height: 43px;
+    --line-2:
+        #253140;
 
-            display: grid;
-            place-items: center;
+    --text:
+        #f1f5f9;
 
-            border-radius: 12px;
+    --muted:
+        #718096;
 
-            background:
-                linear-gradient(
-                    135deg,
-                    #2563eb,
-                    #7c3aed
-                );
+    --muted-2:
+        #526173;
 
-            font-size: 13px;
-            font-weight: 900;
+    --blue:
+        #3b82f6;
 
-            box-shadow:
-                0 8px 25px rgba(59,130,246,.25);
-        }
+    --blue-light:
+        #60a5fa;
 
-        .brand-title {
-            font-size: 17px;
-            font-weight: 900;
-            letter-spacing: .4px;
-        }
+    --green:
+        #22c55e;
 
-        .brand-subtitle {
-            margin-top: 3px;
+    --red:
+        #ef4444;
 
-            color: var(--muted);
+    --yellow:
+        #eab308;
 
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-        }
+    --purple:
+        #8b5cf6;
 
-        .header-actions {
-            display: flex;
-            gap: 8px;
-        }
+}
 
-        .header-button {
-            padding: 9px 13px;
 
-            border:
-                1px solid var(--border);
+/* =========================================================
+   RESET
+   ========================================================= */
 
-            border-radius: 10px;
+* {
+    box-sizing: border-box;
+}
 
-            background: var(--panel2);
-            color: #dbeafe;
+html {
+    scroll-behavior: smooth;
+}
 
-            font-size: 11px;
-            font-weight: 800;
+body {
 
-            transition: .2s;
-        }
+    margin: 0;
 
-        .header-button:hover {
-            border-color: var(--blue);
-            background: #111c2e;
-        }
+    min-height: 100vh;
 
-        #logoutButton {
-            display: none !important;
-        }
+    background:
 
-        /* MARKET BAR */
+        radial-gradient(
+            ellipse 80% 45% at 50% -10%,
+            rgba(37,99,235,.13),
+            transparent 70%
+        ),
 
-        .ticker-bar {
-            overflow: hidden;
+        radial-gradient(
+            ellipse 40% 35% at 100% 45%,
+            rgba(124,58,237,.06),
+            transparent 70%
+        ),
 
-            margin-bottom: 16px;
+        var(--bg);
 
-            border:
-                1px solid var(--border);
+    color: var(--text);
 
-            border-radius: 12px;
+    font-family:
+        "Inter",
+        Arial,
+        sans-serif;
 
-            background:
-                linear-gradient(
-                    90deg,
-                    #08101b,
-                    #0a111d,
-                    #08101b
-                );
-        }
+    -webkit-font-smoothing: antialiased;
 
-        .ticker-track {
-            display: flex;
-            gap: 30px;
+}
 
-            width: max-content;
+button,
+input {
 
-            padding: 9px 15px;
+    font-family: inherit;
 
-            font-size: 10px;
-            font-weight: 700;
+}
 
-            color: #9fb0c7;
-        }
+button {
 
-        .ticker-item {
-            white-space: nowrap;
-        }
+    cursor: pointer;
 
-        /* HERO */
+}
 
-        .hero {
-            position: relative;
-            overflow: hidden;
+a {
 
-            margin-bottom: 16px;
+    color: inherit;
 
-            padding: 45px 42px;
+}
 
-            border:
-                1px solid #1c3150;
 
-            border-radius: 24px;
+/* =========================================================
+   HIDE OLD AUTH / PLAN UI
+   ========================================================= */
 
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(37,99,235,.13),
-                    rgba(124,58,237,.08),
-                    rgba(10,15,24,.98)
-                );
+#authScreen,
+#loginBox,
+#registerBox,
+#planModal,
+#planInfoBar,
+.plans-section,
+.user-plan,
+.feature-lock {
 
-            box-shadow: var(--shadow);
-        }
+    display: none !important;
 
-        .hero::before {
-            content: "";
+}
 
-            position: absolute;
+#appScreen {
 
-            width: 420px;
-            height: 420px;
+    display: block !important;
 
-            right: -180px;
-            top: -220px;
+    min-height: 100vh;
 
-            border-radius: 50%;
+}
 
-            background:
-                radial-gradient(
-                    circle,
-                    rgba(59,130,246,.18),
-                    transparent 68%
-                );
-        }
 
-        .hero::after {
-            content: "";
+/* =========================================================
+   MAIN
+   ========================================================= */
 
-            position: absolute;
+.app-container {
 
-            left: 0;
-            bottom: 0;
+    width:
+        min(
+            1480px,
+            calc(100% - 44px)
+        );
 
-            width: 45%;
-            height: 1px;
+    margin:
+        0 auto;
 
-            background:
-                linear-gradient(
-                    90deg,
-                    transparent,
-                    #3b82f6,
-                    transparent
-                );
+    padding:
+        18px 0 70px;
 
-            opacity: .6;
-        }
+}
 
-        .hero-content {
-            position: relative;
-            z-index: 2;
-        }
 
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
+/* =========================================================
+   TOP NAV
+   ========================================================= */
 
-            margin-bottom: 18px;
+.top-header {
 
-            padding: 7px 11px;
+    position:
+        sticky;
 
-            border:
-                1px solid rgba(59,130,246,.3);
+    top:
+        12px;
 
-            border-radius: 999px;
+    z-index:
+        100;
 
-            background:
-                rgba(59,130,246,.08);
+    margin-bottom:
+        14px;
 
-            color: #93c5fd;
+    border:
+        1px solid rgba(37,49,64,.9);
 
-            font-size: 9px;
-            font-weight: 900;
+    border-radius:
+        14px;
 
-            letter-spacing: 1px;
-        }
+    background:
+        rgba(3,5,7,.82);
 
-        .hero-badge::before {
-            content: "";
+    backdrop-filter:
+        blur(24px);
 
-            width: 6px;
-            height: 6px;
+    box-shadow:
+        0 12px 45px rgba(0,0,0,.35);
 
-            border-radius: 50%;
+}
 
-            background: var(--green);
+.header-inner {
 
-            box-shadow:
-                0 0 10px rgba(34,197,94,.7);
-        }
+    min-height:
+        64px;
 
-        .hero h1 {
-            margin: 0;
+    display:
+        flex;
 
-            font-size:
-                clamp(38px, 6vw, 76px);
+    align-items:
+        center;
 
-            line-height: .95;
+    justify-content:
+        space-between;
 
-            letter-spacing: -4px;
+    padding:
+        9px 14px;
 
-            font-weight: 900;
-        }
+}
 
-        .hero h1 span {
-            background:
-                linear-gradient(
-                    135deg,
-                    #60a5fa,
-                    #818cf8
-                );
 
-            -webkit-background-clip: text;
-            background-clip: text;
+/* BRAND */
 
-            color: transparent;
-        }
+.brand {
 
-        .hero p {
-            max-width: 780px;
+    display:
+        flex;
 
-            margin: 20px 0 0;
+    align-items:
+        center;
 
-            color: #8f9db1;
+    gap:
+        12px;
 
-            line-height: 1.8;
+}
 
-            font-size: 13px;
-        }
+.brand-logo {
 
-        .hero-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 9px;
+    width:
+        42px;
 
-            margin-top: 24px;
-        }
+    height:
+        42px;
 
-        .primary-button,
-        .secondary-button {
-            border-radius: 10px;
+    display:
+        grid;
 
-            padding: 12px 17px;
+    place-items:
+        center;
 
-            font-size: 11px;
-            font-weight: 900;
+    border-radius:
+        11px;
 
-            transition: .2s;
-        }
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
 
-        .primary-button {
-            border: 0;
+    color:
+        white;
 
-            color: white;
+    font-size:
+        12px;
 
-            background:
-                linear-gradient(
-                    135deg,
-                    #2563eb,
-                    #4f46e5
-                );
+    font-weight:
+        900;
 
-            box-shadow:
-                0 8px 25px rgba(37,99,235,.22);
-        }
+    box-shadow:
+        0 0 28px rgba(59,130,246,.20);
 
-        .primary-button:hover {
-            transform: translateY(-1px);
-            box-shadow:
-                0 12px 30px rgba(37,99,235,.32);
-        }
+}
 
-        .secondary-button {
-            border:
-                1px solid var(--border-light);
+.brand-title {
 
-            color: #dbeafe;
+    font-size:
+        15px;
 
-            background:
-                rgba(14,21,33,.8);
-        }
+    font-weight:
+        900;
 
-        .secondary-button:hover {
-            border-color: #42679b;
-        }
+    letter-spacing:
+        .5px;
 
-        /* SECTION */
+}
 
-        .info-card,
-        .dashboard-card {
-            margin-bottom: 16px;
+.brand-subtitle {
 
-            border:
-                1px solid var(--border);
+    margin-top:
+        3px;
 
-            border-radius: 18px;
+    color:
+        #64748b;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(14,21,33,.96),
-                    rgba(8,13,22,.98)
-                );
+    font-size:
+        8px;
 
-            box-shadow:
-                0 10px 35px rgba(0,0,0,.15);
-        }
+    font-weight:
+        800;
 
-        .info-card {
-            padding: 22px;
-        }
+    letter-spacing:
+        1.8px;
 
-        .section-title {
-            margin: 0 0 8px;
+}
 
-            font-size: 17px;
-            font-weight: 900;
 
-            letter-spacing: -.4px;
-        }
+/* HEADER BUTTONS */
 
-        .section-text {
-            margin: 0;
+.header-actions {
 
-            color: #8d9bb0;
+    display:
+        flex;
 
-            line-height: 1.8;
+    gap:
+        7px;
 
-            font-size: 12px;
-        }
+}
 
-        /* KPI */
+.header-button {
 
-        .kpi-grid {
-            display: grid;
+    padding:
+        8px 11px;
 
-            grid-template-columns:
-                repeat(5, minmax(0,1fr));
+    border:
+        1px solid var(--line-2);
 
-            gap: 10px;
+    border-radius:
+        8px;
 
-            margin-bottom: 16px;
-        }
+    background:
+        rgba(12,17,24,.8);
 
-        .kpi-card {
-            position: relative;
-            overflow: hidden;
+    color:
+        #cbd5e1;
 
-            min-height: 108px;
+    font-size:
+        9px;
 
-            padding: 17px;
+    font-weight:
+        800;
 
-            border:
-                1px solid var(--border);
+    transition:
+        .2s ease;
 
-            border-radius: 15px;
+}
 
-            background:
-                linear-gradient(
-                    145deg,
-                    #0d1522,
-                    #080d16
-                );
+.header-button:hover {
 
-            transition: .2s;
-        }
+    border-color:
+        #36567c;
 
-        .kpi-card:hover {
-            transform: translateY(-2px);
+    background:
+        #101923;
 
-            border-color:
-                var(--border-light);
-        }
+}
 
-        .kpi-card::after {
-            content: "";
+#logoutButton {
 
-            position: absolute;
+    display:
+        none !important;
 
-            right: -25px;
-            bottom: -30px;
+}
 
-            width: 90px;
-            height: 90px;
 
-            border-radius: 50%;
+/* =========================================================
+   MARKET STATUS STRIP
+   ========================================================= */
 
-            background:
-                rgba(59,130,246,.04);
-        }
+.market-strip {
 
-        .kpi-label {
-            color: #75859c;
+    display:
+        grid;
 
-            font-size: 9px;
-            font-weight: 800;
+    grid-template-columns:
+        1fr auto auto auto;
 
-            letter-spacing: 1px;
-        }
+    align-items:
+        center;
 
-        .kpi-value {
-            margin-top: 9px;
+    gap:
+        20px;
 
-            font-size: 27px;
-            line-height: 1;
+    min-height:
+        38px;
 
-            font-weight: 900;
+    padding:
+        0 14px;
 
-            letter-spacing: -1px;
-        }
+    margin-bottom:
+        14px;
 
-        .kpi-buy .kpi-value {
-            color: #4ade80;
-        }
+    border:
+        1px solid var(--line);
 
-        .kpi-sell .kpi-value {
-            color: #f87171;
-        }
+    border-radius:
+        9px;
 
-        .kpi-hold .kpi-value {
-            color: #facc15;
-        }
+    background:
+        rgba(8,11,16,.8);
 
-        /* CARD HEADER */
+}
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+.market-live {
 
-            gap: 15px;
+    display:
+        flex;
 
-            padding: 17px 20px;
+    align-items:
+        center;
 
-            border-bottom:
-                1px solid var(--border);
-        }
+    gap:
+        7px;
 
-        .card-header-left h2 {
-            margin: 0;
+    color:
+        #8fa1b7;
 
-            font-size: 16px;
-            font-weight: 900;
-        }
+    font-size:
+        8px;
 
-        .card-header-left p {
-            margin: 4px 0 0;
+    font-weight:
+        800;
 
-            color: #718198;
+    letter-spacing:
+        .8px;
 
-            font-size: 10px;
-        }
+}
 
-        .refresh-button {
-            border:
-                1px solid var(--border);
+.live-dot {
 
-            border-radius: 9px;
+    width:
+        6px;
 
-            padding: 8px 11px;
+    height:
+        6px;
 
-            background: #0d1624;
-            color: #cbd5e1;
+    border-radius:
+        50%;
 
-            font-size: 10px;
-            font-weight: 800;
-        }
+    background:
+        var(--green);
 
-        .refresh-button:hover {
-            border-color: var(--blue);
-        }
+    box-shadow:
+        0 0 10px rgba(34,197,94,.8);
 
-        /* SEARCH */
+}
 
-        .search-wrapper {
-            padding: 14px 18px;
+.market-item {
 
-            border-bottom:
-                1px solid var(--border);
-        }
+    color:
+        #566579;
 
-        #signalSearch {
-            width: 100%;
+    font-size:
+        8px;
 
-            padding: 12px 14px;
+    font-weight:
+        700;
 
-            border:
-                1px solid var(--border);
+}
 
-            border-radius: 10px;
+.market-item strong {
 
-            outline: none;
+    color:
+        #94a3b8;
 
-            background:
-                #070c14;
+}
 
-            color: white;
 
-            font-size: 11px;
+/* =========================================================
+   HERO
+   ========================================================= */
 
-            transition: .2s;
-        }
+.hero {
 
-        #signalSearch::placeholder {
-            color: #56657a;
-        }
+    position:
+        relative;
 
-        #signalSearch:focus {
-            border-color: #31598f;
+    overflow:
+        hidden;
 
-            box-shadow:
-                0 0 0 3px rgba(59,130,246,.06);
-        }
+    min-height:
+        410px;
 
-        /* TABLE */
+    display:
+        flex;
 
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-        }
+    align-items:
+        center;
 
-        .signals-table {
-            width: 100%;
+    margin-bottom:
+        14px;
 
-            min-width: 850px;
+    padding:
+        50px 58px;
 
-            border-collapse: collapse;
-        }
+    border:
+        1px solid #1b2b40;
 
-        .signals-table th {
-            padding: 11px 14px;
+    border-radius:
+        20px;
 
-            text-align: left;
+    background:
 
-            background:
-                #080e17;
+        linear-gradient(
+            110deg,
+            rgba(8,13,21,.98),
+            rgba(7,11,18,.96)
+        );
 
-            border-bottom:
-                1px solid var(--border);
+    box-shadow:
+        0 25px 80px rgba(0,0,0,.28);
 
-            color: #64748b;
+}
 
-            font-size: 9px;
-            font-weight: 800;
 
-            letter-spacing: .8px;
-        }
+/* grid */
 
-        .signals-table td {
-            padding: 13px 14px;
+.hero::before {
 
-            border-bottom:
-                1px solid rgba(29,42,61,.65);
+    content:
+        "";
 
-            color: #cbd5e1;
+    position:
+        absolute;
 
-            font-size: 11px;
-        }
+    inset:
+        0;
 
-        .signals-table tbody tr {
-            transition: .15s;
-        }
+    background-image:
 
-        .signals-table tbody tr:hover {
-            background:
-                rgba(59,130,246,.035);
-        }
+        linear-gradient(
+            rgba(59,130,246,.035) 1px,
+            transparent 1px
+        ),
 
-        .signal-badge {
-            display: inline-flex;
+        linear-gradient(
+            90deg,
+            rgba(59,130,246,.035) 1px,
+            transparent 1px
+        );
 
-            min-width: 58px;
+    background-size:
+        42px 42px;
 
-            justify-content: center;
-            align-items: center;
+    mask-image:
+        linear-gradient(
+            to right,
+            black,
+            transparent 85%
+        );
 
-            padding: 5px 8px;
+}
 
-            border-radius: 999px;
 
-            font-size: 9px;
-            font-weight: 900;
-        }
+/* glow */
 
-        .signal-buy {
-            color: #86efac;
+.hero::after {
 
-            background:
-                rgba(34,197,94,.09);
+    content:
+        "";
 
-            border:
-                1px solid rgba(34,197,94,.2);
-        }
+    position:
+        absolute;
 
-        .signal-sell {
-            color: #fca5a5;
+    width:
+        620px;
 
-            background:
-                rgba(239,68,68,.09);
+    height:
+        620px;
 
-            border:
-                1px solid rgba(239,68,68,.2);
-        }
+    right:
+        -280px;
 
-        .signal-hold {
-            color: #fde047;
+    top:
+        -260px;
 
-            background:
-                rgba(234,179,8,.09);
+    border-radius:
+        50%;
 
-            border:
-                1px solid rgba(234,179,8,.2);
-        }
+    background:
+        radial-gradient(
+            circle,
+            rgba(37,99,235,.17),
+            transparent 68%
+        );
 
-        .score-value {
-            font-weight: 900;
-            color: #e2e8f0;
-        }
+}
 
-        .positive {
-            color: #4ade80 !important;
-        }
+.hero-content {
 
-        .negative {
-            color: #f87171 !important;
-        }
+    position:
+        relative;
 
-        .neutral {
-            color: #facc15 !important;
-        }
+    z-index:
+        2;
 
-        /* ANALYSIS */
+    max-width:
+        850px;
 
-        .run-section {
-            padding: 18px;
-        }
+}
 
-        .run-button {
-            width: 100%;
+.hero-eyebrow {
 
-            padding: 14px;
+    display:
+        flex;
 
-            border: 0;
-            border-radius: 11px;
+    align-items:
+        center;
 
-            color: white;
+    gap:
+        9px;
 
-            background:
-                linear-gradient(
-                    135deg,
-                    #2563eb,
-                    #6d28d9
-                );
+    margin-bottom:
+        20px;
 
-            font-size: 11px;
-            font-weight: 900;
+    color:
+        #6d9fe0;
 
-            box-shadow:
-                0 10px 25px rgba(37,99,235,.16);
+    font-size:
+        9px;
 
-            transition: .2s;
-        }
+    font-weight:
+        900;
 
-        .run-button:hover {
-            transform: translateY(-1px);
-        }
+    letter-spacing:
+        2px;
 
-        .run-button:disabled {
-            opacity: .5;
-            cursor: wait;
-            transform: none;
-        }
+}
 
-        .run-status {
-            margin-top: 10px;
+.hero-eyebrow span {
 
-            text-align: center;
+    display:
+        inline-block;
 
-            color: #718198;
+    width:
+        7px;
 
-            font-size: 10px;
-        }
+    height:
+        7px;
 
-        /* ADVANCED */
+    border-radius:
+        50%;
 
-        .advanced-grid {
-            display: grid;
+    background:
+        var(--green);
 
-            grid-template-columns:
-                repeat(4, minmax(0,1fr));
+    box-shadow:
+        0 0 12px rgba(34,197,94,.7);
 
-            gap: 10px;
+}
 
-            padding: 16px;
-        }
+.hero h1 {
 
-        .advanced-card {
-            min-height: 175px;
+    margin:
+        0;
 
-            padding: 18px;
+    font-size:
+        clamp(
+            48px,
+            7vw,
+            86px
+        );
 
-            border:
-                1px solid var(--border);
+    line-height:
+        .9;
 
-            border-radius: 14px;
+    letter-spacing:
+        -6px;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    #101927,
-                    #080e17
-                );
+    font-weight:
+        900;
 
-            transition: .2s;
-        }
+}
 
-        .advanced-card:hover {
-            transform: translateY(-2px);
+.hero h1 span {
 
-            border-color:
-                #304866;
-        }
+    background:
 
-        .advanced-icon {
-            width: 36px;
-            height: 36px;
+        linear-gradient(
+            135deg,
+            #60a5fa 0%,
+            #818cf8 65%,
+            #a78bfa 100%
+        );
 
-            display: grid;
-            place-items: center;
+    -webkit-background-clip:
+        text;
 
-            margin-bottom: 13px;
+    background-clip:
+        text;
 
-            border-radius: 10px;
+    color:
+        transparent;
 
-            background:
-                rgba(59,130,246,.09);
+}
 
-            font-size: 18px;
-        }
+.hero-description {
 
-        .advanced-card h3 {
-            margin: 0 0 7px;
+    max-width:
+        720px;
 
-            font-size: 13px;
-            font-weight: 900;
-        }
+    margin:
+        24px 0 0;
 
-        .advanced-card p {
-            margin: 0;
+    color:
+        #77879c;
 
-            color: #718198;
+    font-size:
+        13px;
 
-            line-height: 1.7;
+    line-height:
+        1.85;
 
-            font-size: 10px;
-        }
+}
 
-        .advanced-card .feature-button {
-            margin-top: 13px;
+.hero-actions {
 
-            padding: 7px 10px;
+    display:
+        flex;
 
-            border:
-                1px solid var(--border);
+    flex-wrap:
+        wrap;
 
-            border-radius: 8px;
+    gap:
+        9px;
 
-            background:
-                #0c1420;
+    margin-top:
+        28px;
 
-            color: #cbd5e1;
+}
 
-            font-size: 9px;
-            font-weight: 800;
-        }
+.primary-button,
+.secondary-button {
 
-        .advanced-card .feature-button:hover {
-            border-color: var(--blue);
-        }
+    border-radius:
+        9px;
 
-        /* RESULTS */
+    padding:
+        12px 16px;
 
-        #advancedResultsBody {
-            color: #cbd5e1;
-        }
+    font-size:
+        10px;
 
-        /* STATUS */
+    font-weight:
+        900;
 
-        .status-grid {
-            display: grid;
+    transition:
+        .2s ease;
 
-            grid-template-columns:
-                repeat(4, minmax(0,1fr));
+}
 
-            gap: 10px;
+.primary-button {
 
-            padding: 16px;
-        }
+    border:
+        0;
 
-        .status-item {
-            padding: 14px;
+    color:
+        white;
 
-            border:
-                1px solid var(--border);
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #4f46e5
+        );
 
-            border-radius: 11px;
+    box-shadow:
+        0 10px 30px rgba(37,99,235,.22);
 
-            background:
-                #080e17;
-        }
+}
 
-        .status-label {
-            margin-bottom: 6px;
+.primary-button:hover {
 
-            color: #64748b;
+    transform:
+        translateY(-1px);
 
-            font-size: 8px;
-            font-weight: 800;
+    box-shadow:
+        0 14px 35px rgba(37,99,235,.32);
 
-            letter-spacing: 1px;
-        }
+}
 
-        .status-value {
-            color: #cbd5e1;
+.secondary-button {
 
-            font-size: 11px;
-            font-weight: 900;
-        }
+    border:
+        1px solid #26364a;
 
-        .online {
-            color: #4ade80 !important;
-        }
+    color:
+        #cbd5e1;
 
-        /* MESSAGE */
+    background:
+        rgba(13,19,28,.8);
 
-        #message {
-            display: none;
+}
 
-            margin-bottom: 16px;
+.secondary-button:hover {
 
-            padding: 11px 13px;
+    border-color:
+        #42678f;
 
-            border:
-                1px solid var(--border);
+}
 
-            border-radius: 10px;
 
-            background:
-                #0c1420;
+/* =========================================================
+   TERMINAL METRICS
+   ========================================================= */
 
-            color: #cbd5e1;
+.kpi-grid {
 
-            font-size: 10px;
-        }
+    display:
+        grid;
 
-        /* RISK */
+    grid-template-columns:
+        repeat(
+            5,
+            minmax(0,1fr)
+        );
 
-        .risk-card {
-            margin-bottom: 16px;
+    margin-bottom:
+        14px;
 
-            padding: 17px;
+    border:
+        1px solid var(--line);
 
-            border:
-                1px solid rgba(234,179,8,.18);
+    border-radius:
+        14px;
 
-            border-radius: 14px;
+    overflow:
+        hidden;
 
-            background:
-                rgba(234,179,8,.035);
-        }
+    background:
+        #080b10;
 
-        .risk-card h3 {
-            margin: 0 0 6px;
+}
 
-            color: #fde68a;
+.kpi-card {
 
-            font-size: 11px;
-        }
+    position:
+        relative;
 
-        .risk-card p {
-            margin: 0;
+    min-height:
+        116px;
 
-            color: #7f8da1;
+    padding:
+        20px;
 
-            line-height: 1.7;
+    border-right:
+        1px solid var(--line);
 
-            font-size: 9px;
-        }
+    background:
+        linear-gradient(
+            180deg,
+            rgba(14,20,28,.85),
+            rgba(7,10,15,.8)
+        );
 
-        /* FOOTER */
+}
 
-        footer {
-            padding: 25px 10px 5px;
+.kpi-card:last-child {
 
-            text-align: center;
+    border-right:
+        0;
 
-            color: #4f5e73;
+}
 
-            font-size: 9px;
+.kpi-card::before {
 
-            line-height: 1.8;
-        }
+    content:
+        "";
 
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
+    position:
+        absolute;
 
-            gap: 14px;
+    left:
+        0;
 
-            margin-bottom: 8px;
-        }
+    top:
+        0;
 
-        .footer-links a {
-            color: #718198;
+    width:
+        100%;
 
-            text-decoration: none;
-        }
+    height:
+        1px;
 
-        .footer-links a:hover {
-            color: #60a5fa;
-        }
+    background:
+        #172231;
 
-        /* RESPONSIVE */
+}
 
-        @media (max-width: 1100px) {
+.kpi-label {
 
-            .kpi-grid {
-                grid-template-columns:
-                    repeat(3,1fr);
-            }
+    color:
+        #566579;
 
-            .advanced-grid {
-                grid-template-columns:
-                    repeat(2,1fr);
-            }
+    font-size:
+        8px;
 
-            .status-grid {
-                grid-template-columns:
-                    repeat(2,1fr);
-            }
-        }
+    font-weight:
+        900;
 
-        @media (max-width: 700px) {
+    letter-spacing:
+        1.2px;
 
-            .app-container {
-                width: calc(100% - 20px);
-            }
+}
 
-            .top-header {
-                position: relative;
-                top: 0;
-            }
+.kpi-value {
 
-            .header-actions {
-                display: none;
-            }
+    margin-top:
+        11px;
 
-            .hero {
-                padding: 32px 22px;
-            }
+    font-size:
+        28px;
 
-            .hero h1 {
-                font-size: 42px;
-                letter-spacing: -2px;
-            }
+    line-height:
+        1;
 
-            .hero p {
-                font-size: 11px;
-            }
+    font-weight:
+        900;
 
-            .kpi-grid {
-                grid-template-columns:
-                    repeat(2,1fr);
-            }
+    letter-spacing:
+        -1.5px;
 
-            .advanced-grid {
-                grid-template-columns: 1fr;
-            }
+}
 
-            .status-grid {
-                grid-template-columns: 1fr;
-            }
+.kpi-buy .kpi-value {
 
-            .card-header {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-        }
+    color:
+        #4ade80;
 
-        @media (max-width: 430px) {
+}
 
-            .kpi-grid {
-                grid-template-columns: 1fr 1fr;
-            }
+.kpi-sell .kpi-value {
 
-            .kpi-card {
-                min-height: 95px;
-                padding: 14px;
-            }
+    color:
+        #f87171;
 
-            .kpi-value {
-                font-size: 22px;
-            }
+}
 
-            .brand-subtitle {
-                display: none;
-            }
-        }
+.kpi-hold .kpi-value {
 
-    </style>
+    color:
+        #facc15;
+
+}
+
+
+/* =========================================================
+   INFO BAR
+   ========================================================= */
+
+.info-card {
+
+    margin-bottom:
+        14px;
+
+    padding:
+        19px 21px;
+
+    border:
+        1px solid var(--line);
+
+    border-radius:
+        12px;
+
+    background:
+        rgba(9,13,19,.9);
+
+}
+
+.section-title {
+
+    margin:
+        0 0 7px;
+
+    font-size:
+        13px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        -.2px;
+
+}
+
+.section-text {
+
+    margin:
+        0;
+
+    color:
+        #69798e;
+
+    font-size:
+        10px;
+
+    line-height:
+        1.8;
+
+}
+
+
+/* =========================================================
+   MAIN TERMINAL
+   ========================================================= */
+
+.dashboard-card {
+
+    margin-bottom:
+        14px;
+
+    border:
+        1px solid var(--line);
+
+    border-radius:
+        14px;
+
+    overflow:
+        hidden;
+
+    background:
+        #080c12;
+
+    box-shadow:
+        0 12px 40px rgba(0,0,0,.14);
+
+}
+
+.card-header {
+
+    min-height:
+        62px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        15px;
+
+    padding:
+        12px 17px;
+
+    border-bottom:
+        1px solid var(--line);
+
+    background:
+        rgba(10,15,22,.75);
+
+}
+
+.card-header-left {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
+
+}
+
+.card-header-icon {
+
+    width:
+        30px;
+
+    height:
+        30px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border:
+        1px solid #1e3047;
+
+    border-radius:
+        8px;
+
+    background:
+        #0d1723;
+
+}
+
+.card-header h2 {
+
+    margin:
+        0;
+
+    font-size:
+        12px;
+
+    font-weight:
+        900;
+
+}
+
+.card-header p {
+
+    margin:
+        3px 0 0;
+
+    color:
+        #536276;
+
+    font-size:
+        8px;
+
+}
+
+.refresh-button {
+
+    padding:
+        8px 10px;
+
+    border:
+        1px solid var(--line-2);
+
+    border-radius:
+        7px;
+
+    background:
+        #0c131c;
+
+    color:
+        #8fa0b5;
+
+    font-size:
+        8px;
+
+    font-weight:
+        800;
+
+}
+
+.refresh-button:hover {
+
+    border-color:
+        #355a86;
+
+    color:
+        white;
+
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.search-wrapper {
+
+    padding:
+        12px;
+
+    border-bottom:
+        1px solid var(--line);
+
+    background:
+        #070a0f;
+
+}
+
+#signalSearch {
+
+    width:
+        100%;
+
+    height:
+        38px;
+
+    padding:
+        0 13px;
+
+    border:
+        1px solid #1b2735;
+
+    border-radius:
+        8px;
+
+    outline:
+        none;
+
+    background:
+        #05080c;
+
+    color:
+        #dbe4ef;
+
+    font-size:
+        10px;
+
+}
+
+#signalSearch::placeholder {
+
+    color:
+        #455467;
+
+}
+
+#signalSearch:focus {
+
+    border-color:
+        #315681;
+
+    box-shadow:
+        0 0 0 3px rgba(59,130,246,.05);
+
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.table-wrapper {
+
+    width:
+        100%;
+
+    overflow-x:
+        auto;
+
+}
+
+.signals-table {
+
+    width:
+        100%;
+
+    min-width:
+        850px;
+
+    border-collapse:
+        collapse;
+
+}
+
+.signals-table th {
+
+    height:
+        40px;
+
+    padding:
+        0 14px;
+
+    text-align:
+        left;
+
+    background:
+        #090d13;
+
+    border-bottom:
+        1px solid var(--line);
+
+    color:
+        #536276;
+
+    font-size:
+        8px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        .9px;
+
+}
+
+.signals-table td {
+
+    height:
+        49px;
+
+    padding:
+        0 14px;
+
+    border-bottom:
+        1px solid rgba(25,34,46,.65);
+
+    color:
+        #aebbc9;
+
+    font-size:
+        10px;
+
+}
+
+.signals-table tbody tr {
+
+    transition:
+        background .15s ease;
+
+}
+
+.signals-table tbody tr:hover {
+
+    background:
+        rgba(59,130,246,.025);
+
+}
+
+.signals-table tbody tr:last-child td {
+
+    border-bottom:
+        0;
+
+}
+
+.signals-table strong {
+
+    color:
+        #dce5ef;
+
+    font-weight:
+        800;
+
+}
+
+.signal-badge {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    min-width:
+        55px;
+
+    padding:
+        5px 8px;
+
+    border-radius:
+        5px;
+
+    font-size:
+        8px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        .5px;
+
+}
+
+.signal-buy {
+
+    color:
+        #4ade80;
+
+    background:
+        rgba(34,197,94,.07);
+
+    border:
+        1px solid rgba(34,197,94,.17);
+
+}
+
+.signal-sell {
+
+    color:
+        #f87171;
+
+    background:
+        rgba(239,68,68,.07);
+
+    border:
+        1px solid rgba(239,68,68,.17);
+
+}
+
+.signal-hold {
+
+    color:
+        #facc15;
+
+    background:
+        rgba(234,179,8,.07);
+
+    border:
+        1px solid rgba(234,179,8,.17);
+
+}
+
+.score-value {
+
+    color:
+        #dbeafe;
+
+    font-weight:
+        800;
+
+}
+
+.positive {
+
+    color:
+        #4ade80 !important;
+
+}
+
+.negative {
+
+    color:
+        #f87171 !important;
+
+}
+
+.neutral {
+
+    color:
+        #facc15 !important;
+
+}
+
+
+/* =========================================================
+   RUN ANALYSIS
+   ========================================================= */
+
+.run-section {
+
+    padding:
+        16px;
+
+}
+
+.run-button {
+
+    width:
+        100%;
+
+    height:
+        43px;
+
+    border:
+        0;
+
+    border-radius:
+        8px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #5b21b6
+        );
+
+    color:
+        white;
+
+    font-size:
+        9px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        .7px;
+
+    box-shadow:
+        0 10px 25px rgba(37,99,235,.14);
+
+}
+
+.run-button:hover {
+
+    filter:
+        brightness(1.08);
+
+}
+
+.run-button:disabled {
+
+    opacity:
+        .5;
+
+    cursor:
+        wait;
+
+}
+
+.run-status {
+
+    margin-top:
+        9px;
+
+    text-align:
+        center;
+
+    color:
+        #536276;
+
+    font-size:
+        8px;
+
+}
+
+
+/* =========================================================
+   ADVANCED
+   ========================================================= */
+
+.advanced-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(0,1fr)
+        );
+
+    gap:
+        1px;
+
+    background:
+        var(--line);
+
+}
+
+.advanced-card {
+
+    min-height:
+        180px;
+
+    padding:
+        21px;
+
+    background:
+        #090e15;
+
+    transition:
+        .2s ease;
+
+}
+
+.advanced-card:hover {
+
+    background:
+        #0d141e;
+
+}
+
+.advanced-icon {
+
+    width:
+        34px;
+
+    height:
+        34px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    margin-bottom:
+        16px;
+
+    border:
+        1px solid #1d3046;
+
+    border-radius:
+        8px;
+
+    background:
+        #0c1622;
+
+    font-size:
+        16px;
+
+}
+
+.advanced-card h3 {
+
+    margin:
+        0 0 7px;
+
+    font-size:
+        11px;
+
+    font-weight:
+        900;
+
+}
+
+.advanced-card p {
+
+    margin:
+        0;
+
+    color:
+        #5e6e82;
+
+    font-size:
+        9px;
+
+    line-height:
+        1.75;
+
+}
+
+.feature-button {
+
+    margin-top:
+        15px;
+
+    padding:
+        7px 10px;
+
+    border:
+        1px solid #1e2d3f;
+
+    border-radius:
+        6px;
+
+    background:
+        #0a111a;
+
+    color:
+        #9aabc0;
+
+    font-size:
+        8px;
+
+    font-weight:
+        800;
+
+}
+
+.feature-button:hover {
+
+    border-color:
+        #365a83;
+
+    color:
+        white;
+
+}
+
+
+/* =========================================================
+   RESULTS
+   ========================================================= */
+
+#advancedResultsBody {
+
+    color:
+        #aebbc9;
+
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.status-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            4,
+            1fr
+        );
+
+    gap:
+        1px;
+
+    background:
+        var(--line);
+
+}
+
+.status-item {
+
+    padding:
+        16px;
+
+    background:
+        #090e15;
+
+}
+
+.status-label {
+
+    margin-bottom:
+        7px;
+
+    color:
+        #4e5d70;
+
+    font-size:
+        7px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        1px;
+
+}
+
+.status-value {
+
+    color:
+        #aebbc9;
+
+    font-size:
+        10px;
+
+    font-weight:
+        900;
+
+}
+
+.online {
+
+    color:
+        #4ade80 !important;
+
+}
+
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+#message {
+
+    display:
+        none;
+
+    margin-bottom:
+        14px;
+
+    padding:
+        10px 12px;
+
+    border:
+        1px solid #24364c;
+
+    border-radius:
+        8px;
+
+    background:
+        #0a111a;
+
+    color:
+        #aebbc9;
+
+    font-size:
+        9px;
+
+}
+
+
+/* =========================================================
+   RISK
+   ========================================================= */
+
+.risk-card {
+
+    margin-bottom:
+        14px;
+
+    padding:
+        16px 18px;
+
+    border:
+        1px solid rgba(234,179,8,.13);
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(234,179,8,.025);
+
+}
+
+.risk-card h3 {
+
+    margin:
+        0 0 6px;
+
+    color:
+        #d7bd62;
+
+    font-size:
+        9px;
+
+    font-weight:
+        900;
+
+}
+
+.risk-card p {
+
+    margin:
+        0;
+
+    color:
+        #5f6d7f;
+
+    font-size:
+        8px;
+
+    line-height:
+        1.8;
+
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+footer {
+
+    padding:
+        24px 10px 5px;
+
+    text-align:
+        center;
+
+    color:
+        #3e4b5c;
+
+    font-size:
+        8px;
+
+    line-height:
+        1.9;
+
+}
+
+.footer-links {
+
+    display:
+        flex;
+
+    justify-content:
+        center;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        15px;
+
+    margin-bottom:
+        7px;
+
+}
+
+.footer-links a {
+
+    color:
+        #59687b;
+
+    text-decoration:
+        none;
+
+}
+
+.footer-links a:hover {
+
+    color:
+        #8ebcf4;
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 1050px) {
+
+    .kpi-grid {
+
+        grid-template-columns:
+            repeat(3,1fr);
+
+    }
+
+    .kpi-card:nth-child(3) {
+
+        border-right:
+            0;
+
+    }
+
+    .advanced-grid {
+
+        grid-template-columns:
+            repeat(2,1fr);
+
+    }
+
+    .status-grid {
+
+        grid-template-columns:
+            repeat(2,1fr);
+
+    }
+
+    .market-strip {
+
+        grid-template-columns:
+            1fr auto;
+
+    }
+
+    .market-item:nth-last-child(-n+2) {
+
+        display:
+            none;
+
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .app-container {
+
+        width:
+            calc(100% - 18px);
+
+        padding-top:
+            9px;
+
+    }
+
+    .top-header {
+
+        position:
+            relative;
+
+        top:
+            0;
+
+    }
+
+    .header-actions {
+
+        display:
+            none;
+
+    }
+
+    .market-strip {
+
+        min-height:
+            34px;
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+    .market-item {
+
+        display:
+            none;
+
+    }
+
+    .hero {
+
+        min-height:
+            350px;
+
+        padding:
+            35px 23px;
+
+    }
+
+    .hero h1 {
+
+        font-size:
+            46px;
+
+        letter-spacing:
+            -3px;
+
+    }
+
+    .hero-description {
+
+        font-size:
+            11px;
+
+    }
+
+    .kpi-grid {
+
+        grid-template-columns:
+            repeat(2,1fr);
+
+    }
+
+    .kpi-card {
+
+        border-right:
+            1px solid var(--line);
+
+        border-bottom:
+            1px solid var(--line);
+
+    }
+
+    .kpi-card:nth-child(2n) {
+
+        border-right:
+            0;
+
+    }
+
+    .kpi-value {
+
+        font-size:
+            23px;
+
+    }
+
+    .advanced-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+    .status-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+    .card-header {
+
+        align-items:
+            flex-start;
+
+        flex-direction:
+            column;
+
+    }
+
+}
+
+
+@media (max-width: 430px) {
+
+    .hero h1 {
+
+        font-size:
+            39px;
+
+    }
+
+    .hero-actions {
+
+        flex-direction:
+            column;
+
+    }
+
+    .primary-button,
+    .secondary-button {
+
+        width:
+            100%;
+
+    }
+
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+::-webkit-scrollbar {
+
+    width:
+        7px;
+
+    height:
+        7px;
+
+}
+
+::-webkit-scrollbar-track {
+
+    background:
+        #05070a;
+
+}
+
+::-webkit-scrollbar-thumb {
+
+    background:
+        #1c2938;
+
+    border-radius:
+        10px;
+
+}
+
+::-webkit-scrollbar-thumb:hover {
+
+    background:
+        #2a405a;
+
+}
+
+</style>
 
 </head>
 
+
 <body>
+
 
 <div id="appScreen">
 
-    <div class="app-container">
+<div class="app-container">
 
-        <!-- HEADER -->
 
-        <header class="top-header">
+<!-- ======================================================
+     HEADER
+     ====================================================== -->
 
-            <div class="header-inner">
+<header class="top-header">
 
-                <div class="brand">
+<div class="header-inner">
 
-                    <div class="brand-logo">
-                        L1K
-                    </div>
+<div class="brand">
 
-                    <div>
-                        <div class="brand-title">
-                            LEVEL 1000 AI
-                        </div>
+<div class="brand-logo">
+L1K
+</div>
 
-                        <div class="brand-subtitle">
-                            AI MARKET INTELLIGENCE
-                        </div>
-                    </div>
+<div>
 
-                </div>
+<div class="brand-title">
+LEVEL 1000 AI
+</div>
 
-                <div class="header-actions">
+<div class="brand-subtitle">
+AI MARKET INTELLIGENCE
+</div>
 
-                    <button
-                        type="button"
-                        class="header-button"
-                        onclick="refreshData()"
-                    >
-                        ↻ YENİLE
-                    </button>
-
-                    <button
-                        type="button"
-                        id="adminButton"
-                        class="header-button"
-                        style="display:none;"
-                        onclick="openAdmin()"
-                    >
-                        ADMIN
-                    </button>
-
-                    <button
-                        type="button"
-                        id="logoutButton"
-                        class="header-button"
-                    >
-                        ÇIKIŞ
-                    </button>
-
-                </div>
-
-            </div>
-
-        </header>
-
-
-        <!-- MARKET BAR -->
-
-        <div class="ticker-bar">
-
-            <div class="ticker-track">
-
-                <div class="ticker-item">
-                    🟢 MARKET SYSTEM ONLINE
-                </div>
-
-                <div class="ticker-item">
-                    ⚡ AI ANALYSIS ACTIVE
-                </div>
-
-                <div class="ticker-item">
-                    📊 ALL SIGNALS OPEN
-                </div>
-
-                <div class="ticker-item">
-                    🔓 NO MEMBERSHIP
-                </div>
-
-                <div class="ticker-item">
-                    📡 YAHOO FINANCE DATA
-                </div>
-
-                <div class="ticker-item">
-                    🛡️ PAPER TRADING
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- HERO -->
-
-        <section class="hero">
-
-            <div class="hero-content">
-
-                <div class="hero-badge">
-                    PUBLIC AI MARKET INTELLIGENCE
-                </div>
-
-                <h1>
-                    LEVEL <span>1000</span> AI
-                </h1>
-
-                <p>
-                    Yapay zeka destekli piyasa istihbarat platformu.
-                    BUY, SELL ve HOLD sinyallerini, AI olasılıklarını,
-                    tahmini getirileri ve gelişmiş analizleri tek bir
-                    profesyonel terminal üzerinden inceleyin.
-                </p>
-
-                <div class="hero-buttons">
-
-                    <button
-                        type="button"
-                        class="primary-button"
-                        onclick="document.getElementById('signalsSection').scrollIntoView({behavior:'smooth'})"
-                    >
-                        📊 SİNYALLERİ GÖR
-                    </button>
-
-                    <button
-                        type="button"
-                        class="secondary-button"
-                        onclick="runAnalysis()"
-                    >
-                        ⚡ AI ANALİZİNİ BAŞLAT
-                    </button>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- INFO -->
-
-        <section class="info-card">
-
-            <h2 class="section-title">
-                AI MARKET INTELLIGENCE
-            </h2>
-
-            <p class="section-text">
-                LEVEL 1000 AI; hisse senetleri, ETF'ler, ADR'ler,
-                warrantlar, endeksler ve kripto varlıklar için
-                yapay zeka destekli piyasa araştırması ve sinyal
-                analizi sunar. Sistem normal ziyaretçiler için
-                üyelik ve satın alma gerektirmez.
-            </p>
-
-        </section>
-
-
-        <!-- KPI -->
-
-        <section class="kpi-grid">
-
-            <div class="kpi-card kpi-buy">
-
-                <div class="kpi-label">
-                    BUY SIGNALS
-                </div>
-
-                <div
-                    class="kpi-value"
-                    id="buyCount"
-                >
-                    -
-                </div>
-
-            </div>
-
-            <div class="kpi-card kpi-sell">
-
-                <div class="kpi-label">
-                    SELL SIGNALS
-                </div>
-
-                <div
-                    class="kpi-value"
-                    id="sellCount"
-                >
-                    -
-                </div>
-
-            </div>
-
-            <div class="kpi-card kpi-hold">
-
-                <div class="kpi-label">
-                    HOLD SIGNALS
-                </div>
-
-                <div
-                    class="kpi-value"
-                    id="holdCount"
-                >
-                    -
-                </div>
-
-            </div>
-
-            <div class="kpi-card">
-
-                <div class="kpi-label">
-                    TOP SIGNALS
-                </div>
-
-                <div
-                    class="kpi-value"
-                    id="topCount"
-                >
-                    -
-                </div>
-
-            </div>
-
-            <div class="kpi-card">
-
-                <div class="kpi-label">
-                    TOTAL RECORDS
-                </div>
-
-                <div
-                    class="kpi-value"
-                    id="totalCount"
-                >
-                    -
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- MESSAGE -->
-
-        <div id="message"></div>
-
-
-        <!-- SIGNALS -->
-
-        <section
-            class="dashboard-card"
-            id="signalsSection"
-        >
-
-            <div class="card-header">
-
-                <div class="card-header-left">
-
-                    <h2>
-                        📊 AI PİYASA SİNYALLERİ
-                    </h2>
-
-                    <p>
-                        LEVEL 1000 tarafından oluşturulan piyasa sinyalleri
-                    </p>
-
-                </div>
-
-                <button
-                    type="button"
-                    class="refresh-button"
-                    onclick="refreshData()"
-                >
-                    ↻ YENİLE
-                </button>
-
-            </div>
-
-
-            <div class="search-wrapper">
-
-                <input
-                    id="signalSearch"
-                    type="text"
-                    autocomplete="off"
-                    placeholder="🔎 Sembol veya sinyal ara..."
-                >
-
-            </div>
-
-
-            <div class="table-wrapper">
-
-                <table class="signals-table">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>SEMBOL</th>
-                            <th>SİNYAL</th>
-                            <th>AI OLASILIK</th>
-                            <th>FİYAT</th>
-                            <th>GÜNLÜK DEĞİŞİM</th>
-                            <th>TAHMİNİ GETİRİ</th>
-                            <th>TARİH</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody id="signalsBody">
-
-                        <tr>
-                            <td colspan="7">
-                                Veriler yükleniyor...
-                            </td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
-
-        <!-- SIGNAL INFO -->
-
-        <section class="info-card">
-
-            <h2 class="section-title">
-                SİNYAL SİSTEMİ
-            </h2>
-
-            <p class="section-text">
-                <strong>BUY</strong> yükseliş yönlü,
-                <strong>SELL</strong> düşüş yönlü,
-                <strong>HOLD</strong> ise net yön oluşmadığını
-                gösterir. AI olasılığı ve tahmini getiri model
-                çıktılarıdır ve garanti niteliğinde değildir.
-            </p>
-
-        </section>
-
-
-        <!-- RUN -->
-
-        <section class="dashboard-card">
-
-            <div class="card-header">
-
-                <div class="card-header-left">
-
-                    <h2>
-                        ⚡ YENİ AI TARAMASI
-                    </h2>
-
-                    <p>
-                        LEVEL 1000 piyasa analiz motorunu çalıştırın.
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="run-section">
-
-                <button
-                    type="button"
-                    id="runAnalysisButton"
-                    class="run-button"
-                    onclick="runAnalysis()"
-                >
-                    ⚡ AI ANALİZİNİ BAŞLAT
-                </button>
-
-                <div
-                    id="runStatus"
-                    class="run-status"
-                >
-                    Sistem hazır.
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- ADVANCED -->
-
-        <section class="dashboard-card">
-
-            <div class="card-header">
-
-                <div class="card-header-left">
-
-                    <h2>
-                        🧠 GELİŞMİŞ ANALİZ
-                    </h2>
-
-                    <p>
-                        Backtest, paper trading ve risk analizleri.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="advanced-grid">
-
-                <div class="advanced-card">
-
-                    <div class="advanced-icon">
-                        🧠
-                    </div>
-
-                    <h3>
-                        Gelişmiş AI
-                    </h3>
-
-                    <p>
-                        AI sinyal, olasılık ve tahmini getiri
-                        sonuçlarını inceleyin.
-                    </p>
-
-                    <button
-                        type="button"
-                        class="feature-button"
-                        onclick="loadSignals()"
-                    >
-                        Analizleri Gör
-                    </button>
-
-                </div>
-
-
-                <div class="advanced-card">
-
-                    <div class="advanced-icon">
-                        📈
-                    </div>
-
-                    <h3>
-                        Backtest
-                    </h3>
-
-                    <p>
-                        Geçmiş dönemlerdeki backtest sonuçlarını
-                        ve performans verilerini inceleyin.
-                    </p>
-
-                    <button
-                        type="button"
-                        class="feature-button"
-                        onclick="loadBacktest()"
-                    >
-                        Backtest Aç
-                    </button>
-
-                </div>
-
-
-                <div class="advanced-card">
-
-                    <div class="advanced-icon">
-                        📝
-                    </div>
-
-                    <h3>
-                        Paper Trading
-                    </h3>
-
-                    <p>
-                        Gerçek para kullanmadan oluşturulan
-                        paper trading sonuçlarını görüntüleyin.
-                    </p>
-
-                    <button
-                        type="button"
-                        class="feature-button"
-                        onclick="loadPaper()"
-                    >
-                        Paper Trading
-                    </button>
-
-                </div>
-
-
-                <div class="advanced-card">
-
-                    <div class="advanced-icon">
-                        🎲
-                    </div>
-
-                    <h3>
-                        Monte Carlo
-                    </h3>
-
-                    <p>
-                        Simülasyon sonuçlarını ve risk analizlerini
-                        görüntüleyin.
-                    </p>
-
-                    <button
-                        type="button"
-                        class="feature-button"
-                        onclick="loadMonteCarlo()"
-                    >
-                        Simülasyonu Aç
-                    </button>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- RESULTS -->
-
-        <section
-            class="dashboard-card"
-            id="advancedResults"
-            style="display:none;"
-        >
-
-            <div class="card-header">
-
-                <div class="card-header-left">
-
-                    <h2 id="advancedResultsTitle">
-                        Gelişmiş Analiz
-                    </h2>
-
-                    <p id="advancedResultsSubtitle">
-                        Sonuçlar
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div
-                id="advancedResultsBody"
-                style="
-                    padding:18px;
-                    overflow:auto;
-                "
-            ></div>
-
-        </section>
-
-
-        <!-- STATUS -->
-
-        <section class="dashboard-card">
-
-            <div class="card-header">
-
-                <div class="card-header-left">
-
-                    <h2>
-                        🟢 SİSTEM DURUMU
-                    </h2>
-
-                    <p>
-                        LEVEL 1000 servislerinin mevcut durumu.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="status-grid">
-
-                <div class="status-item">
-
-                    <div class="status-label">
-                        API
-                    </div>
-
-                    <div
-                        class="status-value online"
-                        id="apiStatus"
-                    >
-                        ONLINE
-                    </div>
-
-                </div>
-
-
-                <div class="status-item">
-
-                    <div class="status-label">
-                        MARKET DATA
-                    </div>
-
-                    <div
-                        class="status-value"
-                        id="marketStatus"
-                    >
-                        Kontrol ediliyor...
-                    </div>
-
-                </div>
-
-
-                <div class="status-item">
-
-                    <div class="status-label">
-                        LIVE PRICE
-                    </div>
-
-                    <div
-                        class="status-value"
-                        id="liveStatus"
-                    >
-                        Aktif
-                    </div>
-
-                </div>
-
-
-                <div class="status-item">
-
-                    <div class="status-label">
-                        ACCESS
-                    </div>
-
-                    <div
-                        class="status-value online"
-                        id="accessStatus"
-                    >
-                        PUBLIC
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- RISK -->
-
-        <section class="risk-card">
-
-            <h3>
-                ⚠️ RİSK UYARISI
-            </h3>
-
-            <p>
-                LEVEL 1000 AI tarafından sunulan sinyaller,
-                AI olasılıkları, tahmini getiriler, backtest
-                sonuçları ve diğer veriler yatırım tavsiyesi
-                veya finansal danışmanlık değildir. Geçmiş
-                performans gelecekteki sonuçların garantisi
-                değildir. Gerçek para ile işlem yapmadan önce
-                bağımsız araştırma yapın ve kendi risk
-                değerlendirmenizi gerçekleştirin.
-            </p>
-
-        </section>
-
-
-        <!-- FOOTER -->
-
-        <footer>
-
-            <div class="footer-links">
-
-                <a href="/about">Hakkında</a>
-                <a href="/guide">Rehber</a>
-                <a href="/risk">Risk</a>
-                <a href="/privacy">Gizlilik</a>
-                <a href="/cookies">Çerezler</a>
-                <a href="/terms">Kullanım Şartları</a>
-                <a href="/contact">İletişim</a>
-
-            </div>
-
-            <div>
-                LEVEL 1000 AI © 2026
-            </div>
-
-            <div>
-                Gerçek para: HAYIR · Otomatik emir: HAYIR
-            </div>
-
-        </footer>
-
-    </div>
+</div>
 
 </div>
 
 
-<!-- SADECE HARİCİ SCRIPT -->
+<div class="header-actions">
 
-<script src="/static/script.js?v=1003"></script>
+<button
+    type="button"
+    class="header-button"
+    onclick="refreshData()"
+>
+↻ YENİLE
+</button>
+
+<button
+    type="button"
+    id="adminButton"
+    class="header-button"
+    style="display:none;"
+    onclick="openAdmin()"
+>
+ADMIN
+</button>
+
+<button
+    type="button"
+    id="logoutButton"
+    class="header-button"
+>
+ÇIKIŞ
+</button>
+
+</div>
+
+</div>
+
+</header>
+
+
+<!-- ======================================================
+     MARKET STRIP
+     ====================================================== -->
+
+<div class="market-strip">
+
+<div class="market-live">
+
+<span class="live-dot"></span>
+
+MARKET INTELLIGENCE SYSTEM
+
+</div>
+
+<div class="market-item">
+AI <strong>ACTIVE</strong>
+</div>
+
+<div class="market-item">
+DATA <strong>LIVE</strong>
+</div>
+
+<div class="market-item">
+ACCESS <strong>PUBLIC</strong>
+</div>
+
+</div>
+
+
+<!-- ======================================================
+     HERO
+     ====================================================== -->
+
+<section class="hero">
+
+<div class="hero-content">
+
+<div class="hero-eyebrow">
+
+<span></span>
+
+PUBLIC AI MARKET INTELLIGENCE
+
+</div>
+
+
+<h1>
+LEVEL <span>1000</span>
+</h1>
+
+
+<p class="hero-description">
+
+Yapay zeka destekli piyasa istihbarat platformu.
+Binlerce finansal varlığı analiz ederek BUY, SELL ve HOLD
+sinyalleri, AI olasılıkları ve tahmini getirileri tek bir
+profesyonel terminal üzerinden inceleyin.
+
+</p>
+
+
+<div class="hero-actions">
+
+<button
+    type="button"
+    class="primary-button"
+    onclick="document.getElementById('signalsSection').scrollIntoView({behavior:'smooth'})"
+>
+📊 PİYASA SİNYALLERİ
+</button>
+
+<button
+    type="button"
+    class="secondary-button"
+    onclick="runAnalysis()"
+>
+⚡ AI TARAMASINI BAŞLAT
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ======================================================
+     KPI
+     ====================================================== -->
+
+<section class="kpi-grid">
+
+<div class="kpi-card kpi-buy">
+
+<div class="kpi-label">
+BUY SIGNALS
+</div>
+
+<div
+    class="kpi-value"
+    id="buyCount"
+>
+-
+</div>
+
+</div>
+
+
+<div class="kpi-card kpi-sell">
+
+<div class="kpi-label">
+SELL SIGNALS
+</div>
+
+<div
+    class="kpi-value"
+    id="sellCount"
+>
+-
+</div>
+
+</div>
+
+
+<div class="kpi-card kpi-hold">
+
+<div class="kpi-label">
+HOLD SIGNALS
+</div>
+
+<div
+    class="kpi-value"
+    id="holdCount"
+>
+-
+</div>
+
+</div>
+
+
+<div class="kpi-card">
+
+<div class="kpi-label">
+TOP SIGNALS
+</div>
+
+<div
+    class="kpi-value"
+    id="topCount"
+>
+-
+</div>
+
+</div>
+
+
+<div class="kpi-card">
+
+<div class="kpi-label">
+TOTAL RECORDS
+</div>
+
+<div
+    class="kpi-value"
+    id="totalCount"
+>
+-
+</div>
+
+</div>
+
+</section>
+
+
+<!-- MESSAGE -->
+
+<div id="message"></div>
+
+
+<!-- ======================================================
+     SIGNAL TERMINAL
+     ====================================================== -->
+
+<section
+    class="dashboard-card"
+    id="signalsSection"
+>
+
+<div class="card-header">
+
+<div class="card-header-left">
+
+<div class="card-header-icon">
+▦
+</div>
+
+<div>
+
+<h2>
+AI PİYASA SİNYALLERİ
+</h2>
+
+<p>
+Gerçek zamanlı fiyat verileri ve model çıktıları
+</p>
+
+</div>
+
+</div>
+
+
+<button
+    type="button"
+    class="refresh-button"
+    onclick="refreshData()"
+>
+↻ YENİLE
+</button>
+
+</div>
+
+
+<div class="search-wrapper">
+
+<input
+    id="signalSearch"
+    type="text"
+    autocomplete="off"
+    placeholder="🔎  Sembol veya sinyal ara..."
+>
+
+</div>
+
+
+<div class="table-wrapper">
+
+<table class="signals-table">
+
+<thead>
+
+<tr>
+
+<th>SEMBOL</th>
+
+<th>SİNYAL</th>
+
+<th>AI OLASILIK</th>
+
+<th>FİYAT</th>
+
+<th>GÜNLÜK DEĞİŞİM</th>
+
+<th>TAHMİNİ GETİRİ</th>
+
+<th>TARİH</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="signalsBody">
+
+<tr>
+
+<td colspan="7">
+Veriler yükleniyor...
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<!-- ======================================================
+     INFO
+     ====================================================== -->
+
+<section class="info-card">
+
+<h2 class="section-title">
+LEVEL 1000 NASIL ÇALIŞIR?
+</h2>
+
+<p class="section-text">
+
+Sistem; piyasa verilerini, teknik göstergeleri ve AI model
+çıktılarını kullanarak BUY, SELL ve HOLD sinyalleri üretir.
+AI olasılığı ve tahmini getiri değerleri model çıktılarıdır;
+kesin sonuç veya garanti anlamına gelmez.
+
+</p>
+
+</section>
+
+
+<!-- ======================================================
+     AI SCAN
+     ====================================================== -->
+
+<section class="dashboard-card">
+
+<div class="card-header">
+
+<div class="card-header-left">
+
+<div class="card-header-icon">
+⚡
+</div>
+
+<div>
+
+<h2>
+AI ANALİZ MOTORU
+</h2>
+
+<p>
+Yeni piyasa taraması başlatın
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="run-section">
+
+<button
+    type="button"
+    id="runAnalysisButton"
+    class="run-button"
+    onclick="runAnalysis()"
+>
+⚡ LEVEL 1000 AI ANALİZİNİ BAŞLAT
+</button>
+
+<div
+    id="runStatus"
+    class="run-status"
+>
+Sistem hazır.
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ======================================================
+     ADVANCED
+     ====================================================== -->
+
+<section class="dashboard-card">
+
+<div class="card-header">
+
+<div class="card-header-left">
+
+<div class="card-header-icon">
+◈
+</div>
+
+<div>
+
+<h2>
+GELİŞMİŞ ANALİZ
+</h2>
+
+<p>
+Model ve risk analiz araçları
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="advanced-grid">
+
+
+<div class="advanced-card">
+
+<div class="advanced-icon">
+🧠
+</div>
+
+<h3>
+GELİŞMİŞ AI
+</h3>
+
+<p>
+AI sinyallerini, olasılıkları ve tahmini getiri
+çıktılarını inceleyin.
+</p>
+
+<button
+    type="button"
+    class="feature-button"
+    onclick="loadSignals()"
+>
+ANALİZLERİ GÖR
+</button>
+
+</div>
+
+
+<div class="advanced-card">
+
+<div class="advanced-icon">
+↗
+</div>
+
+<h3>
+BACKTEST
+</h3>
+
+<p>
+Geçmiş dönem performans ve model sonuçlarını
+inceleyin.
+</p>
+
+<button
+    type="button"
+    class="feature-button"
+    onclick="loadBacktest()"
+>
+BACKTEST AÇ
+</button>
+
+</div>
+
+
+<div class="advanced-card">
+
+<div class="advanced-icon">
+▣
+</div>
+
+<h3>
+PAPER TRADING
+</h3>
+
+<p>
+Gerçek para kullanmadan oluşturulan işlem
+sonuçlarını görüntüleyin.
+</p>
+
+<button
+    type="button"
+    class="feature-button"
+    onclick="loadPaper()"
+>
+PAPER TRADING
+</button>
+
+</div>
+
+
+<div class="advanced-card">
+
+<div class="advanced-icon">
+◌
+</div>
+
+<h3>
+MONTE CARLO
+</h3>
+
+<p>
+Simülasyon sonuçlarını ve risk analizlerini
+görüntüleyin.
+</p>
+
+<button
+    type="button"
+    class="feature-button"
+    onclick="loadMonteCarlo()"
+>
+SİMÜLASYONU AÇ
+</button>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+<!-- ======================================================
+     RESULTS
+     ====================================================== -->
+
+<section
+    class="dashboard-card"
+    id="advancedResults"
+    style="display:none;"
+>
+
+<div class="card-header">
+
+<div class="card-header-left">
+
+<div class="card-header-icon">
+≡
+</div>
+
+<div>
+
+<h2 id="advancedResultsTitle">
+Gelişmiş Analiz
+</h2>
+
+<p id="advancedResultsSubtitle">
+Sonuçlar
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div
+    id="advancedResultsBody"
+    style="
+        padding:18px;
+        overflow:auto;
+    "
+></div>
+
+</section>
+
+
+<!-- ======================================================
+     SYSTEM
+     ====================================================== -->
+
+<section class="dashboard-card">
+
+<div class="card-header">
+
+<div class="card-header-left">
+
+<div class="card-header-icon">
+●
+</div>
+
+<div>
+
+<h2>
+SİSTEM DURUMU
+</h2>
+
+<p>
+LEVEL 1000 servislerinin mevcut durumu
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="status-grid">
+
+
+<div class="status-item">
+
+<div class="status-label">
+API
+</div>
+
+<div
+    class="status-value online"
+    id="apiStatus"
+>
+ONLINE
+</div>
+
+</div>
+
+
+<div class="status-item">
+
+<div class="status-label">
+MARKET DATA
+</div>
+
+<div
+    class="status-value"
+    id="marketStatus"
+>
+Kontrol ediliyor...
+</div>
+
+</div>
+
+
+<div class="status-item">
+
+<div class="status-label">
+LIVE PRICE
+</div>
+
+<div
+    class="status-value"
+    id="liveStatus"
+>
+Aktif
+</div>
+
+</div>
+
+
+<div class="status-item">
+
+<div class="status-label">
+ACCESS
+</div>
+
+<div
+    class="status-value online"
+    id="accessStatus"
+>
+PUBLIC
+</div>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+<!-- ======================================================
+     RISK
+     ====================================================== -->
+
+<section class="risk-card">
+
+<h3>
+⚠️ RİSK UYARISI
+</h3>
+
+<p>
+
+LEVEL 1000 AI tarafından sunulan sinyaller,
+AI olasılıkları, tahmini getiriler, backtest sonuçları
+ve diğer veriler yatırım tavsiyesi veya finansal
+danışmanlık değildir. Geçmiş performans gelecekteki
+sonuçların garantisi değildir.
+
+</p>
+
+</section>
+
+
+<!-- ======================================================
+     FOOTER
+     ====================================================== -->
+
+<footer>
+
+<div class="footer-links">
+
+<a href="/about">Hakkında</a>
+
+<a href="/guide">Rehber</a>
+
+<a href="/risk">Risk</a>
+
+<a href="/privacy">Gizlilik</a>
+
+<a href="/cookies">Çerezler</a>
+
+<a href="/terms">Kullanım Şartları</a>
+
+<a href="/contact">İletişim</a>
+
+</div>
+
+<div>
+LEVEL 1000 AI © 2026
+</div>
+
+<div>
+GERÇEK PARA: HAYIR · OTOMATİK EMİR: HAYIR
+</div>
+
+</footer>
+
+
+</div>
+
+</div>
+
+
+<!-- ======================================================
+     TEK SCRIPT
+     ====================================================== -->
+
+<script src="/static/script.js?v=1004"></script>
 
 </body>
 
