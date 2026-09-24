@@ -1,2709 +1,1300 @@
+/* =========================================================
+   LEVEL 1000 AI — PUBLIC / OPEN MODE
+   Üyelik: YOK
+   Ödeme: YOK
+   Plan: YOK
+   Kullanım limiti: YOK
+   ========================================================= */
+
 "use strict";
 
-/* ============================================================
-   LEVEL 1000 AI TERMINAL
-   SCRIPT.JS
-   AUTH + JWT + PLAN + DASHBOARD + SIGNALS
-   FREE / PRO / MAX PRO
-   CANLI FİYAT + GERÇEK GÜNLÜK DEĞİŞİM
-   ============================================================ */
+const API_BASE = "";
 
 let allSignals = [];
-let currentUser = null;
-let currentPlan = "FREE";
-let currentPlanData = null;
+let filteredSignals = [];
+let runPollTimer = null;
+let refreshTimer = null;
 
-let scanRunning = false;
-let scanUsed = 0;
-let scanLimit = 3;
-let scanRemaining = 3;
+/* =========================================================
+   GENEL API
+   ========================================================= */
 
-const TOKEN_KEY = "level1000_token";
-const USER_KEY = "level1000_user";
+async function publicFetch(url, options = {}) {
+    const config = {
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            ...(options.headers || {})
+        }
+    };
 
-
-/* ============================================================
-   HELPERS
-   ============================================================ */
-
-function $(id) {
-    return document.getElementById(id);
+    return fetch(API_BASE + url, config);
 }
 
-function sleep(ms) {
-    return new Promise(function(resolve) {
-        setTimeout(resolve, ms);
+async function readJson(response) {
+    try {
+        return await response.json();
+    } catch (e) {
+        return {};
+    }
+}
+
+function showToast(message, type = "info") {
+    const old = document.querySelector(".level-toast");
+    if (old) old.remove();
+
+    const toast = document.createElement("div");
+    toast.className = `level-toast ${type}`;
+    toast.textContent = message;
+
+    Object.assign(toast.style, {
+        position: "fixed",
+        right: "20px",
+        bottom: "20px",
+        zIndex: "99999",
+        padding: "14px 18px",
+        borderRadius: "10px",
+        background: "rgba(20,20,25,.95)",
+        color: "#fff",
+        fontSize: "14px",
+        boxShadow: "0 8px 30px rgba(0,0,0,.35)",
+        maxWidth: "380px"
     });
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 3500);
 }
 
 function setText(id, value) {
-    const element = $(id);
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
 
-    if (element) {
-        element.innerText = value;
+function setHTML(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = value;
+}
+
+/* =========================================================
+   OTURUM / PLAN
+   PUBLIC MOD
+   ========================================================= */
+
+async function checkSession() {
+    showAppScreen();
+    return true;
+}
+
+function showAppScreen() {
+    const authScreen = document.getElementById("authScreen");
+    const appScreen = document.getElementById("appScreen");
+
+    if (authScreen) {
+        authScreen.style.display = "none";
+    }
+
+    if (appScreen) {
+        appScreen.style.display = "block";
     }
 }
 
-
-/* ============================================================
-   TOKEN
-   ============================================================ */
-
-function getToken() {
-    return localStorage.getItem(TOKEN_KEY);
+function showAuthScreen() {
+    // Public modda giriş ekranı kullanılmaz.
+    showAppScreen();
 }
 
-function setToken(token) {
-    if (token) {
-        localStorage.setItem(TOKEN_KEY, token);
-    } else {
-        localStorage.removeItem(TOKEN_KEY);
-    }
+function requirePlan() {
+    // Artık hiçbir plan kontrolü yok.
+    return true;
 }
 
+function selectPlan() {
+    // Plan sistemi kaldırıldı.
+    return true;
+}
 
-/* ============================================================
-   USER STORAGE
-   ============================================================ */
+async function loadPlan() {
+    // Plan sistemi kaldırıldı.
+    setText("userPlan", "OPEN");
+    setText("planName", "OPEN");
+    return {
+        ok: true,
+        plan: "OPEN",
+        plan_level: 999,
+        features: {
+            display_limit: null,
+            scan_limit: null,
+            backtest: true,
+            paper: true,
+            advanced_ai: true,
+            all_signals: true
+        }
+    };
+}
 
-function getSavedUser() {
+/* =========================================================
+   SİNYALLER
+   ========================================================= */
+
+async function loadSignals() {
     try {
-        const raw = localStorage.getItem(USER_KEY);
+        const response = await publicFetch("/api/signals");
 
-        if (!raw) {
-            return null;
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
 
-        return JSON.parse(raw);
+        const data = await readJson(response);
+
+        let signals = [];
+
+        if (Array.isArray(data)) {
+            signals = data;
+        } else if (Array.isArray(data.signals)) {
+            signals = data.signals;
+        } else if (Array.isArray(data.data)) {
+            signals = data.data;
+        } else if (Array.isArray(data.results)) {
+            signals = data.results;
+        }
+
+        allSignals = signals;
+        filteredSignals = signals;
+
+        renderSignals(signals);
+        updateKPIs(signals);
+
+        setText(
+            "signalUpdated",
+            data.updated_at ||
+            data.last_update ||
+            new Date().toLocaleString("tr-TR")
+        );
+
+        return data;
     } catch (error) {
-        console.error("USER STORAGE:", error);
+        console.error("Signals error:", error);
+
+        setHTML(
+            "signalsTableBody",
+            `
+            <tr>
+                <td colspan="20" style="text-align:center;padding:30px;">
+                    Sinyal verileri alınamadı.
+                </td>
+            </tr>
+            `
+        );
+
         return null;
     }
 }
 
-function saveUser(user) {
-    if (!user) {
-        localStorage.removeItem(USER_KEY);
-        return;
-    }
-
-    localStorage.setItem(
-        USER_KEY,
-        JSON.stringify(user)
-    );
-}
-
-
-/* ============================================================
-   API
-   ============================================================ */
-
-async function apiFetch(url, options) {
-    options = options || {};
-
-    const requestOptions = Object.assign({}, options);
-    const headers = Object.assign(
-        {},
-        requestOptions.headers || {}
-    );
-
-    const token = getToken();
-
-    if (token) {
-        headers["Authorization"] = "Bearer " + token;
-    }
-
-    if (
-        requestOptions.body &&
-        typeof requestOptions.body !== "string"
-    ) {
-        headers["Content-Type"] = "application/json";
-        requestOptions.body = JSON.stringify(
-            requestOptions.body
-        );
-    }
-
-    requestOptions.headers = headers;
-
-    let response;
-
-    try {
-        response = await fetch(
-            url,
-            requestOptions
-        );
-    } catch (error) {
-        console.error("API CONNECTION:", error);
-
-        throw new Error(
-            "Sunucuya bağlanılamadı."
-        );
-    }
-
-    let data = null;
-
-    try {
-        data = await response.json();
-    } catch (error) {
-        data = null;
-    }
-
-    if (response.status === 401) {
-        if (url !== "/api/login") {
-            clearSession();
-            showAuthScreen();
-            showLogin();
-        }
-
-        throw new Error(
-            data && (
-                data.detail ||
-                data.message
-            )
-                ? (
-                    data.detail ||
-                    data.message
-                )
-                : "Oturum geçersiz."
-        );
-    }
-
-    if (!response.ok) {
-        const message =
-            data && (
-                data.detail ||
-                data.error ||
-                data.message
-            )
-                ? (
-                    data.detail ||
-                    data.error ||
-                    data.message
-                )
-                : "API hatası: " + response.status;
-
-        const error = new Error(message);
-
-        error.status = response.status;
-        error.data = data;
-
-        throw error;
-    }
-
-    return data;
-}
-
-
-/* ============================================================
-   SCREEN
-   ============================================================ */
-
-function showAuthScreen() {
-    const auth = $("authScreen");
-    const app = $("appScreen");
-
-    if (auth) {
-        auth.style.display = "flex";
-    }
-
-    if (app) {
-        app.style.display = "none";
-    }
-}
-
-function showAppScreen() {
-    const auth = $("authScreen");
-    const app = $("appScreen");
-
-    if (auth) {
-        auth.style.display = "none";
-    }
-
-    if (app) {
-        app.style.display = "block";
-    }
-}
-
-
-/* ============================================================
-   LOGIN / REGISTER SCREEN
-   ============================================================ */
-
-function showLogin() {
-    const login = $("loginBox");
-    const register = $("registerBox");
-
-    if (login) {
-        login.style.display = "block";
-    }
-
-    if (register) {
-        register.style.display = "none";
-    }
-
-    clearAuthMessage();
-}
-
-function showRegister() {
-    const login = $("loginBox");
-    const register = $("registerBox");
-
-    if (login) {
-        login.style.display = "none";
-    }
-
-    if (register) {
-        register.style.display = "block";
-    }
-
-    clearAuthMessage();
-}
-
-
-/* ============================================================
-   MESSAGES
-   ============================================================ */
-
-function showAuthMessage(text, type) {
-    type = type || "error";
-
-    const box = $("authMessage");
-
-    if (!box) {
-        return;
-    }
-
-    box.innerText = text || "";
-    box.style.display = "block";
-    box.className = "auth-message " + type;
-}
-
-function clearAuthMessage() {
-    const box = $("authMessage");
-
-    if (!box) {
-        return;
-    }
-
-    box.innerText = "";
-    box.style.display = "none";
-}
-
-function showMessage(text, type) {
-    type = type || "info";
-
-    const box = $("message");
-
-    if (!box) {
-        return;
-    }
-
-    box.innerText = text || "";
-    box.style.display = "block";
-    box.className = "message " + type;
-
-    setTimeout(function() {
-        box.style.display = "none";
-    }, 5000);
-}
-
-
-/* ============================================================
-   LOGIN
-   ============================================================ */
-
-async function loginUser() {
-    clearAuthMessage();
-
-    const emailInput = $("loginEmail");
-    const passwordInput = $("loginPassword");
-
-    const email = emailInput
-        ? emailInput.value.trim().toLowerCase()
-        : "";
-
-    const password = passwordInput
-        ? passwordInput.value
-        : "";
-
-    if (!email) {
-        showAuthMessage(
-            "E-posta adresinizi girin."
-        );
-        return;
-    }
-
-    if (!password) {
-        showAuthMessage(
-            "Şifrenizi girin."
-        );
-        return;
-    }
-
-    const button = document.querySelector(
-        "#loginBox .auth-button"
-    );
-
-    if (button) {
-        button.disabled = true;
-        button.innerText = "GİRİŞ YAPILIYOR...";
-    }
-
-    try {
-        setToken(null);
-
-        const data = await apiFetch(
-            "/api/login",
-            {
-                method: "POST",
-                body: {
-                    email: email,
-                    password: password
-                }
-            }
-        );
-
-        if (!data || data.ok !== true) {
-            throw new Error(
-                data && (
-                    data.message ||
-                    data.detail
-                )
-                    ? (
-                        data.message ||
-                        data.detail
-                    )
-                    : "Giriş başarısız."
-            );
-        }
-
-        const token =
-            data.access_token ||
-            data.token;
-
-        if (!token) {
-            throw new Error(
-                "Sunucu token döndürmedi."
-            );
-        }
-
-        setToken(token);
-
-        if (data.user) {
-            currentUser = data.user;
-            saveUser(data.user);
-        } else {
-            const me = await apiFetch("/api/me");
-
-            if (me && me.ok && me.user) {
-                currentUser = me.user;
-                saveUser(me.user);
-            }
-        }
-
-        showAppScreen();
-        updateUserUI(currentUser);
-
-        await refreshData();
-
-        showMessage(
-            "Giriş başarılı.",
-            "success"
-        );
-
-    } catch (error) {
-        console.error("LOGIN:", error);
-
-        setToken(null);
-
-        showAuthMessage(
-            error.message ||
-            "Giriş yapılamadı."
-        );
-
-    } finally {
-        if (button) {
-            button.disabled = false;
-            button.innerText = "GİRİŞ YAP";
-        }
-    }
-}
-
-
-/* ============================================================
-   REGISTER
-   ============================================================ */
-
-async function registerUser() {
-    clearAuthMessage();
-
-    const emailInput = $("registerEmail");
-    const passwordInput = $("registerPassword");
-    const password2Input = $("registerPassword2");
-
-    const email = emailInput
-        ? emailInput.value.trim().toLowerCase()
-        : "";
-
-    const password = passwordInput
-        ? passwordInput.value
-        : "";
-
-    const password2 = password2Input
-        ? password2Input.value
-        : "";
-
-    const name = email
-        ? email.split("@")[0]
-        : "";
-
-    if (!email) {
-        showAuthMessage(
-            "E-posta adresinizi girin."
-        );
-        return;
-    }
-
-    if (password.length < 8) {
-        showAuthMessage(
-            "Şifre en az 8 karakter olmalıdır."
-        );
-        return;
-    }
-
-    if (password !== password2) {
-        showAuthMessage(
-            "Şifreler aynı değil."
-        );
-        return;
-    }
-
-    const button = document.querySelector(
-        "#registerBox .auth-button"
-    );
-
-    if (button) {
-        button.disabled = true;
-        button.innerText =
-            "HESAP OLUŞTURULUYOR...";
-    }
-
-    try {
-        setToken(null);
-
-        const data = await apiFetch(
-            "/api/register",
-            {
-                method: "POST",
-                body: {
-                    name: name,
-                    email: email,
-                    password: password
-                }
-            }
-        );
-
-        if (!data || data.ok !== true) {
-            throw new Error(
-                data && (
-                    data.message ||
-                    data.detail
-                )
-                    ? (
-                        data.message ||
-                        data.detail
-                    )
-                    : "Kayıt başarısız."
-            );
-        }
-
-        const token =
-            data.access_token ||
-            data.token;
-
-        if (!token) {
-            throw new Error(
-                "Kayıt başarılı fakat token alınamadı."
-            );
-        }
-
-        setToken(token);
-
-        if (data.user) {
-            currentUser = data.user;
-            saveUser(data.user);
-        } else {
-            const me = await apiFetch("/api/me");
-
-            if (me && me.ok && me.user) {
-                currentUser = me.user;
-                saveUser(me.user);
-            }
-        }
-
-        showAppScreen();
-        updateUserUI(currentUser);
-
-        await refreshData();
-
-        showMessage(
-            "Hesabınız oluşturuldu.",
-            "success"
-        );
-
-    } catch (error) {
-        console.error("REGISTER:", error);
-
-        setToken(null);
-
-        showAuthMessage(
-            error.message ||
-            "Kayıt oluşturulamadı."
-        );
-
-    } finally {
-        if (button) {
-            button.disabled = false;
-            button.innerText = "HESAP OLUŞTUR";
-        }
-    }
-}
-
-
-/* ============================================================
-   LOGOUT
-   ============================================================ */
-
-async function logoutUser() {
-    const token = getToken();
-
-    try {
-        if (token) {
-            await fetch(
-                "/api/logout",
-                {
-                    method: "POST",
-                    headers: {
-                        "Authorization":
-                            "Bearer " + token
-                    }
-                }
-            );
-        }
-    } catch (error) {
-        console.warn("LOGOUT:", error);
-    }
-
-    clearSession();
-    showAuthScreen();
-    showLogin();
-}
-
-
-/* ============================================================
-   SESSION
-   ============================================================ */
-
-function clearSession() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-
-    allSignals = [];
-    currentUser = null;
-    currentPlan = "FREE";
-    currentPlanData = null;
-
-    scanRunning = false;
-    scanUsed = 0;
-    scanLimit = 3;
-    scanRemaining = 3;
-
-    updateScanUI();
-}
-
-async function checkSession() {
-    const token = getToken();
-
-    if (!token) {
-        showAuthScreen();
-        showLogin();
-        return false;
-    }
-
-    try {
-        const data = await apiFetch("/api/me");
-
-        if (
-            data &&
-            data.ok &&
-            data.user
-        ) {
-            currentUser = data.user;
-
-            saveUser(data.user);
-            updateUserUI(data.user);
-            showAppScreen();
-
-            await refreshData();
-
-            return true;
-        }
-    } catch (error) {
-        console.warn(
-            "SESSION:",
-            error.message
-        );
-    }
-
-    clearSession();
-    showAuthScreen();
-    showLogin();
-
-    return false;
-}
-
-
-/* ============================================================
-   USER UI
-   ============================================================ */
-
-function updateUserUI(user) {
-    if (!user) {
-        return;
-    }
-
-    currentUser = user;
-
-    const emailElement =
-        document.querySelector(".user-email");
-
-    const planElement =
-        document.querySelector(".user-plan");
-
-    if (emailElement) {
-        emailElement.innerText =
-            user.email || "Kullanıcı";
-    }
-
-    const plan = normalizePlan(user.plan);
-
-    if (planElement) {
-        planElement.innerText = plan;
-    }
-
-    const adminButton =
-        document.querySelector(".admin-button");
-
-    if (adminButton) {
-        adminButton.style.display =
-            user.is_admin
-                ? "inline-block"
-                : "none";
-    }
-
-    updatePlanUI(plan);
-    updateScanUI();
-}
-
-
-/* ============================================================
-   PLAN
-   ============================================================ */
-
-function normalizePlan(plan) {
-    const value = String(
-        plan || "FREE"
-    )
-        .trim()
-        .toUpperCase()
-        .replace(/[_-]+/g, " ")
-        .replace(/\s+/g, " ");
-
-    if (
-        value === "MAX PRO" ||
-        value === "MAXPRO"
-    ) {
-        return "MAX PRO";
-    }
-
-    if (value === "PRO") {
-        return "PRO";
-    }
-
-    return "FREE";
-}
-
-function getPlanLevel(plan) {
-    const value = normalizePlan(plan);
-
-    if (value === "MAX PRO") {
-        return 3;
-    }
-
-    if (value === "PRO") {
-        return 2;
-    }
-
-    return 1;
-}
-
-function getFrontendPlanConfig(plan) {
-    plan = normalizePlan(plan);
-
-    if (plan === "MAX PRO") {
-        return {
-            name: "MAX PRO",
-            level: 3,
-            displayLimit: 300,
-            scanLimit: Infinity,
-            scanText: "SINIRSIZ"
-        };
-    }
-
-    if (plan === "PRO") {
-        return {
-            name: "PRO",
-            level: 2,
-            displayLimit: 100,
-            scanLimit: 30,
-            scanText: "30"
-        };
-    }
+/* =========================================================
+   SİNYAL RENDER
+   ========================================================= */
+
+function normalizeSignal(row) {
+    const ticker =
+        row.Ticker ??
+        row.ticker ??
+        row.Symbol ??
+        row.symbol ??
+        row.Code ??
+        row.code ??
+        "-";
+
+    let signal =
+        row.Signal ??
+        row.signal ??
+        row.Action ??
+        row.action ??
+        row.Sinyal ??
+        row.sinyal ??
+        "HOLD";
+
+    signal = String(signal).toUpperCase();
+
+    if (signal === "AL") signal = "BUY";
+    if (signal === "SAT") signal = "SELL";
+    if (signal === "BEKLE") signal = "HOLD";
+
+    const probability =
+        row.AI_Probability ??
+        row.ai_probability ??
+        row.Probability ??
+        row.probability ??
+        row.Score ??
+        row.score ??
+        null;
+
+    const predictedReturn =
+        row.AI_Predicted_Return ??
+        row.ai_predicted_return ??
+        row.Predicted_Return ??
+        row.predicted_return ??
+        row.Expected_Return ??
+        row.expected_return ??
+        null;
+
+    const price =
+        row.Price ??
+        row.price ??
+        row.Close ??
+        row.close ??
+        row.Last_Price ??
+        row.last_price ??
+        null;
+
+    const change =
+        row.Daily_Change_Percent ??
+        row.daily_change_percent ??
+        row.Change_Percent ??
+        row.change_percent ??
+        null;
+
+    const date =
+        row.Date ??
+        row.date ??
+        row.Timestamp ??
+        row.timestamp ??
+        "-";
 
     return {
-        name: "FREE",
-        level: 1,
-        displayLimit: 20,
-        scanLimit: 3,
-        scanText: "3"
+        raw: row,
+        ticker,
+        signal,
+        probability,
+        predictedReturn,
+        price,
+        change,
+        date
     };
 }
 
+function formatNumber(value, digits = 2) {
+    if (
+        value === null ||
+        value === undefined ||
+        value === "" ||
+        Number.isNaN(Number(value))
+    ) {
+        return "-";
+    }
 
-/* ============================================================
-   PLAN API
-   ============================================================ */
+    return Number(value).toLocaleString("tr-TR", {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+    });
+}
 
-async function loadPlan() {
+function formatPercent(value) {
+    if (
+        value === null ||
+        value === undefined ||
+        value === "" ||
+        Number.isNaN(Number(value))
+    ) {
+        return "-";
+    }
+
+    let number = Number(value);
+
+    if (Math.abs(number) <= 1) {
+        number *= 100;
+    }
+
+    return `${number.toFixed(2)}%`;
+}
+
+function signalClass(signal) {
+    if (signal === "BUY") return "buy";
+    if (signal === "SELL") return "sell";
+    return "hold";
+}
+
+function renderSignals(signals) {
+    const tbody =
+        document.getElementById("signalsTableBody") ||
+        document.querySelector("#signalsTable tbody");
+
+    if (!tbody) return;
+
+    if (!signals || signals.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="20" style="text-align:center;padding:30px;">
+                    Henüz sinyal verisi bulunamadı.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = signals.map((row, index) => {
+        const s = normalizeSignal(row);
+        const cls = signalClass(s.signal);
+
+        return `
+            <tr data-ticker="${escapeHtml(s.ticker)}">
+                <td>${index + 1}</td>
+
+                <td>
+                    <strong>${escapeHtml(s.ticker)}</strong>
+                </td>
+
+                <td>
+                    <span class="signal-badge ${cls}">
+                        ${escapeHtml(s.signal)}
+                    </span>
+                </td>
+
+                <td>
+                    ${formatPercent(s.probability)}
+                </td>
+
+                <td>
+                    ${formatPercent(s.predictedReturn)}
+                </td>
+
+                <td>
+                    ${formatNumber(s.price)}
+                </td>
+
+                <td>
+                    ${formatPercent(s.change)}
+                </td>
+
+                <td>
+                    ${escapeHtml(String(s.date))}
+                </td>
+
+                <td>
+                    <button
+                        class="signal-detail-btn"
+                        onclick="openSignal('${escapeJs(s.ticker)}')"
+                    >
+                        Detay
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+/* =========================================================
+   HTML GÜVENLİK
+   ========================================================= */
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function escapeJs(value) {
+    return String(value)
+        .replaceAll("\\", "\\\\")
+        .replaceAll("'", "\\'")
+        .replaceAll("\n", "\\n")
+        .replaceAll("\r", "\\r");
+}
+
+/* =========================================================
+   KPI
+   ========================================================= */
+
+function updateKPIs(signals) {
+    let buy = 0;
+    let sell = 0;
+    let hold = 0;
+
+    for (const row of signals) {
+        const s = normalizeSignal(row);
+
+        if (s.signal === "BUY") buy++;
+        else if (s.signal === "SELL") sell++;
+        else hold++;
+    }
+
+    setText("buyCount", buy.toLocaleString("tr-TR"));
+    setText("sellCount", sell.toLocaleString("tr-TR"));
+    setText("holdCount", hold.toLocaleString("tr-TR"));
+    setText("topCount", Math.min(20, signals.length).toLocaleString("tr-TR"));
+    setText("totalCount", signals.length.toLocaleString("tr-TR"));
+    setText("signalCount", signals.length.toLocaleString("tr-TR"));
+}
+
+/* =========================================================
+   ARAMA
+   ========================================================= */
+
+function filterSignals() {
+    const input =
+        document.getElementById("signalSearch") ||
+        document.getElementById("searchInput");
+
+    if (!input) return;
+
+    const query = input.value.trim().toLowerCase();
+
+    if (!query) {
+        filteredSignals = allSignals;
+        renderSignals(allSignals);
+        return;
+    }
+
+    filteredSignals = allSignals.filter(row => {
+        const s = normalizeSignal(row);
+
+        return (
+            String(s.ticker).toLowerCase().includes(query) ||
+            String(s.signal).toLowerCase().includes(query)
+        );
+    });
+
+    renderSignals(filteredSignals);
+}
+
+function searchSignals() {
+    filterSignals();
+}
+
+/* =========================================================
+   ANA VERİ YENİLEME
+   ========================================================= */
+
+async function refreshData() {
     try {
-        const data = await apiFetch("/api/plan");
+        await Promise.all([
+            loadSignals(),
+            loadStatus()
+        ]);
+    } catch (error) {
+        console.error("Refresh error:", error);
+    }
+}
 
-        if (!data) {
-            return null;
+/* =========================================================
+   SİSTEM DURUMU
+   ========================================================= */
+
+async function loadStatus() {
+    try {
+        const response = await publicFetch("/api/status");
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
 
-        currentPlan = normalizePlan(
-            data.plan ||
-            data.name ||
-            data.current_plan ||
-            (
-                currentUser
-                    ? currentUser.plan
-                    : "FREE"
-            )
+        const data = await readJson(response);
+
+        const running =
+            data.running ??
+            data.status === "running" ??
+            false;
+
+        if (running === true) {
+            setText("systemStatus", "ÇALIŞIYOR");
+        } else {
+            setText("systemStatus", "HAZIR");
+        }
+
+        if (data.last_update) {
+            setText("lastUpdate", data.last_update);
+        }
+
+        if (data.updated_at) {
+            setText("lastUpdate", data.updated_at);
+        }
+
+        return data;
+    } catch (error) {
+        console.error("Status error:", error);
+        setText("systemStatus", "BAĞLANTI BEKLENİYOR");
+        return null;
+    }
+}
+
+/* =========================================================
+   ANALİZ BAŞLAT
+   ========================================================= */
+
+async function runAnalysis() {
+    const buttons = document.querySelectorAll(
+        "#runAnalysisBtn, .run-analysis-btn, [data-action='run-analysis']"
+    );
+
+    buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.dataset.oldText = btn.textContent;
+        btn.textContent = "Analiz Başlatılıyor...";
+    });
+
+    try {
+        const response = await publicFetch("/api/run", {
+            method: "POST",
+            body: JSON.stringify({})
+        });
+
+        const data = await readJson(response);
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        showToast(
+            data.message || "Analiz başlatıldı.",
+            "success"
         );
 
-        currentPlanData = data;
+        monitorRun();
 
-        updateScanData(data);
+    } catch (error) {
+        console.error("Run error:", error);
 
-        if (currentUser) {
-            currentUser.plan = currentPlan;
+        showToast(
+            error.message || "Analiz başlatılamadı.",
+            "error"
+        );
 
-            if (data.scans_used !== undefined) {
-                currentUser.scans_used =
-                    data.scans_used;
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.textContent = btn.dataset.oldText || "Analizi Başlat";
+        });
+    }
+}
+
+/* =========================================================
+   ANALİZ DURUMU
+   ========================================================= */
+
+async function monitorRun() {
+    if (runPollTimer) {
+        clearInterval(runPollTimer);
+    }
+
+    let attempts = 0;
+
+    async function check() {
+        attempts++;
+
+        try {
+            const response = await publicFetch("/api/run-status");
+            const data = await readJson(response);
+
+            const running =
+                data.running === true ||
+                data.status === "running";
+
+            if (running) {
+                setText("systemStatus", "ANALİZ ÇALIŞIYOR");
+
+                const progress =
+                    data.progress ??
+                    data.percent ??
+                    data.message ??
+                    "";
+
+                if (progress) {
+                    setText("analysisProgress", String(progress));
+                }
+
+                return;
             }
+
+            clearInterval(runPollTimer);
+            runPollTimer = null;
+
+            setText("systemStatus", "HAZIR");
+
+            const buttons = document.querySelectorAll(
+                "#runAnalysisBtn, .run-analysis-btn, [data-action='run-analysis']"
+            );
+
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.textContent =
+                    btn.dataset.oldText ||
+                    "Analizi Başlat";
+            });
+
+            await refreshData();
 
             if (
-                data.scans_remaining !==
-                undefined
+                data.error ||
+                data.status === "error"
             ) {
-                currentUser.scans_remaining =
-                    data.scans_remaining;
+                showToast(
+                    data.error || "Analiz sırasında hata oluştu.",
+                    "error"
+                );
+            } else {
+                showToast(
+                    "Analiz tamamlandı.",
+                    "success"
+                );
             }
 
-            saveUser(currentUser);
+        } catch (error) {
+            console.error("Run status error:", error);
+
+            if (attempts >= 10) {
+                clearInterval(runPollTimer);
+                runPollTimer = null;
+
+                const buttons = document.querySelectorAll(
+                    "#runAnalysisBtn, .run-analysis-btn, [data-action='run-analysis']"
+                );
+
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.textContent =
+                        btn.dataset.oldText ||
+                        "Analizi Başlat";
+                });
+            }
+        }
+    }
+
+    await check();
+
+    runPollTimer = setInterval(check, 3000);
+}
+
+/* =========================================================
+   HİSSE DETAY
+   ========================================================= */
+
+async function openSignal(ticker) {
+    if (!ticker) return;
+
+    try {
+        const response = await publicFetch(
+            `/api/signal/${encodeURIComponent(ticker)}`
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
 
-        updatePlanUI(currentPlan);
+        const data = await readJson(response);
+
+        renderAdvancedResult(
+            "Hisse Analizi",
+            data
+        );
+
+        const section =
+            document.getElementById("advancedResults") ||
+            document.getElementById("advancedResult");
+
+        if (section) {
+            section.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+
+    } catch (error) {
+        console.error("Signal detail error:", error);
+
+        showToast(
+            `${ticker} detay verisi alınamadı.`,
+            "error"
+        );
+    }
+}
+
+/* =========================================================
+   BACKTEST
+   ========================================================= */
+
+async function loadBacktest() {
+    const resultBox =
+        document.getElementById("advancedResults") ||
+        document.getElementById("backtestResult");
+
+    if (resultBox) {
+        resultBox.innerHTML = `
+            <div class="loading">
+                Backtest çalıştırılıyor...
+            </div>
+        `;
+    }
+
+    try {
+        const response = await publicFetch("/api/backtest");
+
+        const data = await readJson(response);
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        renderAdvancedResult(
+            "Backtest Sonucu",
+            data
+        );
 
         return data;
 
     } catch (error) {
-        console.warn(
-            "PLAN:",
-            error.message
+        console.error("Backtest error:", error);
+
+        renderAdvancedResult(
+            "Backtest",
+            {
+                error: error.message || "Backtest alınamadı."
+            }
         );
-
-        const savedUser = getSavedUser();
-
-        currentPlan = normalizePlan(
-            savedUser && savedUser.plan
-                ? savedUser.plan
-                : currentUser && currentUser.plan
-                    ? currentUser.plan
-                    : "FREE"
-        );
-
-        updatePlanUI(currentPlan);
 
         return null;
     }
 }
 
+/* =========================================================
+   PAPER TRADING
+   ========================================================= */
 
-/* ============================================================
-   SCAN DATA
-   ============================================================ */
+async function loadPaper() {
+    const resultBox =
+        document.getElementById("advancedResults") ||
+        document.getElementById("paperResult");
 
-function updateScanData(data) {
-    if (!data) {
-        return;
+    if (resultBox) {
+        resultBox.innerHTML = `
+            <div class="loading">
+                Paper Trading verileri yükleniyor...
+            </div>
+        `;
     }
-
-    const plan = normalizePlan(
-        data.plan ||
-        data.current_plan ||
-        currentPlan
-    );
-
-    currentPlan = plan;
-
-    if (plan === "MAX PRO") {
-        scanLimit = Infinity;
-
-        scanUsed = Number(
-            data.scans_used ??
-            data.scan_count ??
-            0
-        );
-
-        if (!Number.isFinite(scanUsed)) {
-            scanUsed = 0;
-        }
-
-        scanRemaining = Infinity;
-
-        updateScanUI();
-        return;
-    }
-
-    scanLimit = Number(
-        data.scan_limit ??
-        data.free_scan_limit ??
-        (
-            plan === "PRO"
-                ? 30
-                : 3
-        )
-    );
-
-    if (
-        !Number.isFinite(scanLimit) ||
-        scanLimit < 0
-    ) {
-        scanLimit =
-            plan === "PRO"
-                ? 30
-                : 3;
-    }
-
-    scanUsed = Number(
-        data.scans_used ??
-        data.scan_count ??
-        0
-    );
-
-    if (
-        !Number.isFinite(scanUsed) ||
-        scanUsed < 0
-    ) {
-        scanUsed = 0;
-    }
-
-    if (
-        data.scans_remaining !==
-        undefined
-    ) {
-        scanRemaining = Number(
-            data.scans_remaining
-        );
-    } else {
-        scanRemaining = Math.max(
-            0,
-            scanLimit - scanUsed
-        );
-    }
-
-    if (
-        !Number.isFinite(scanRemaining)
-    ) {
-        scanRemaining = Math.max(
-            0,
-            scanLimit - scanUsed
-        );
-    }
-
-    updateScanUI();
-}
-
-
-/* ============================================================
-   SCAN UI
-   ============================================================ */
-
-function updateScanUI() {
-    const plan = normalizePlan(currentPlan);
-
-    const remainingElements = [
-        $("scanRemaining"),
-        $("scansRemaining"),
-        $("freeScansRemaining")
-    ].filter(Boolean);
-
-    const usedElements = [
-        $("scanUsed"),
-        $("scansUsed"),
-        $("freeScansUsed")
-    ].filter(Boolean);
-
-    const limitElements = [
-        $("scanLimit"),
-        $("scansLimit"),
-        $("freeScanLimit")
-    ].filter(Boolean);
-
-    const scanButton =
-        $("runScanButton") ||
-        $("scanButton") ||
-        $("startScanButton") ||
-        $("runAnalysisButton");
-
-    if (plan === "MAX PRO") {
-        remainingElements.forEach(
-            function(element) {
-                element.innerText = "SINIRSIZ";
-            }
-        );
-
-        usedElements.forEach(
-            function(element) {
-                element.innerText =
-                    formatInteger(scanUsed);
-            }
-        );
-
-        limitElements.forEach(
-            function(element) {
-                element.innerText = "SINIRSIZ";
-            }
-        );
-
-        if (scanButton) {
-            scanButton.disabled = scanRunning;
-
-            scanButton.classList.remove(
-                "scan-limit-reached"
-            );
-
-            scanButton.innerText =
-                scanRunning
-                    ? "ANALİZ ÇALIŞIYOR..."
-                    : "ANALİZİ BAŞLAT";
-        }
-
-        return;
-    }
-
-    remainingElements.forEach(
-        function(element) {
-            element.innerText =
-                formatInteger(
-                    Math.max(
-                        0,
-                        scanRemaining
-                    )
-                );
-        }
-    );
-
-    usedElements.forEach(
-        function(element) {
-            element.innerText =
-                formatInteger(scanUsed);
-        }
-    );
-
-    limitElements.forEach(
-        function(element) {
-            element.innerText =
-                formatInteger(scanLimit);
-        }
-    );
-
-    if (scanButton) {
-        const noScanLeft =
-            scanRemaining <= 0;
-
-        scanButton.disabled =
-            scanRunning ||
-            noScanLeft;
-
-        scanButton.classList.toggle(
-            "scan-limit-reached",
-            noScanLeft
-        );
-
-        if (scanRunning) {
-            scanButton.innerText =
-                "ANALİZ ÇALIŞIYOR...";
-        } else if (noScanLeft) {
-            scanButton.innerText =
-                "TARAMA HAKKI BİTTİ";
-        } else {
-            scanButton.innerText =
-                "ANALİZİ BAŞLAT (" +
-                scanRemaining +
-                " HAK)";
-        }
-    }
-}
-
-
-/* ============================================================
-   RUN ANALYSIS
-   ============================================================ */
-
-async function runAnalysis() {
-    if (!getToken()) {
-        showMessage(
-            "Önce giriş yapmalısınız.",
-            "error"
-        );
-
-        showAuthScreen();
-        return;
-    }
-
-    if (scanRunning) {
-        showMessage(
-            "Analiz zaten çalışıyor.",
-            "info"
-        );
-
-        return;
-    }
-
-    const plan = normalizePlan(currentPlan);
-
-    if (
-        plan !== "MAX PRO" &&
-        scanRemaining <= 0
-    ) {
-        showMessage(
-            plan +
-            " planındaki tarama hakkınız bitti.",
-            "error"
-        );
-
-        if (plan === "FREE") {
-            openPlanModal(
-                "PRO",
-                "Daha fazla tarama"
-            );
-        }
-
-        updateScanUI();
-        return;
-    }
-
-    scanRunning = true;
-    updateScanUI();
-
-    showMessage(
-        "Analiz başlatılıyor...",
-        "info"
-    );
 
     try {
-        const data = await apiFetch(
-            "/api/run",
+        const response = await publicFetch("/api/paper");
+
+        const data = await readJson(response);
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        renderAdvancedResult(
+            "Paper Trading",
+            data
+        );
+
+        return data;
+
+    } catch (error) {
+        console.error("Paper error:", error);
+
+        renderAdvancedResult(
+            "Paper Trading",
             {
-                method: "POST"
+                error: error.message || "Paper Trading verisi alınamadı."
             }
         );
 
-        if (!data || data.ok !== true) {
+        return null;
+    }
+}
+
+/* =========================================================
+   MONTE CARLO
+   ========================================================= */
+
+async function loadMonteCarlo() {
+    const resultBox =
+        document.getElementById("advancedResults") ||
+        document.getElementById("monteCarloResult");
+
+    if (resultBox) {
+        resultBox.innerHTML = `
+            <div class="loading">
+                Monte Carlo analizi çalıştırılıyor...
+            </div>
+        `;
+    }
+
+    try {
+        const response = await publicFetch("/api/montecarlo");
+
+        const data = await readJson(response);
+
+        if (!response.ok) {
             throw new Error(
-                data && (
-                    data.detail ||
-                    data.error ||
-                    data.message
-                )
-                    ? (
-                        data.detail ||
-                        data.error ||
-                        data.message
-                    )
-                    : "Analiz başlatılamadı."
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
             );
         }
+
+        renderAdvancedResult(
+            "Monte Carlo",
+            data
+        );
+
+        return data;
+
+    } catch (error) {
+        console.error("Monte Carlo error:", error);
+
+        renderAdvancedResult(
+            "Monte Carlo",
+            {
+                error: error.message || "Monte Carlo verisi alınamadı."
+            }
+        );
+
+        return null;
+    }
+}
+
+/* =========================================================
+   GELİŞMİŞ AI
+   ========================================================= */
+
+async function loadAdvancedAI() {
+    try {
+        const response = await publicFetch("/api/metrics");
+
+        const data = await readJson(response);
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        renderAdvancedResult(
+            "Gelişmiş AI / Metrikler",
+            data
+        );
+
+        return data;
+
+    } catch (error) {
+        console.error("Advanced AI error:", error);
+
+        renderAdvancedResult(
+            "Gelişmiş AI",
+            {
+                error: error.message || "AI metrikleri alınamadı."
+            }
+        );
+
+        return null;
+    }
+}
+
+/* =========================================================
+   GELİŞMİŞ SONUÇ GÖSTERİMİ
+   ========================================================= */
+
+function renderAdvancedResult(title, data) {
+    const box =
+        document.getElementById("advancedResults") ||
+        document.getElementById("advancedResult");
+
+    if (!box) return;
+
+    if (!data) {
+        box.innerHTML = `
+            <div class="advanced-result">
+                <h3>${escapeHtml(title)}</h3>
+                <p>Veri bulunamadı.</p>
+            </div>
+        `;
+        return;
+    }
+
+    if (data.error) {
+        box.innerHTML = `
+            <div class="advanced-result">
+                <h3>${escapeHtml(title)}</h3>
+                <p>${escapeHtml(String(data.error))}</p>
+            </div>
+        `;
+        return;
+    }
+
+    const entries = [];
+
+    function walk(obj, prefix = "") {
+        if (obj === null || obj === undefined) return;
 
         if (
-            data.scans_used !== undefined ||
-            data.scans_remaining !== undefined
+            typeof obj === "string" ||
+            typeof obj === "number" ||
+            typeof obj === "boolean"
         ) {
-            updateScanData({
-                ...data,
-                plan:
-                    data.plan ||
-                    currentPlan
-            });
-        } else if (plan !== "MAX PRO") {
-            scanUsed += 1;
-
-            scanRemaining = Math.max(
-                0,
-                scanLimit - scanUsed
-            );
-
-            updateScanUI();
-        }
-
-        showMessage(
-            data.message ||
-            "Analiz başlatıldı.",
-            "success"
-        );
-
-        await monitorRunStatus();
-
-    } catch (error) {
-        console.error(
-            "RUN ANALYSIS:",
-            error
-        );
-
-        if (error.status === 403) {
-            showMessage(
-                (
-                    error.data &&
-                    error.data.detail
-                )
-                    ? error.data.detail
-                    : error.message ||
-                        "Tarama hakkınız kalmadı.",
-                "error"
-            );
-
-            if (
-                error.data &&
-                error.data.scans_remaining !==
-                undefined
-            ) {
-                updateScanData({
-                    ...error.data,
-                    plan: currentPlan
-                });
-            }
-
-            if (
-                normalizePlan(currentPlan) ===
-                "FREE"
-            ) {
-                openPlanModal(
-                    "PRO",
-                    "Daha fazla tarama"
-                );
-            }
-
-        } else {
-            showMessage(
-                error.message ||
-                "Analiz başlatılamadı.",
-                "error"
-            );
-        }
-
-    } finally {
-        scanRunning = false;
-        updateScanUI();
-
-        setTimeout(
-            function() {
-                refreshData();
-            },
-            1000
-        );
-    }
-}
-
-
-/* ============================================================
-   RUN STATUS
-   ============================================================ */
-
-async function getRunStatus() {
-    try {
-        return await apiFetch(
-            "/api/run-status"
-        );
-    } catch (error) {
-        console.warn(
-            "RUN STATUS:",
-            error
-        );
-
-        return null;
-    }
-}
-
-async function monitorRunStatus() {
-    const maxChecks = 360;
-    let checks = 0;
-
-    while (checks < maxChecks) {
-        checks++;
-
-        const data =
-            await getRunStatus();
-
-        if (!data) {
-            await sleep(3000);
-            continue;
-        }
-
-        const running = Boolean(
-            data.running ??
-            (
-                data.status ===
-                "RUNNING"
-            )
-        );
-
-        if (!running) {
-            if (
-                data.scans_used !==
-                undefined ||
-                data.scans_remaining !==
-                undefined
-            ) {
-                updateScanData({
-                    ...data,
-                    plan:
-                        data.plan ||
-                        currentPlan
-                });
-            }
-
-            await refreshData();
-
-            return data;
-        }
-
-        const statusElements =
-            document.querySelectorAll(
-                ".status-value"
-            );
-
-        statusElements.forEach(
-            function(element) {
-                element.innerText =
-                    data.message ||
-                    data.status ||
-                    "ANALİZ ÇALIŞIYOR...";
-            }
-        );
-
-        await sleep(3000);
-    }
-
-    return null;
-}
-
-
-/* ============================================================
-   PLAN UI
-   ============================================================ */
-
-function updatePlanUI(plan) {
-    plan = normalizePlan(plan);
-    currentPlan = plan;
-
-    if (
-        document.documentElement &&
-        document.documentElement.dataset
-    ) {
-        document.documentElement.dataset.plan =
-            plan;
-    }
-
-    const planElement =
-        document.querySelector(
-            ".user-plan"
-        );
-
-    if (planElement) {
-        planElement.innerText = plan;
-    }
-
-    setText(
-        "currentPlanText",
-        plan
-    );
-
-    const planInfoBar =
-        $("planInfoBar");
-
-    if (planInfoBar) {
-        planInfoBar.style.display =
-            "flex";
-    }
-
-    const plansSection =
-        document.querySelector(
-            ".plans-section"
-        );
-
-    if (plansSection) {
-        plansSection.style.display =
-            "block";
-    }
-
-    const freeButton =
-        $("freePlanButton");
-
-    const proButton =
-        $("proPlanButton");
-
-    const maxButton =
-        $("maxProPlanButton");
-
-    if (freeButton) {
-        freeButton.innerText =
-            plan === "FREE"
-                ? "AKTİF"
-                : "FREE";
-    }
-
-    if (proButton) {
-        proButton.innerText =
-            plan === "PRO"
-                ? "AKTİF"
-                : "PRO'YA GEÇ";
-    }
-
-    if (maxButton) {
-        maxButton.innerText =
-            plan === "MAX PRO"
-                ? "AKTİF"
-                : "MAX PRO'YA GEÇ";
-    }
-
-    const upgrade =
-        $("upgradePlanButton");
-
-    if (upgrade) {
-        if (plan === "FREE") {
-            upgrade.innerText =
-                "PRO'YA GEÇ";
-
-            upgrade.style.display =
-                "inline-block";
-
-            upgrade.onclick =
-                function() {
-                    selectPlan("PRO");
-                };
-
-        } else if (plan === "PRO") {
-            upgrade.innerText =
-                "MAX PRO'YA GEÇ";
-
-            upgrade.style.display =
-                "inline-block";
-
-            upgrade.onclick =
-                function() {
-                    selectPlan("MAX PRO");
-                };
-
-        } else {
-            upgrade.style.display = "none";
-        }
-    }
-
-    const cards = [
-        $("planCardFree"),
-        $("planCardPro"),
-        $("planCardMaxPro")
-    ];
-
-    cards.forEach(
-        function(card) {
-            if (!card) {
-                return;
-            }
-
-            card.classList.remove(
-                "active-plan",
-                "active"
-            );
-        }
-    );
-
-    if (plan === "FREE" && cards[0]) {
-        cards[0].classList.add(
-            "active-plan"
-        );
-    }
-
-    if (plan === "PRO" && cards[1]) {
-        cards[1].classList.add(
-            "active-plan"
-        );
-    }
-
-    if (plan === "MAX PRO" && cards[2]) {
-        cards[2].classList.add(
-            "active-plan"
-        );
-    }
-
-    updateLockedFeatures();
-    updateScanUI();
-}
-
-
-/* ============================================================
-   LOCKED FEATURES
-   ============================================================ */
-
-function updateLockedFeatures() {
-    const elements =
-        document.querySelectorAll(
-            "[data-required-plan]"
-        );
-
-    const userLevel =
-        getPlanLevel(currentPlan);
-
-    elements.forEach(
-        function(element) {
-            const requiredPlan =
-                normalizePlan(
-                    element.dataset.requiredPlan
-                );
-
-            const requiredLevel =
-                getPlanLevel(
-                    requiredPlan
-                );
-
-            const allowed =
-                userLevel >= requiredLevel;
-
-            if (allowed) {
-                element.classList.remove(
-                    "locked",
-                    "locked-feature"
-                );
-            } else {
-                element.classList.add(
-                    "locked",
-                    "locked-feature"
-                );
-
-                element.dataset.originalLocked =
-                    "true";
-            }
-
-            const value =
-                element.querySelector(
-                    ".card-value"
-                );
-
-            if (value) {
-                value.innerText =
-                    allowed
-                        ? "AKTİF"
-                        : "🔒 " + requiredPlan;
-            }
-
-            const lock =
-                element.querySelector(
-                    ".feature-lock"
-                );
-
-            if (lock) {
-                lock.innerText =
-                    allowed
-                        ? "✓"
-                        : "🔒";
-            }
-        }
-    );
-}
-
-
-/* ============================================================
-   REQUIRE PLAN
-   ============================================================ */
-
-function requirePlan(
-    requiredPlan,
-    featureName
-) {
-    featureName =
-        featureName ||
-        "Bu özellik";
-
-    requiredPlan =
-        normalizePlan(requiredPlan);
-
-    const userLevel =
-        getPlanLevel(currentPlan);
-
-    const requiredLevel =
-        getPlanLevel(requiredPlan);
-
-    if (userLevel >= requiredLevel) {
-        showMessage(
-            featureName +
-            " aktif.",
-            "success"
-        );
-
-        return true;
-    }
-
-    openPlanModal(
-        requiredPlan,
-        featureName
-    );
-
-    return false;
-}
-
-
-/* ============================================================
-   PLAN MODAL
-   ============================================================ */
-
-function openPlanModal(
-    requiredPlan,
-    featureName
-) {
-    requiredPlan =
-        normalizePlan(
-            requiredPlan ||
-            "PRO"
-        );
-
-    featureName =
-        featureName ||
-        "";
-
-    const modal = $("planModal");
-
-    if (!modal) {
-        showMessage(
-            requiredPlan +
-            " özelliği kilitli.",
-            "info"
-        );
-
-        return;
-    }
-
-    const title =
-        $("planModalTitle");
-
-    const description =
-        $("planModalDescription");
-
-    const features =
-        $("planModalFeatures");
-
-    const upgrade =
-        $("planModalUpgrade");
-
-    const icon =
-        $("planModalIcon");
-
-    if (icon) {
-        icon.innerText =
-            requiredPlan ===
-            "MAX PRO"
-                ? "∞"
-                : "✦";
-    }
-
-    if (title) {
-        title.innerText =
-            requiredPlan +
-            " ACCESS";
-    }
-
-    if (description) {
-        description.innerText =
-            featureName
-                ? featureName +
-                  " özelliği " +
-                  requiredPlan +
-                  " planında kullanılabilir."
-                : "Bu özellik " +
-                  requiredPlan +
-                  " planına dahildir.";
-    }
-
-    if (features) {
-        if (requiredPlan === "MAX PRO") {
-            features.innerHTML =
-                "<div class=\"plan-modal-feature\">✓ 300 AI sinyali</div>" +
-                "<div class=\"plan-modal-feature\">✓ Tüm sinyaller</div>" +
-                "<div class=\"plan-modal-feature\">✓ Gelişmiş AI</div>" +
-                "<div class=\"plan-modal-feature\">✓ Backtest</div>" +
-                "<div class=\"plan-modal-feature\">✓ Paper Trading</div>" +
-                "<div class=\"plan-modal-feature\">✓ Tam terminal erişimi</div>";
-        } else {
-            features.innerHTML =
-                "<div class=\"plan-modal-feature\">✓ 100 AI sinyali</div>" +
-                "<div class=\"plan-modal-feature\">✓ 30 tarama hakkı</div>" +
-                "<div class=\"plan-modal-feature\">✓ Gelişmiş AI</div>" +
-                "<div class=\"plan-modal-feature\">✓ Backtest</div>" +
-                "<div class=\"plan-modal-feature\">✓ Paper Trading</div>";
-        }
-    }
-
-    if (upgrade) {
-        upgrade.innerText =
-            requiredPlan === "MAX PRO"
-                ? "MAX PRO'YA GEÇ"
-                : "PRO'YA GEÇ";
-
-        upgrade.dataset.plan =
-            requiredPlan;
-    }
-
-    modal.style.display = "flex";
-    document.body.style.overflow = "hidden";
-}
-
-function closePlanModal(event) {
-    if (
-        event &&
-        event.target &&
-        event.target.id !== "planModal"
-    ) {
-        return;
-    }
-
-    const modal = $("planModal");
-
-    if (modal) {
-        modal.style.display = "none";
-    }
-
-    document.body.style.overflow = "";
-}
-
-function upgradeFromModal() {
-    const button =
-        $("planModalUpgrade");
-
-    const target =
-        button &&
-        button.dataset &&
-        button.dataset.plan
-            ? button.dataset.plan
-            : "PRO";
-
-    closePlanModal();
-
-    selectPlan(target);
-}
-
-function selectPlan(plan) {
-    plan = normalizePlan(plan);
-
-    const currentLevel =
-        getPlanLevel(currentPlan);
-
-    const selectedLevel =
-        getPlanLevel(plan);
-
-    if (selectedLevel <= currentLevel) {
-        showMessage(
-            plan === currentPlan
-                ? "Bu plan zaten aktif."
-                : "Bu plan mevcut planınızdan düşük.",
-            "info"
-        );
-
-        return;
-    }
-
-    openPlanModal(
-        plan,
-        plan + " planı"
-    );
-}
-
-
-/* ============================================================
-   NUMBER FORMAT
-   ============================================================ */
-
-function formatNumber(
-    value,
-    decimals
-) {
-    decimals =
-        decimals === undefined
-            ? 2
-            : decimals;
-
-    const number = Number(value);
-
-    if (!Number.isFinite(number)) {
-        return "0";
-    }
-
-    return number.toLocaleString(
-        "tr-TR",
-        {
-            minimumFractionDigits:
-                decimals,
-            maximumFractionDigits:
-                decimals
-        }
-    );
-}
-
-function formatInteger(value) {
-    const number = Number(value);
-
-    if (!Number.isFinite(number)) {
-        return "0";
-    }
-
-    return Math.round(number)
-        .toLocaleString("tr-TR");
-}
-
-function formatChange(value) {
-    if (
-        value === null ||
-        value === undefined ||
-        value === ""
-    ) {
-        return "-";
-    }
-
-    const number = Number(value);
-
-    if (!Number.isFinite(number)) {
-        return "-";
-    }
-
-    return (
-        number >= 0
-            ? "+"
-            : ""
-    ) +
-    number.toLocaleString(
-        "tr-TR",
-        {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }
-    ) +
-    "%";
-}
-
-function formatPrice(value) {
-    if (
-        value === null ||
-        value === undefined ||
-        value === ""
-    ) {
-        return "-";
-    }
-
-    const number = Number(value);
-
-    if (
-        !Number.isFinite(number) ||
-        number <= 0
-    ) {
-        return "-";
-    }
-
-    return number.toLocaleString(
-        "tr-TR",
-        {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 4
-        }
-    );
-}
-
-function formatScore(value) {
-    let number = Number(value);
-
-    if (!Number.isFinite(number)) {
-        return "0,00%";
-    }
-
-    if (Math.abs(number) <= 1) {
-        number *= 100;
-    }
-
-    return number.toLocaleString(
-        "tr-TR",
-        {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }
-    ) + "%";
-}
-
-function getScorePercent(value) {
-    let number = Number(value);
-
-    if (!Number.isFinite(number)) {
-        return 0;
-    }
-
-    if (Math.abs(number) <= 1) {
-        number *= 100;
-    }
-
-    return number;
-}
-
-
-/* ============================================================
-   STATUS
-   ============================================================ */
-
-async function loadStatus() {
-    try {
-        const data =
-            await apiFetch(
-                "/api/status"
-            );
-
-        if (!data || !data.ok) {
+            entries.push([
+                prefix,
+                String(obj)
+            ]);
             return;
         }
 
-        updateScanData(data);
+        if (Array.isArray(obj)) {
+            entries.push([
+                prefix || "Sonuç",
+                `${obj.length} kayıt`
+            ]);
 
-        const statusElements =
-            document.querySelectorAll(
-                ".status-value"
-            );
-
-        statusElements.forEach(
-            function(element) {
-                element.innerText =
-                    data.status ||
-                    "READY";
-            }
-        );
-
-        setText(
-            "buyCount",
-            formatInteger(
-                data.historical_buy ??
-                data.current_buy ??
-                0
-            )
-        );
-
-        setText(
-            "sellCount",
-            formatInteger(
-                data.historical_sell ??
-                data.current_sell ??
-                0
-            )
-        );
-
-        setText(
-            "holdCount",
-            formatInteger(
-                data.historical_hold ??
-                data.current_hold ??
-                0
-            )
-        );
-
-        setText(
-            "topCount",
-            formatInteger(
-                data.top ?? 0
-            )
-        );
-
-        setText(
-            "totalCount",
-            formatInteger(
-                data.historical_total ??
-                data.current_total ??
-                0
-            )
-        );
-
-        const live =
-            document.querySelector(
-                ".live-indicator"
-            );
-
-        if (live) {
-            live.innerText = "● LIVE";
+            return;
         }
 
-    } catch (error) {
-        console.error(
-            "STATUS:",
-            error
-        );
+        if (typeof obj === "object") {
+            for (const [key, value] of Object.entries(obj)) {
+                const label = prefix
+                    ? `${prefix} / ${key}`
+                    : key;
+
+                if (
+                    value !== null &&
+                    typeof value === "object" &&
+                    !Array.isArray(value)
+                ) {
+                    walk(value, label);
+                } else if (Array.isArray(value)) {
+                    entries.push([
+                        label,
+                        `${value.length} kayıt`
+                    ]);
+                } else {
+                    entries.push([
+                        label,
+                        value
+                    ]);
+                }
+            }
+        }
     }
+
+    walk(data);
+
+    const limitedEntries = entries.slice(0, 100);
+
+    box.innerHTML = `
+        <div class="advanced-result">
+            <h3>${escapeHtml(title)}</h3>
+
+            <div class="advanced-result-grid">
+                ${
+                    limitedEntries.length
+                        ? limitedEntries.map(([key, value]) => `
+                            <div class="advanced-item">
+                                <div class="advanced-key">
+                                    ${escapeHtml(key)}
+                                </div>
+
+                                <div class="advanced-value">
+                                    ${escapeHtml(String(value))}
+                                </div>
+                            </div>
+                        `).join("")
+                        : `
+                            <div class="advanced-item">
+                                Sonuç verisi bulunamadı.
+                            </div>
+                        `
+                }
+            </div>
+        </div>
+    `;
 }
 
+/* =========================================================
+   METRİKLER
+   ========================================================= */
 
-/* ============================================================
-   SIGNALS
-   ============================================================ */
-
-async function loadSignals() {
+async function loadMetrics() {
     try {
-        const data =
-            await apiFetch(
-                "/api/signals"
-            );
+        const response = await publicFetch("/api/metrics");
+        const data = await readJson(response);
 
-        if (
-            !data ||
-            (
-                data.ok !== true &&
-                data.success !== true
-            )
-        ) {
+        if (!response.ok) {
             throw new Error(
-                data && (
-                    data.error ||
-                    data.detail
-                )
-                    ? (
-                        data.error ||
-                        data.detail
-                    )
-                    : "Sinyaller alınamadı."
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
             );
         }
 
-        updateScanData(data);
+        renderAdvancedResult(
+            "Sistem Metrikleri",
+            data
+        );
 
-        allSignals =
-            Array.isArray(data.signals)
-                ? data.signals
-                : [];
-
-        renderSignals(allSignals);
+        return data;
 
     } catch (error) {
-        console.error(
-            "SIGNALS:",
-            error
-        );
-
-        const tbody =
-            $("signalsTableBody");
-
-        if (tbody) {
-            tbody.innerHTML =
-                "<tr>" +
-                "<td colspan=\"6\" class=\"empty\">" +
-                (
-                    getToken()
-                        ? "SİNYALLER YÜKLENEMEDİ"
-                        : "OTURUM GEREKLİ"
-                ) +
-                "</td>" +
-                "</tr>";
-        }
+        console.error("Metrics error:", error);
+        return null;
     }
 }
 
-
-/* ============================================================
-   RENDER SIGNALS
-   ============================================================ */
-
-function renderSignals(signals) {
-    signals = signals || allSignals;
-
-    const tbody =
-        $("signalsTableBody");
-
-    if (!tbody) {
-        return;
-    }
-
-    tbody.innerHTML = "";
-
-    if (
-        !Array.isArray(signals) ||
-        signals.length === 0
-    ) {
-        tbody.innerHTML =
-            "<tr>" +
-            "<td colspan=\"6\" class=\"empty\">" +
-            "SİNYAL BULUNAMADI" +
-            "</td>" +
-            "</tr>";
-
-        updateSignalFooter([]);
-
-        return;
-    }
-
-    const sortedSignals =
-        signals.slice().sort(
-            function(a, b) {
-                const scoreA =
-                    getScorePercent(
-                        a &&
-                        (
-                            a.score ??
-                            a.AI_Probability ??
-                            a.ai_probability ??
-                            0
-                        )
-                    );
-
-                const scoreB =
-                    getScorePercent(
-                        b &&
-                        (
-                            b.score ??
-                            b.AI_Probability ??
-                            b.ai_probability ??
-                            0
-                        )
-                    );
-
-                return scoreB - scoreA;
-            }
-        );
-
-    sortedSignals.forEach(
-        function(item, index) {
-
-            const symbol =
-                String(
-                    item &&
-                    (
-                        item.symbol ??
-                        item.ticker ??
-                        item.Ticker ??
-                        item.Symbol ??
-                        "-"
-                    )
-                ).toUpperCase();
-
-            const signal =
-                String(
-                    item &&
-                    (
-                        item.signal ??
-                        item.Signal ??
-                        "HOLD"
-                    )
-                ).toUpperCase();
-
-            const scorePercent =
-                getScorePercent(
-                    item &&
-                    (
-                        item.score ??
-                        item.AI_Probability ??
-                        item.ai_probability ??
-                        0
-                    )
-                );
-
-            /*
-             * ÖNEMLİ:
-             * price = GERÇEK CANLI FİYAT
-             * predicted_return burada KULLANILMAZ.
-             */
-
-            const priceRaw =
-                item &&
-                (
-                    item.price ??
-                    item.Price ??
-                    null
-                );
-
-            const price =
-                priceRaw !== null &&
-                priceRaw !== undefined &&
-                priceRaw !== ""
-                    ? Number(priceRaw)
-                    : NaN;
-
-            /*
-             * GERÇEK GÜNLÜK DEĞİŞİM
-             */
-
-            const changeRaw =
-                item &&
-                (
-                    item.daily_change_percent ??
-                    item.change ??
-                    item.Daily_Change_Percent ??
-                    null
-                );
-
-            const change =
-                changeRaw !== null &&
-                changeRaw !== undefined &&
-                changeRaw !== ""
-                    ? Number(changeRaw)
-                    : NaN;
-
-            let signalClass = "hold";
-
-            if (
-                signal === "BUY" ||
-                signal === "AL"
-            ) {
-                signalClass = "buy";
-            } else if (
-                signal === "SELL" ||
-                signal === "SAT"
-            ) {
-                signalClass = "sell";
-            }
-
-            const strongBuy =
-                signalClass === "buy" &&
-                scorePercent >= 68;
-
-            const mediumBuy =
-                signalClass === "buy" &&
-                scorePercent >= 66 &&
-                scorePercent < 68;
-
-            const weakBuy =
-                signalClass === "buy" &&
-                scorePercent < 66;
-
-            let scoreClass = "score-weak";
-
-            if (scorePercent >= 68) {
-                scoreClass = "score-strong";
-            } else if (scorePercent >= 66) {
-                scoreClass = "score-medium";
-            }
-
-            const changeCls =
-                changeClass(change);
-
-            const scoreWidth =
-                Math.max(
-                    0,
-                    Math.min(
-                        100,
-                        scorePercent
-                    )
-                );
-
-            const priceText =
-                Number.isFinite(price) &&
-                price > 0
-                    ? formatPrice(price)
-                    : "-";
-
-            const row =
-                document.createElement("tr");
-
-            row.dataset.symbol = symbol;
-            row.dataset.signal = signal;
-
-            if (strongBuy) {
-                row.classList.add("strong-buy");
-            }
-
-            if (mediumBuy) {
-                row.classList.add("medium-buy");
-            }
-
-            if (weakBuy) {
-                row.classList.add("weak-buy");
-            }
-
-            row.innerHTML =
-                "<td class=\"signal-rank\">" +
-                (index + 1) +
-                "</td>" +
-
-                "<td class=\"ticker-cell signal-symbol\">" +
-                "<strong>" +
-                escapeHtml(symbol) +
-                "</strong>" +
-                "</td>" +
-
-                "<td class=\"signal-cell\">" +
-                "<span class=\"signal-badge " +
-                signalClass +
-                "\">" +
-                escapeHtml(signal) +
-                "</span>" +
-                "</td>" +
-
-                "<td class=\"score-cell\">" +
-                "<div class=\"signal-score " +
-                scoreClass +
-                "\">" +
-                "<span>" +
-                formatScore(scorePercent) +
-                "</span>" +
-                "<div class=\"score-bar\">" +
-                "<span class=\"score-bar-fill\" " +
-                "style=\"width:" +
-                scoreWidth +
-                "%\"></span>" +
-                "</div>" +
-                "</div>" +
-                "</td>" +
-
-                "<td class=\"price-cell signal-price\">" +
-                priceText +
-                "</td>" +
-
-                "<td class=\"" +
-                changeCls +
-                "\">" +
-                formatChange(change) +
-                "</td>";
-
-            tbody.appendChild(row);
-        }
-    );
-
-    updateSignalFooter(sortedSignals);
-}
-
-
-/* ============================================================
-   SIGNAL FOOTER
-   ============================================================ */
-
-function updateSignalFooter(signals) {
-    const footer =
-        document.querySelector(
-            ".signals-table-footer"
-        );
-
-    if (!footer) {
-        return;
-    }
-
-    let buyCount = 0;
-    let sellCount = 0;
-
-    signals.forEach(
-        function(item) {
-            const signal =
-                String(
-                    item &&
-                    (
-                        item.signal ??
-                        item.Signal ??
-                        ""
-                    )
-                ).toUpperCase();
-
-            if (
-                signal === "BUY" ||
-                signal === "AL"
-            ) {
-                buyCount++;
-            }
-
-            if (
-                signal === "SELL" ||
-                signal === "SAT"
-            ) {
-                sellCount++;
-            }
-        }
-    );
-
-    footer.innerHTML =
-        "<span>" +
-        signals.length +
-        " SİNYAL</span>" +
-
-        "<span class=\"buy\">" +
-        "BUY " +
-        buyCount +
-        "</span>" +
-
-        "<span class=\"sell\">" +
-        "SELL " +
-        sellCount +
-        "</span>";
-}
-
-
-/* ============================================================
-   CHANGE CLASS
-   ============================================================ */
-
-function changeClass(value) {
-    if (
-        value === null ||
-        value === undefined ||
-        value === ""
-    ) {
-        return "change-neutral";
-    }
-
-    const number = Number(value);
-
-    if (!Number.isFinite(number)) {
-        return "change-neutral";
-    }
-
-    if (number > 0) {
-        return "change-positive";
-    }
-
-    if (number < 0) {
-        return "change-negative";
-    }
-
-    return "change-neutral";
-}
-
-
-/* ============================================================
-   SEARCH
-   ============================================================ */
-
-function filterSignals() {
-    const input = $("searchInput");
-
-    if (!input) {
-        return;
-    }
-
-    const query =
-        input.value
-            .trim()
-            .toUpperCase();
-
-    if (!query) {
-        renderSignals(allSignals);
-        return;
-    }
-
-    const filtered =
-        allSignals.filter(
-            function(item) {
-                const symbol =
-                    String(
-                        item &&
-                        (
-                            item.symbol ??
-                            item.ticker ??
-                            item.Ticker ??
-                            item.Symbol ??
-                            ""
-                        )
-                    ).toUpperCase();
-
-                const signal =
-                    String(
-                        item &&
-                        (
-                            item.signal ??
-                            item.Signal ??
-                            ""
-                        )
-                    ).toUpperCase();
-
-                return (
-                    symbol.indexOf(query) !== -1 ||
-                    signal.indexOf(query) !== -1
-                );
-            }
-        );
-
-    renderSignals(filtered);
-}
-
-
-/* ============================================================
-   REFRESH
-   ============================================================ */
-
-async function refreshData() {
-    if (!getToken()) {
-        return;
-    }
-
+/* =========================================================
+   DEBUG
+   ========================================================= */
+
+async function loadDebugData() {
     try {
-        await Promise.allSettled([
-            loadPlan(),
-            loadStatus(),
-            loadSignals()
-        ]);
+        const response = await publicFetch("/api/debug/data");
+        const data = await readJson(response);
 
-        updatePlanUI(currentPlan);
-        updateLockedFeatures();
-        updateScanUI();
+        if (!response.ok) {
+            throw new Error(
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        renderAdvancedResult(
+            "Veri Durumu",
+            data
+        );
+
+        return data;
 
     } catch (error) {
-        console.error(
-            "REFRESH:",
-            error
-        );
+        console.error("Debug data error:", error);
+        return null;
     }
 }
 
-
-/* ============================================================
-   ESCAPE HTML
-   ============================================================ */
-
-function escapeHtml(value) {
-    if (
-        value === null ||
-        value === undefined
-    ) {
-        return "";
-    }
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-
-/* ============================================================
+/* =========================================================
    ADMIN
-   ============================================================ */
+   ========================================================= */
 
 function openAdmin() {
-    if (
-        !currentUser ||
-        !currentUser.is_admin
-    ) {
-        showMessage(
-            "Admin yetkiniz yok.",
-            "error"
-        );
+    window.location.href = "/admin";
+}
 
-        return;
+/* =========================================================
+   LOGOUT
+   ========================================================= */
+
+async function logout() {
+    try {
+        await publicFetch("/api/logout", {
+            method: "POST",
+            body: JSON.stringify({})
+        });
+    } catch (e) {
+        console.warn("Logout:", e);
     }
 
-    showMessage(
-        "Admin paneli yakında.",
+    // Normal kullanıcı zaten oturumsuz çalışıyor.
+    showAppScreen();
+}
+
+/* =========================================================
+   AUTH FORM ESKİ FONKSİYONLARI
+   ÇAKILMAMASI İÇİN BOŞ / UYUMLU BIRAKILDI
+   ========================================================= */
+
+async function loginUser(event) {
+    if (event) {
+        event.preventDefault();
+    }
+
+    showToast(
+        "LEVEL 1000 artık üyelik gerektirmeden kullanılabilir.",
         "info"
     );
+
+    showAppScreen();
+    return true;
 }
 
+async function registerUser(event) {
+    if (event) {
+        event.preventDefault();
+    }
 
-/* ============================================================
+    showToast(
+        "Kayıt gerekli değil. Siteyi doğrudan kullanabilirsiniz.",
+        "info"
+    );
+
+    showAppScreen();
+    return true;
+}
+
+/* =========================================================
    KEYBOARD
-   ============================================================ */
+   ========================================================= */
 
-function setupKeyboard() {
-    const loginPassword =
-        $("loginPassword");
+document.addEventListener("keydown", function(event) {
+    if (
+        event.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA"
+    ) {
+        event.preventDefault();
 
-    const loginEmail =
-        $("loginEmail");
+        const search =
+            document.getElementById("signalSearch") ||
+            document.getElementById("searchInput");
 
-    const registerPassword =
-        $("registerPassword");
-
-    const registerPassword2 =
-        $("registerPassword2");
-
-    if (loginPassword) {
-        loginPassword.addEventListener(
-            "keydown",
-            function(event) {
-                if (event.key === "Enter") {
-                    event.preventDefault();
-                    loginUser();
-                }
-            }
-        );
-    }
-
-    if (loginEmail) {
-        loginEmail.addEventListener(
-            "keydown",
-            function(event) {
-                if (event.key === "Enter") {
-                    event.preventDefault();
-                    loginUser();
-                }
-            }
-        );
-    }
-
-    if (registerPassword) {
-        registerPassword.addEventListener(
-            "keydown",
-            function(event) {
-                if (event.key === "Enter") {
-                    event.preventDefault();
-                    registerUser();
-                }
-            }
-        );
-    }
-
-    if (registerPassword2) {
-        registerPassword2.addEventListener(
-            "keydown",
-            function(event) {
-                if (event.key === "Enter") {
-                    event.preventDefault();
-                    registerUser();
-                }
-            }
-        );
-    }
-
-    document.addEventListener(
-        "keydown",
-        function(event) {
-            if (event.key === "Escape") {
-                closePlanModal();
-            }
+        if (search) {
+            search.focus();
         }
-    );
+    }
+});
 
-    document.addEventListener(
-        "keydown",
-        function(event) {
-            if (
-                event.key === "/" &&
-                document.activeElement &&
-                document.activeElement.tagName !== "INPUT" &&
-                document.activeElement.tagName !== "TEXTAREA"
-            ) {
-                event.preventDefault();
+/* =========================================================
+   EVENT LISTENERS
+   ========================================================= */
 
-                const search =
-                    $("searchInput");
-
-                if (search) {
-                    search.focus();
-                }
-            }
-        }
-    );
+function setupEvents() {
 
     const search =
-        $("searchInput");
+        document.getElementById("signalSearch") ||
+        document.getElementById("searchInput");
 
     if (search) {
-        search.addEventListener(
-            "input",
-            filterSignals
-        );
+        search.addEventListener("input", filterSignals);
     }
 
-    const scanButtons = [
-        $("runScanButton"),
-        $("scanButton"),
-        $("startScanButton"),
-        $("runAnalysisButton")
-    ].filter(Boolean);
-
-    scanButtons.forEach(
-        function(button) {
-            button.addEventListener(
-                "click",
-                function(event) {
-                    event.preventDefault();
-                    runAnalysis();
-                }
-            );
-        }
+    const runButtons = document.querySelectorAll(
+        "#runAnalysisBtn, .run-analysis-btn, [data-action='run-analysis']"
     );
+
+    runButtons.forEach(btn => {
+        btn.addEventListener("click", function(event) {
+            event.preventDefault();
+            runAnalysis();
+        });
+    });
+
+    const backtestButtons = document.querySelectorAll(
+        "#backtestBtn, [data-action='backtest']"
+    );
+
+    backtestButtons.forEach(btn => {
+        btn.addEventListener("click", function(event) {
+            event.preventDefault();
+            loadBacktest();
+        });
+    });
+
+    const paperButtons = document.querySelectorAll(
+        "#paperBtn, [data-action='paper']"
+    );
+
+    paperButtons.forEach(btn => {
+        btn.addEventListener("click", function(event) {
+            event.preventDefault();
+            loadPaper();
+        });
+    });
+
+    const monteCarloButtons = document.querySelectorAll(
+        "#monteCarloBtn, [data-action='montecarlo']"
+    );
+
+    monteCarloButtons.forEach(btn => {
+        btn.addEventListener("click", function(event) {
+            event.preventDefault();
+            loadMonteCarlo();
+        });
+    });
+
+    const advancedButtons = document.querySelectorAll(
+        "#advancedAIBtn, [data-action='advanced-ai']"
+    );
+
+    advancedButtons.forEach(btn => {
+        btn.addEventListener("click", function(event) {
+            event.preventDefault();
+            loadAdvancedAI();
+        });
+    });
 }
 
+/* =========================================================
+   BAŞLANGIÇ
+   ========================================================= */
 
-/* ============================================================
-   GLOBAL FUNCTIONS
-   HTML onclick İÇİN ÖNEMLİ
-   ============================================================ */
+document.addEventListener("DOMContentLoaded", async function() {
+
+    // Public uygulama her zaman açık.
+    showAppScreen();
+
+    setupEvents();
+
+    await refreshData();
+
+    // 30 saniyede bir verileri yenile.
+    if (refreshTimer) {
+        clearInterval(refreshTimer);
+    }
+
+    refreshTimer = setInterval(() => {
+        refreshData();
+    }, 30000);
+});
+
+/* =========================================================
+   GLOBAL
+   Eski HTML / inline onclick uyumluluğu
+   ========================================================= */
+
+window.loadSignals = loadSignals;
+window.renderSignals = renderSignals;
+window.filterSignals = filterSignals;
+window.searchSignals = searchSignals;
+
+window.refreshData = refreshData;
+window.loadStatus = loadStatus;
+
+window.runAnalysis = runAnalysis;
+window.monitorRun = monitorRun;
+
+window.loadBacktest = loadBacktest;
+window.loadPaper = loadPaper;
+window.loadMonteCarlo = loadMonteCarlo;
+window.loadAdvancedAI = loadAdvancedAI;
+window.loadMetrics = loadMetrics;
+window.loadDebugData = loadDebugData;
+
+window.openSignal = openSignal;
+window.openAdmin = openAdmin;
 
 window.loginUser = loginUser;
 window.registerUser = registerUser;
-window.logoutUser = logoutUser;
+window.logout = logout;
 
-window.showLogin = showLogin;
-window.showRegister = showRegister;
+window.checkSession = checkSession;
+window.showAppScreen = showAppScreen;
+window.showAuthScreen = showAuthScreen;
 
-window.runAnalysis = runAnalysis;
-window.openAdmin = openAdmin;
-
-window.openPlanModal = openPlanModal;
-window.closePlanModal = closePlanModal;
-window.upgradeFromModal = upgradeFromModal;
-
-window.selectPlan = selectPlan;
 window.requirePlan = requirePlan;
+window.selectPlan = selectPlan;
+window.loadPlan = loadPlan;
 
-window.filterSignals = filterSignals;
-
-
-/* ============================================================
-   INIT
-   ============================================================ */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    async function() {
-
-        console.log(
-            "LEVEL 1000 AI SCRIPT OK"
-        );
-
-        setupKeyboard();
-        updateScanUI();
-
-        await checkSession();
-
-        setInterval(
-            function() {
-                if (!getToken()) {
-                    return;
-                }
-
-                refreshData();
-            },
-            30000
-        );
-    }
-);
+window.renderAdvancedResult = renderAdvancedResult;

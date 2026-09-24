@@ -1,9 +1,18 @@
 # ============================================================
 # LEVEL 1000 AI - WEB APP
-# FULL APP
-# LIVE PRICE + AUTH + PLAN + SIGNALS + PAPER + ADMIN
-# YAHOO 429 KORUMALI
-# OTOMATİK RENDER ADMIN
+# PUBLIC / UNRESTRICTED VERSION
+# ============================================================
+# ÜYELİK       : GEREKLİ DEĞİL
+# ÖDEME        : GEREKLİ DEĞİL
+# FREE/PRO     : NORMAL KULLANICILAR İÇİN YOK
+# SCAN LIMIT   : YOK
+# SIGNALS      : HERKESE AÇIK
+# BACKTEST     : HERKESE AÇIK
+# PAPER        : HERKESE AÇIK
+# MONTE CARLO  : HERKESE AÇIK
+# ADVANCED AI  : HERKESE AÇIK
+# ADMIN        : KORUMALI
+# LIVE PRICE   : YAHOO / yfinance + CACHE + 429 KORUMASI
 # ============================================================
 
 from pathlib import Path
@@ -62,10 +71,7 @@ LEVEL1000_FILE = BASE_DIR / "level1000.py"
 
 DB_FILE = DATA_DIR / "level1000_users.db"
 
-PAPER_SIGNALS = (
-    DATA_DIR /
-    "level1000_paper_signals.csv"
-)
+PAPER_SIGNALS = DATA_DIR / "level1000_paper_signals.csv"
 
 DATA_DIR.mkdir(
     parents=True,
@@ -79,12 +85,10 @@ DATA_DIR.mkdir(
 
 app = FastAPI(
     title="LEVEL 1000 AI",
-    version="10.0"
+    version="11.0"
 )
 
-
 if STATIC_DIR.exists():
-
     app.mount(
         "/static",
         StaticFiles(
@@ -93,10 +97,27 @@ if STATIC_DIR.exists():
         name="static"
     )
 
-
 templates = Jinja2Templates(
     directory=str(TEMPLATES_DIR)
 )
+
+
+# ============================================================
+# PUBLIC MODE
+# ============================================================
+
+PUBLIC_ACCESS = True
+
+PUBLIC_PLAN = {
+    "name": "OPEN",
+    "level": 999999,
+    "display_limit": 999999,
+    "scan_limit": 999999,
+    "backtest": True,
+    "paper": True,
+    "advanced_ai": True,
+    "all_signals": True,
+}
 
 
 # ============================================================
@@ -108,11 +129,7 @@ SECRET_KEY = os.environ.get(
 )
 
 if not SECRET_KEY:
-
-    SECRET_KEY = secrets.token_urlsafe(
-        48
-    )
-
+    SECRET_KEY = secrets.token_urlsafe(48)
 
 ALGORITHM = "HS256"
 
@@ -120,8 +137,10 @@ password_hash = PasswordHash.recommended()
 
 
 # ============================================================
-# PLANLAR
+# ESKİ PLANLAR
 # ============================================================
+# Veritabanı uyumluluğu için tutuluyor.
+# Normal ziyaretçiye hiçbir erişim kısıtlaması uygulamaz.
 
 PLANS = {
 
@@ -164,7 +183,7 @@ MIN_SIGNAL_SCORE = 0
 
 
 # ============================================================
-# YAHOO CANLI FİYAT AYARLARI
+# YAHOO CANLI FİYAT
 # ============================================================
 
 LIVE_PRICE_CACHE_SECONDS = 120
@@ -226,7 +245,6 @@ def init_db():
     )
 
     conn.commit()
-
     conn.close()
 
 
@@ -250,36 +268,28 @@ def ensure_env_admin():
     )
 
     if not admin_email:
-
         print(
             "[ADMIN] LEVEL1000_ADMIN_EMAIL bulunamadı."
         )
-
         return
 
     if not admin_password:
-
         print(
             "[ADMIN] LEVEL1000_ADMIN_PASSWORD bulunamadı."
         )
-
         return
 
     if "@" not in admin_email:
-
         print(
             "[ADMIN] Geçersiz admin email:",
             admin_email
         )
-
         return
 
     if len(admin_password) < 6:
-
         print(
             "[ADMIN] Admin şifresi en az 6 karakter olmalıdır."
         )
-
         return
 
     conn = get_db()
@@ -292,16 +302,14 @@ def ensure_env_admin():
             FROM users
             WHERE email = ?
             """,
-            (
-                admin_email,
-            )
+            (admin_email,)
         ).fetchone()
 
-        if row:
+        new_hash = password_hash.hash(
+            admin_password
+        )
 
-            new_hash = password_hash.hash(
-                admin_password
-            )
+        if row:
 
             conn.execute(
                 """
@@ -324,59 +332,42 @@ def ensure_env_admin():
                 "[ADMIN] Admin hesabı güncellendi."
             )
 
+        else:
+
+            created_at = (
+                datetime.now(
+                    timezone.utc
+                ).isoformat()
+            )
+
+            conn.execute(
+                """
+                INSERT INTO users
+                (
+                    name,
+                    email,
+                    password_hash,
+                    plan,
+                    is_admin,
+                    scan_count,
+                    created_at
+                )
+                VALUES
+                (?, ?, ?, 'MAX PRO', 1, 0, ?)
+                """,
+                (
+                    "LEVEL 1000 Admin",
+                    admin_email,
+                    new_hash,
+                    created_at
+                )
+            )
+
+            conn.commit()
+
             print(
-                "[ADMIN] Email:",
-                admin_email
+                "[ADMIN] Yeni admin hesabı oluşturuldu."
             )
-
-            print(
-                "[ADMIN] Yetki: ADMIN"
-            )
-
-            print(
-                "[ADMIN] Plan: MAX PRO"
-            )
-
-            return
-
-        new_hash = password_hash.hash(
-            admin_password
-        )
-
-        created_at = (
-            datetime.now(
-                timezone.utc
-            ).isoformat()
-        )
-
-        conn.execute(
-            """
-            INSERT INTO users
-            (
-                name,
-                email,
-                password_hash,
-                plan,
-                is_admin,
-                scan_count,
-                created_at
-            )
-            VALUES
-            (?, ?, ?, 'MAX PRO', 1, 0, ?)
-            """,
-            (
-                "LEVEL 1000 Admin",
-                admin_email,
-                new_hash,
-                created_at
-            )
-        )
-
-        conn.commit()
-
-        print(
-            "[ADMIN] Yeni admin hesabı oluşturuldu."
-        )
 
         print(
             "[ADMIN] Email:",
@@ -387,21 +378,10 @@ def ensure_env_admin():
             "[ADMIN] Yetki: ADMIN"
         )
 
-        print(
-            "[ADMIN] Plan: MAX PRO"
-        )
-
-    except sqlite3.IntegrityError as exc:
-
-        print(
-            "[ADMIN] SQLite IntegrityError:",
-            str(exc)
-        )
-
     except Exception as exc:
 
         print(
-            "[ADMIN] Admin oluşturma hatası:",
+            "[ADMIN] Hata:",
             str(exc)
         )
 
@@ -420,16 +400,13 @@ ensure_env_admin()
 class RegisterRequest(BaseModel):
 
     name: str
-
     email: str
-
     password: str
 
 
 class LoginRequest(BaseModel):
 
     email: str
-
     password: str
 
 
@@ -449,17 +426,25 @@ def normalize_plan_name(plan):
         "MAX-PRO",
         "MAX_PRO"
     ):
-
         return "MAX PRO"
 
     if plan == "PRO":
-
         return "PRO"
 
     return "FREE"
 
 
-def get_plan_config(user):
+def get_plan_config(user=None):
+
+    # ========================================================
+    # ARTIK NORMAL KULLANICIYA HER ŞEY AÇIK
+    # ========================================================
+
+    if PUBLIC_ACCESS:
+        return PUBLIC_PLAN
+
+    if not user:
+        return PUBLIC_PLAN
 
     plan = normalize_plan_name(
         user["plan"]
@@ -542,17 +527,13 @@ def get_token_from_request(request):
         ""
     )
 
-    if auth.startswith(
-        "Bearer "
-    ):
+    if auth.startswith("Bearer "):
 
         return auth[7:].strip()
 
-    token = request.cookies.get(
+    return request.cookies.get(
         "access_token"
     )
-
-    return token
 
 
 # ============================================================
@@ -579,9 +560,7 @@ async def get_current_user(
         payload = jwt.decode(
             token,
             SECRET_KEY,
-            algorithms=[
-                ALGORITHM
-            ]
+            algorithms=[ALGORITHM]
         )
 
         user_id = int(
@@ -603,9 +582,7 @@ async def get_current_user(
         FROM users
         WHERE id = ?
         """,
-        (
-            user_id,
-        )
+        (user_id,)
     ).fetchone()
 
     conn.close()
@@ -621,46 +598,9 @@ async def get_current_user(
 
 
 # ============================================================
-# PLAN KONTROL
+# ADMIN KONTROLÜ
 # ============================================================
-
-def require_plan(required_plan):
-
-    required_plan = normalize_plan_name(
-        required_plan
-    )
-
-    async def dependency(
-        user=Depends(get_current_user)
-    ):
-
-        current = get_plan_config(
-            user
-        )
-
-        required = PLANS.get(
-            required_plan,
-            PLANS["FREE"]
-        )
-
-        if bool(user["is_admin"]):
-
-            return user
-
-        if current["level"] < required["level"]:
-
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    f"Bu özellik {required_plan} "
-                    f"planı gerektiriyor."
-                )
-            )
-
-        return user
-
-    return dependency
-
+# Admin endpoint'leri halen korumalıdır.
 
 async def require_admin(
     user=Depends(get_current_user)
@@ -679,13 +619,53 @@ async def require_admin(
 
 
 # ============================================================
+# ESKİ PLAN KONTROLÜ
+# ============================================================
+# Normal API'lerde artık kullanılmıyor.
+# Admin/uyumluluk için bırakıldı.
+
+def require_plan(required_plan):
+
+    async def dependency(
+        user=Depends(get_current_user)
+    ):
+
+        if PUBLIC_ACCESS:
+
+            return user
+
+        current = get_plan_config(user)
+
+        required = PLANS.get(
+            normalize_plan_name(required_plan),
+            PLANS["FREE"]
+        )
+
+        if bool(user["is_admin"]):
+            return user
+
+        if current["level"] < required["level"]:
+
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    f"Bu özellik {required_plan} "
+                    f"planı gerektiriyor."
+                )
+            )
+
+        return user
+
+    return dependency
+
+
+# ============================================================
 # CSV
 # ============================================================
 
 def dataframe_to_records(df):
 
     if df is None or df.empty:
-
         return []
 
     result = df.copy()
@@ -730,7 +710,6 @@ def find_signal_file():
     for path in candidates:
 
         if not path.exists():
-
             continue
 
         try:
@@ -741,11 +720,9 @@ def find_signal_file():
             )
 
             if not df.empty:
-
                 return path, df
 
         except Exception:
-
             continue
 
     return None, pd.DataFrame()
@@ -758,11 +735,9 @@ def find_signal_file():
 def normalize_signal_dataframe(df):
 
     if df is None:
-
         return pd.DataFrame()
 
     if df.empty:
-
         return df.copy()
 
     result = df.copy()
@@ -771,10 +746,7 @@ def normalize_signal_dataframe(df):
 
     for col in result.columns:
 
-        key = str(
-            col
-        ).strip()
-
+        key = str(col).strip()
         low = key.lower()
 
         if low in (
@@ -825,7 +797,6 @@ def normalize_signal_dataframe(df):
         ):
 
             if "Price" not in result.columns:
-
                 rename_map[col] = "Old_Price"
 
     if rename_map:
@@ -835,23 +806,18 @@ def normalize_signal_dataframe(df):
         )
 
     if "Ticker" not in result.columns:
-
         result["Ticker"] = "-"
 
     if "Signal" not in result.columns:
-
         result["Signal"] = "HOLD"
 
     if "AI_Probability" not in result.columns:
-
         result["AI_Probability"] = 0.0
 
     if "AI_Predicted_Return" not in result.columns:
-
         result["AI_Predicted_Return"] = 0.0
 
     if "Date" not in result.columns:
-
         result["Date"] = "-"
 
     result["Ticker"] = (
@@ -892,26 +858,22 @@ def normalize_signal_dataframe(df):
 
 
 # ============================================================
-# DISPLAY FILTER
+# DISPLAY
 # ============================================================
 
 def prepare_display_dataframe(
     df,
-    limit
+    limit=None
 ):
 
     if df is None or df.empty:
-
         return pd.DataFrame()
 
     work = df.copy()
 
     order_map = {
-
         "BUY": 0,
-
         "SELL": 1,
-
         "HOLD": 2,
     }
 
@@ -936,7 +898,6 @@ def prepare_display_dataframe(
     ].copy()
 
     if strong.empty:
-
         strong = work.copy()
 
     strong = strong.sort_values(
@@ -950,21 +911,25 @@ def prepare_display_dataframe(
         ]
     )
 
-    try:
+    # ========================================================
+    # PUBLIC MODDA LİMİT YOK
+    # ========================================================
 
-        limit = int(limit)
+    if PUBLIC_ACCESS:
+        limit = None
 
-    except Exception:
+    if limit is not None:
 
-        limit = 20
+        try:
+            limit = int(limit)
+        except Exception:
+            limit = None
 
-    if limit < 1:
+    if limit is not None and limit > 0:
 
-        limit = 20
-
-    strong = strong.head(
-        limit
-    )
+        strong = strong.head(
+            limit
+        )
 
     strong = strong.drop(
         columns=[
@@ -987,10 +952,7 @@ def _clean_float(value):
 
         value = float(value)
 
-        if not math.isfinite(
-            value
-        ):
-
+        if not math.isfinite(value):
             return None
 
         return value
@@ -1035,7 +997,7 @@ def _turkey_time_string():
 
 
 # ============================================================
-# YAHOO FRAME HELPERS
+# YAHOO HELPERS
 # ============================================================
 
 def _extract_ticker_from_download(
@@ -1044,7 +1006,6 @@ def _extract_ticker_from_download(
 ):
 
     if frame is None or frame.empty:
-
         return pd.DataFrame()
 
     result = frame
@@ -1069,18 +1030,14 @@ def _extract_ticker_from_download(
                 )
 
         except Exception:
-
             pass
 
     return result
 
 
-def _get_close_series(
-    frame
-):
+def _get_close_series(frame):
 
     if frame is None or frame.empty:
-
         return None
 
     if isinstance(
@@ -1102,7 +1059,6 @@ def _get_close_series(
             ]
 
         except Exception:
-
             return None
 
     for name in (
@@ -1120,38 +1076,29 @@ def _get_close_series(
             ).dropna()
 
             if not series.empty:
-
                 return series
 
     return None
 
 
-def _get_last_price_from_frame(
-    frame
-):
+def _get_last_price_from_frame(frame):
 
     series = _get_close_series(
         frame
     )
 
     if series is None:
-
         return None
 
     try:
-
         return float(
             series.iloc[-1]
         )
-
     except Exception:
-
         return None
 
 
-def _get_fast_info_price(
-    symbol
-):
+def _get_fast_info_price(symbol):
 
     try:
 
@@ -1167,20 +1114,16 @@ def _get_fast_info_price(
             "regularMarketPrice",
         ):
 
-            value = info.get(
-                key
-            )
+            value = info.get(key)
 
             value = _clean_float(
                 value
             )
 
             if value is not None:
-
                 return value
 
     except Exception:
-
         pass
 
     return None
@@ -1190,9 +1133,7 @@ def _get_fast_info_price(
 # YAHOO DOWNLOAD
 # ============================================================
 
-def _download_live_prices(
-    symbols
-):
+def _download_live_prices(symbols):
 
     global LIVE_LAST_DOWNLOAD_TIME
 
@@ -1207,7 +1148,6 @@ def _download_live_prices(
     )
 
     if not symbols:
-
         return {}
 
     now = time.time()
@@ -1216,7 +1156,6 @@ def _download_live_prices(
         now - LIVE_LAST_DOWNLOAD_TIME
         < 2.0
     ):
-
         return {}
 
     with LIVE_DOWNLOAD_LOCK:
@@ -1227,7 +1166,6 @@ def _download_live_prices(
             now - LIVE_LAST_DOWNLOAD_TIME
             < 2.0
         ):
-
             return {}
 
         LIVE_LAST_DOWNLOAD_TIME = now
@@ -1274,20 +1212,15 @@ def _download_live_prices(
 
                             results[symbol] = {
 
-                                "price":
-                                    price,
+                                "price": price,
 
-                                "previous_close":
-                                    None,
+                                "previous_close": None,
 
-                                "change":
-                                    None,
+                                "change": None,
 
-                                "change_percent":
-                                    None,
+                                "change_percent": None,
 
-                                "status":
-                                    "LIVE",
+                                "status": "LIVE",
 
                                 "source":
                                     "Yahoo Finance / yfinance 1m",
@@ -1300,7 +1233,6 @@ def _download_live_prices(
                             }
 
                     except Exception:
-
                         continue
 
         except Exception as exc:
@@ -1358,7 +1290,6 @@ def _download_live_prices(
                                 close_series is None
                                 or len(close_series) < 2
                             ):
-
                                 continue
 
                             previous_close = float(
@@ -1401,12 +1332,9 @@ def _download_live_prices(
                                     symbol
                                 ][
                                     "change_percent"
-                                ] = (
-                                    change_percent
-                                )
+                                ] = change_percent
 
                         except Exception:
-
                             continue
 
             except Exception as exc:
@@ -1415,6 +1343,10 @@ def _download_live_prices(
                     "[YAHOO DAILY UYARI]",
                     str(exc)
                 )
+
+        # ====================================================
+        # FAST INFO FALLBACK
+        # ====================================================
 
         missing = [
             symbol
@@ -1438,20 +1370,15 @@ def _download_live_prices(
 
                         results[symbol] = {
 
-                            "price":
-                                price,
+                            "price": price,
 
-                            "previous_close":
-                                None,
+                            "previous_close": None,
 
-                            "change":
-                                None,
+                            "change": None,
 
-                            "change_percent":
-                                None,
+                            "change_percent": None,
 
-                            "status":
-                                "DELAYED",
+                            "status": "DELAYED",
 
                             "source":
                                 "Yahoo Finance / yfinance fast_info",
@@ -1464,7 +1391,6 @@ def _download_live_prices(
                         }
 
                 except Exception:
-
                     continue
 
         return results
@@ -1474,9 +1400,7 @@ def _download_live_prices(
 # CACHE
 # ============================================================
 
-def get_live_prices(
-    symbols
-):
+def get_live_prices(symbols):
 
     symbols = list(
         dict.fromkeys(
@@ -1489,7 +1413,6 @@ def get_live_prices(
     )
 
     if not symbols:
-
         return {}
 
     now = time.time()
@@ -1508,10 +1431,7 @@ def get_live_prices(
 
             if not item:
 
-                missing.append(
-                    symbol
-                )
-
+                missing.append(symbol)
                 continue
 
             cached_at = float(
@@ -1534,9 +1454,7 @@ def get_live_prices(
 
             else:
 
-                missing.append(
-                    symbol
-                )
+                missing.append(symbol)
 
     if missing:
 
@@ -1548,9 +1466,7 @@ def get_live_prices(
 
             for symbol, item in fresh.items():
 
-                item_copy = dict(
-                    item
-                )
+                item_copy = dict(item)
 
                 item_copy[
                     "_cached_at"
@@ -1578,29 +1494,24 @@ def get_live_prices(
 
                 "change_percent": None,
 
-                "status":
-                    "UNAVAILABLE",
+                "status": "UNAVAILABLE",
 
                 "source":
                     "Yahoo Finance / yfinance",
 
-                "updated_at_utc":
-                    None,
+                "updated_at_utc": None,
 
-                "updated_at_tr":
-                    None,
+                "updated_at_tr": None,
             }
 
     return output
 
 
 # ============================================================
-# DATAFRAME'E CANLI FİYAT
+# LIVE PRICE → DATAFRAME
 # ============================================================
 
-def apply_live_prices_to_dataframe(
-    df
-):
+def apply_live_prices_to_dataframe(df):
 
     if df is None or df.empty:
 
@@ -1668,28 +1579,17 @@ def apply_live_prices_to_dataframe(
         )
 
         if price is not None:
-
             live_count += 1
-
         else:
-
             unavailable_count += 1
 
-        price_values.append(
-            price
-        )
+        price_values.append(price)
 
-        change_values.append(
-            change
-        )
+        change_values.append(change)
 
-        status_values.append(
-            status
-        )
+        status_values.append(status)
 
-        source_values.append(
-            source
-        )
+        source_values.append(source)
 
         updated_utc.append(
             item.get(
@@ -1745,8 +1645,7 @@ def apply_live_prices_to_dataframe(
 
     meta = {
 
-        "live_count":
-            live_count,
+        "live_count": live_count,
 
         "unavailable_count":
             unavailable_count,
@@ -1790,13 +1689,17 @@ async def home(
 
     return HTMLResponse(
         """
-        <html>
+        <!DOCTYPE html>
+        <html lang="tr">
         <head>
-        <title>LEVEL 1000 AI</title>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+                  content="width=device-width,initial-scale=1">
+            <title>LEVEL 1000 AI</title>
         </head>
         <body>
-        <h1>LEVEL 1000 AI</h1>
-        <p>Web uygulaması aktif.</p>
+            <h1>LEVEL 1000 AI</h1>
+            <p>Web uygulaması aktif.</p>
         </body>
         </html>
         """
@@ -1804,7 +1707,7 @@ async def home(
 
 
 # ============================================================
-# PUBLIC SAYFALAR
+# PUBLIC PAGES
 # ============================================================
 
 def simple_page(
@@ -1818,7 +1721,9 @@ def simple_page(
         <html lang="tr">
         <head>
         <meta charset="UTF-8">
-        <title>{title}</title>
+        <meta name="viewport"
+              content="width=device-width,initial-scale=1">
+        <title>{escape(title)}</title>
         <style>
         body {{
             font-family: Arial, sans-serif;
@@ -1835,21 +1740,24 @@ def simple_page(
             line-height: 1.7;
             color: #cbd5e1;
         }}
+        a {{
+            color: #93c5fd;
+        }}
         </style>
         </head>
         <body>
-        <h1>{title}</h1>
-        <p>{text}</p>
+        <h1>{escape(title)}</h1>
+        <p>{escape(text)}</p>
+        <p>
+            <a href="/">LEVEL 1000 AI Ana Sayfa</a>
+        </p>
         </body>
         </html>
         """
     )
 
 
-@app.get(
-    "/about",
-    response_class=HTMLResponse
-)
+@app.get("/about", response_class=HTMLResponse)
 async def about():
 
     return simple_page(
@@ -1858,10 +1766,7 @@ async def about():
     )
 
 
-@app.get(
-    "/guide",
-    response_class=HTMLResponse
-)
+@app.get("/guide", response_class=HTMLResponse)
 async def guide():
 
     return simple_page(
@@ -1870,10 +1775,7 @@ async def guide():
     )
 
 
-@app.get(
-    "/risk",
-    response_class=HTMLResponse
-)
+@app.get("/risk", response_class=HTMLResponse)
 async def risk():
 
     return simple_page(
@@ -1882,34 +1784,25 @@ async def risk():
     )
 
 
-@app.get(
-    "/privacy",
-    response_class=HTMLResponse
-)
+@app.get("/privacy", response_class=HTMLResponse)
 async def privacy():
 
     return simple_page(
         "Gizlilik",
-        "Kullanıcı hesap bilgileri uygulamanın kullanıcı veritabanında tutulur."
+        "LEVEL 1000 AI normal kullanım için üyelik zorunluluğu gerektirmez. Admin hesapları güvenlik amacıyla veritabanında tutulabilir."
     )
 
 
-@app.get(
-    "/cookies",
-    response_class=HTMLResponse
-)
+@app.get("/cookies", response_class=HTMLResponse)
 async def cookies():
 
     return simple_page(
         "Çerezler",
-        "Oturum yönetimi için gerekli teknik çerezler kullanılabilir."
+        "Uygulama normal kullanım için üyelik zorunluluğu olmadan çalışır. Teknik çerezler kullanılabilir."
     )
 
 
-@app.get(
-    "/terms",
-    response_class=HTMLResponse
-)
+@app.get("/terms", response_class=HTMLResponse)
 async def terms():
 
     return simple_page(
@@ -1918,10 +1811,7 @@ async def terms():
     )
 
 
-@app.get(
-    "/contact",
-    response_class=HTMLResponse
-)
+@app.get("/contact", response_class=HTMLResponse)
 async def contact():
 
     return simple_page(
@@ -1933,6 +1823,8 @@ async def contact():
 # ============================================================
 # REGISTER
 # ============================================================
+# Eski kullanıcı sistemi tamamen silinmedi.
+# Ancak normal site kullanımı için gerekli değildir.
 
 @app.post("/api/register")
 async def register(
@@ -1980,9 +1872,7 @@ async def register(
         FROM users
         WHERE email = ?
         """,
-        (
-            email,
-        )
+        (email,)
     ).fetchone()
 
     if existing:
@@ -2017,7 +1907,7 @@ async def register(
             created_at
         )
         VALUES
-        (?, ?, ?, 'FREE', 0, 0, ?)
+        (?, ?, ?, 'MAX PRO', 0, 0, ?)
         """,
         (
             name,
@@ -2037,16 +1927,12 @@ async def register(
         FROM users
         WHERE id = ?
         """,
-        (
-            user_id,
-        )
+        (user_id,)
     ).fetchone()
 
     conn.close()
 
-    user = user_dict(
-        row
-    )
+    user = user_dict(row)
 
     token = create_token(
         user
@@ -2092,9 +1978,7 @@ async def login(
         FROM users
         WHERE email = ?
         """,
-        (
-            email,
-        )
+        (email,)
     ).fetchone()
 
     conn.close()
@@ -2129,9 +2013,7 @@ async def login(
             FROM users
             WHERE email = ?
             """,
-            (
-                email,
-            )
+            (email,)
         ).fetchone()
 
         conn.close()
@@ -2198,9 +2080,7 @@ async def login(
             FROM users
             WHERE email = ?
             """,
-            (
-                email,
-            )
+            (email,)
         ).fetchone()
 
         conn.close()
@@ -2214,9 +2094,7 @@ async def login(
             detail="E-posta veya şifre hatalı."
         )
 
-    user = user_dict(
-        row
-    )
+    user = user_dict(row)
 
     token = create_token(
         user
@@ -2247,66 +2125,40 @@ async def me(
 ):
 
     return {
-
         "ok": True,
-
-        "user":
-            user,
+        "user": user,
     }
 
 
 # ============================================================
 # PLAN
 # ============================================================
+# Artık OPEN döner.
 
 @app.get("/api/plan")
-async def plan(
-    user=Depends(get_current_user)
-):
-
-    config = get_plan_config(
-        user
-    )
-
-    used = int(
-        user["scan_count"]
-    )
-
-    if bool(
-        user["is_admin"]
-    ):
-
-        remaining = 999999
-
-    else:
-
-        remaining = max(
-            0,
-            int(config["scan_limit"])
-            - used
-        )
+async def plan():
 
     return {
 
         "ok": True,
 
         "plan":
-            config["name"],
+            PUBLIC_PLAN["name"],
 
         "plan_level":
-            config["level"],
+            PUBLIC_PLAN["level"],
 
         "features":
-            config,
+            PUBLIC_PLAN,
 
         "scan_used":
-            used,
+            0,
 
         "scan_limit":
-            config["scan_limit"],
+            999999,
 
         "scan_remaining":
-            remaining,
+            999999,
     }
 
 
@@ -2318,26 +2170,21 @@ async def plan(
 async def logout():
 
     return {
-
         "ok": True,
-
-        "message":
-            "Çıkış yapıldı."
+        "message": "Çıkış yapıldı."
     }
 
 
 # ============================================================
 # SIGNALS
 # ============================================================
+# HERKESE AÇIK
+# ÜYELİK YOK
+# PLAN YOK
+# DISPLAY LIMIT YOK
 
 @app.get("/api/signals")
-async def signals(
-    user=Depends(get_current_user)
-):
-
-    config = get_plan_config(
-        user
-    )
+async def signals():
 
     signal_file, df = (
         find_signal_file()
@@ -2360,13 +2207,19 @@ async def signals(
             "top": 0,
 
             "display_limit":
-                config["display_limit"],
+                999999,
 
             "min_score":
                 MIN_SIGNAL_SCORE,
 
             "plan":
-                config["name"],
+                "OPEN",
+
+            "plan_level":
+                999999,
+
+            "plan_features":
+                PUBLIC_PLAN,
 
             "signals": [],
 
@@ -2410,10 +2263,14 @@ async def signals(
         ).sum()
     )
 
+    # ========================================================
+    # TÜM SİNYALLER
+    # ========================================================
+
     display_df = (
         prepare_display_dataframe(
             df,
-            config["display_limit"]
+            None
         )
     )
 
@@ -2440,7 +2297,6 @@ async def signals(
         )
 
         if predicted is None:
-
             predicted = 0.0
 
         price = _clean_float(
@@ -2456,7 +2312,6 @@ async def signals(
         )
 
         if score is None:
-
             score = 0.0
 
         daily_change = _clean_float(
@@ -2580,19 +2435,19 @@ async def signals(
             len(records),
 
         "display_limit":
-            config["display_limit"],
+            999999,
 
         "min_score":
             MIN_SIGNAL_SCORE,
 
         "plan":
-            config["name"],
+            "OPEN",
 
         "plan_level":
-            config["level"],
+            999999,
 
         "plan_features":
-            config,
+            PUBLIC_PLAN,
 
         "signal_file":
             (
@@ -2641,12 +2496,10 @@ async def signals(
 
 
 # ============================================================
-# CANLI FİYAT TEST
+# CANLI FİYAT
 # ============================================================
 
-@app.get(
-    "/api/live-price/{symbol}"
-)
+@app.get("/api/live-price/{symbol}")
 async def live_price(
     symbol: str
 ):
@@ -2678,8 +2531,7 @@ async def live_price(
 
             "ok": False,
 
-            "symbol":
-                symbol,
+            "symbol": symbol,
 
             "price": None,
 
@@ -2695,46 +2547,35 @@ async def live_price(
             "source":
                 "Yahoo Finance / yfinance",
 
-            "updated_at_utc":
-                None,
+            "updated_at_utc": None,
 
-            "updated_at_tr":
-                None,
+            "updated_at_tr": None,
         }
 
     return {
 
         "ok": True,
 
-        "symbol":
-            symbol,
+        "symbol": symbol,
 
         "price":
             _clean_float(
-                item.get(
-                    "price"
-                )
+                item.get("price")
             ),
 
         "previous_close":
             _clean_float(
-                item.get(
-                    "previous_close"
-                )
+                item.get("previous_close")
             ),
 
         "change":
             _clean_float(
-                item.get(
-                    "change"
-                )
+                item.get("change")
             ),
 
         "change_percent":
             _clean_float(
-                item.get(
-                    "change_percent"
-                )
+                item.get("change_percent")
             ),
 
         "status":
@@ -2764,11 +2605,10 @@ async def live_price(
 # ============================================================
 # STATUS
 # ============================================================
+# HERKESE AÇIK
 
 @app.get("/api/status")
-async def status(
-    user=Depends(get_current_user)
-):
+async def status():
 
     signal_file, df = (
         find_signal_file()
@@ -2778,9 +2618,7 @@ async def status(
         df
     )
 
-    historical_total = len(
-        df
-    )
+    historical_total = len(df)
 
     historical_buy = (
         int(
@@ -2812,28 +2650,22 @@ async def status(
         else 0
     )
 
-    current_df = (
-        pd.DataFrame()
-    )
+    current_df = pd.DataFrame()
 
     if PAPER_SIGNALS.exists():
 
         try:
 
-            current_df = (
-                normalize_signal_dataframe(
-                    pd.read_csv(
-                        PAPER_SIGNALS,
-                        low_memory=False
-                    )
+            current_df = normalize_signal_dataframe(
+                pd.read_csv(
+                    PAPER_SIGNALS,
+                    low_memory=False
                 )
             )
 
         except Exception:
 
-            current_df = (
-                pd.DataFrame()
-            )
+            current_df = pd.DataFrame()
 
     current_total = len(
         current_df
@@ -2872,14 +2704,10 @@ async def status(
         else 0
     )
 
-    config = get_plan_config(
-        user
-    )
-
     strong_df = (
         prepare_display_dataframe(
             df,
-            config["display_limit"]
+            None
         )
     )
 
@@ -2926,16 +2754,16 @@ async def status(
             MIN_SIGNAL_SCORE,
 
         "plan":
-            config["name"],
+            "OPEN",
 
         "plan_level":
-            config["level"],
+            999999,
 
         "plan_limit":
-            config["display_limit"],
+            999999,
 
         "plan_features":
-            config,
+            PUBLIC_PLAN,
 
         "signal_file":
             (
@@ -2973,13 +2801,10 @@ async def status(
 # ============================================================
 # PAPER
 # ============================================================
+# HERKESE AÇIK
 
 @app.get("/api/paper")
-async def paper(
-    user=Depends(
-        require_plan("PRO")
-    )
-):
+async def paper():
 
     if not PAPER_SIGNALS.exists():
 
@@ -2992,12 +2817,10 @@ async def paper(
 
     try:
 
-        df = (
-            normalize_signal_dataframe(
-                pd.read_csv(
-                    PAPER_SIGNALS,
-                    low_memory=False
-                )
+        df = normalize_signal_dataframe(
+            pd.read_csv(
+                PAPER_SIGNALS,
+                low_memory=False
             )
         )
 
@@ -3043,11 +2866,10 @@ async def paper(
 # ============================================================
 # METRICS
 # ============================================================
+# HERKESE AÇIK
 
 @app.get("/api/metrics")
-async def metrics(
-    user=Depends(get_current_user)
-):
+async def metrics():
 
     files = [
 
@@ -3070,7 +2892,6 @@ async def metrics(
     for path in files:
 
         if not path.exists():
-
             continue
 
         try:
@@ -3101,7 +2922,6 @@ async def metrics(
             }
 
         except Exception:
-
             continue
 
     return {
@@ -3119,13 +2939,10 @@ async def metrics(
 # ============================================================
 # BACKTEST
 # ============================================================
+# HERKESE AÇIK
 
 @app.get("/api/backtest")
-async def backtest(
-    user=Depends(
-        require_plan("PRO")
-    )
-):
+async def backtest():
 
     files = [
 
@@ -3148,7 +2965,6 @@ async def backtest(
     for path in files:
 
         if not path.exists():
-
             continue
 
         try:
@@ -3179,7 +2995,6 @@ async def backtest(
             }
 
         except Exception:
-
             continue
 
     return {
@@ -3215,176 +3030,28 @@ run_lock = threading.Lock()
 
 
 # ============================================================
-# SCAN INFO
-# ============================================================
-
-def get_scan_info(
-    user
-):
-
-    config = get_plan_config(
-        user
-    )
-
-    used = int(
-        user["scan_count"]
-    )
-
-    limit = int(
-        config["scan_limit"]
-    )
-
-    if bool(
-        user["is_admin"]
-    ):
-
-        remaining = 999999
-
-    else:
-
-        remaining = max(
-            0,
-            limit - used
-        )
-
-    return {
-
-        "used":
-            used,
-
-        "limit":
-            limit,
-
-        "remaining":
-            remaining,
-    }
-
-
-def consume_scan(
-    user
-):
-
-    if bool(
-        user["is_admin"]
-    ):
-
-        return {
-
-            "ok": True,
-
-            "used": 0,
-
-            "limit": 999999,
-
-            "remaining": 999999,
-        }
-
-    config = get_plan_config(
-        user
-    )
-
-    limit = int(
-        config["scan_limit"]
-    )
-
-    conn = get_db()
-
-    cursor = conn.execute(
-        """
-        UPDATE users
-        SET scan_count = scan_count + 1
-        WHERE id = ?
-        AND scan_count < ?
-        """,
-        (
-            user["id"],
-            limit
-        )
-    )
-
-    conn.commit()
-
-    changed = cursor.rowcount
-
-    row = conn.execute(
-        """
-        SELECT scan_count
-        FROM users
-        WHERE id = ?
-        """,
-        (
-            user["id"],
-        )
-    ).fetchone()
-
-    conn.close()
-
-    if changed == 0:
-
-        return {
-
-            "ok": False,
-
-            "remaining": 0,
-        }
-
-    used = int(
-        row["scan_count"]
-    )
-
-    remaining = max(
-        0,
-        limit - used
-    )
-
-    return {
-
-        "ok": True,
-
-        "used":
-            used,
-
-        "limit":
-            limit,
-
-        "remaining":
-            remaining,
-    }
-
-
-# ============================================================
 # LEVEL 1000 PROCESS
 # ============================================================
 
 def run_level1000_process():
 
-    run_state[
-        "running"
-    ] = True
+    run_state["running"] = True
 
-    run_state[
-        "started_at"
-    ] = (
+    run_state["started_at"] = (
         datetime.now(
             timezone.utc
         ).isoformat()
     )
 
-    run_state[
-        "finished_at"
-    ] = None
+    run_state["finished_at"] = None
 
-    run_state[
-        "error"
-    ] = None
+    run_state["error"] = None
 
     try:
 
         if not LEVEL1000_FILE.exists():
 
-            run_state[
-                "error"
-            ] = (
+            run_state["error"] = (
                 "level1000.py bulunamadı."
             )
 
@@ -3393,44 +3060,31 @@ def run_level1000_process():
         process = subprocess.Popen(
             [
                 sys.executable,
-                str(
-                    LEVEL1000_FILE
-                )
+                str(LEVEL1000_FILE)
             ],
-            cwd=str(
-                BASE_DIR
-            )
+            cwd=str(BASE_DIR)
         )
 
         process.wait()
 
         if process.returncode != 0:
 
-            run_state[
-                "error"
-            ] = (
+            run_state["error"] = (
                 "LEVEL 1000 hata kodu: "
-                +
-                str(
+                + str(
                     process.returncode
                 )
             )
 
     except Exception as exc:
 
-        run_state[
-            "error"
-        ] = str(exc)
+        run_state["error"] = str(exc)
 
     finally:
 
-        run_state[
-            "running"
-        ] = False
+        run_state["running"] = False
 
-        run_state[
-            "finished_at"
-        ] = (
+        run_state["finished_at"] = (
             datetime.now(
                 timezone.utc
             ).isoformat()
@@ -3440,17 +3094,15 @@ def run_level1000_process():
 # ============================================================
 # RUN
 # ============================================================
+# HERKESE AÇIK
+# TARAMA LİMİTİ YOK
 
 @app.post("/api/run")
-async def run_analysis(
-    user=Depends(get_current_user)
-):
+async def run_analysis():
 
     with run_lock:
 
-        if run_state[
-            "running"
-        ]:
+        if run_state["running"]:
 
             return {
 
@@ -3460,51 +3112,14 @@ async def run_analysis(
                     "Analiz zaten çalışıyor."
             }
 
-        scan_info = (
-            get_scan_info(
-                user
-            )
-        )
+        # ====================================================
+        # ARTIK SCAN COUNT YOK
+        # ====================================================
 
-        if (
-            not bool(
-                user["is_admin"]
-            )
-            and
-            scan_info[
-                "remaining"
-            ] <= 0
-        ):
-
-            raise HTTPException(
-                status_code=403,
-                detail=
-                    "Tarama hakkınız bitti."
-            )
-
-        consumed = (
-            consume_scan(
-                user
-            )
-        )
-
-        if not consumed[
-            "ok"
-        ]:
-
-            raise HTTPException(
-                status_code=403,
-                detail=
-                    "Tarama hakkınız kalmadı."
-            )
-
-        run_state[
-            "last_user"
-        ] = user["email"]
+        run_state["last_user"] = "PUBLIC"
 
         thread = threading.Thread(
-            target=
-                run_level1000_process,
+            target=run_level1000_process,
             daemon=True
         )
 
@@ -3517,48 +3132,45 @@ async def run_analysis(
         "message":
             "Analiz başlatıldı.",
 
-        "scan":
-            consumed,
+        "scan": {
+
+            "used": 0,
+
+            "limit": 999999,
+
+            "remaining": 999999,
+
+            "unlimited": True
+        }
     }
 
 
 # ============================================================
 # RUN STATUS
 # ============================================================
+# HERKESE AÇIK
 
 @app.get("/api/run-status")
-async def run_status(
-    user=Depends(get_current_user)
-):
+async def run_status():
 
     return {
 
         "ok": True,
 
         "running":
-            run_state[
-                "running"
-            ],
+            run_state["running"],
 
         "started_at":
-            run_state[
-                "started_at"
-            ],
+            run_state["started_at"],
 
         "finished_at":
-            run_state[
-                "finished_at"
-            ],
+            run_state["finished_at"],
 
         "error":
-            run_state[
-                "error"
-            ],
+            run_state["error"],
 
         "last_user":
-            run_state[
-                "last_user"
-            ],
+            run_state["last_user"],
     }
 
 
@@ -3590,9 +3202,7 @@ async def make_admin(
             plan = 'MAX PRO'
         WHERE email = ?
         """,
-        (
-            email,
-        )
+        (email,)
     )
 
     conn.commit()
@@ -3605,8 +3215,7 @@ async def make_admin(
 
         raise HTTPException(
             status_code=404,
-            detail=
-                "Kullanıcı bulunamadı."
+            detail="Kullanıcı bulunamadı."
         )
 
     return {
@@ -3614,7 +3223,7 @@ async def make_admin(
         "ok": True,
 
         "message":
-            "Kullanıcı admin ve MAX PRO yapıldı."
+            "Kullanıcı admin yapıldı."
     }
 
 
@@ -3652,54 +3261,17 @@ async def admin_users(
 
     for row in users:
 
-        item = user_dict(
-            row
-        )
+        item = user_dict(row)
 
-        config = get_plan_config(
-            row
-        )
-
-        used = int(
+        item["scan_count"] = int(
             row["scan_count"]
         )
 
-        item[
-            "scan_count"
-        ] = used
+        # Public sistemde limit yok.
+        item["scan_limit"] = 999999
+        item["scan_remaining"] = 999999
 
-        if bool(
-            row["is_admin"]
-        ):
-
-            item[
-                "scan_limit"
-            ] = 999999
-
-            item[
-                "scan_remaining"
-            ] = 999999
-
-        else:
-
-            item[
-                "scan_limit"
-            ] = config[
-                "scan_limit"
-            ]
-
-            item[
-                "scan_remaining"
-            ] = max(
-                0,
-                config[
-                    "scan_limit"
-                ] - used
-            )
-
-        result.append(
-            item
-        )
+        result.append(item)
 
     return {
 
@@ -3782,7 +3354,7 @@ async def set_plan(
             plan,
 
         "message":
-            f"Kullanıcı planı {plan} yapıldı."
+            "Kullanıcı planı güncellendi."
     }
 
 
@@ -3806,6 +3378,15 @@ async def health():
 
         "status":
             "ONLINE",
+
+        "public_access":
+            True,
+
+        "membership_required":
+            False,
+
+        "payment_required":
+            False,
 
         "signals_available":
             not df.empty,
@@ -3834,11 +3415,10 @@ async def health():
 # ============================================================
 # DEBUG
 # ============================================================
+# HERKESE AÇIK
 
 @app.get("/api/debug/data")
-async def debug_data(
-    user=Depends(get_current_user)
-):
+async def debug_data():
 
     signal_file, df = (
         find_signal_file()
@@ -3871,14 +3451,10 @@ async def debug_data(
         )
     )
 
-    config = get_plan_config(
-        user
-    )
-
     strong = (
         prepare_display_dataframe(
             normalized,
-            config["display_limit"]
+            None
         )
     )
 
@@ -3912,8 +3488,7 @@ async def debug_data(
                 (
                     normalized[
                         "Signal"
-                    ]
-                    == "BUY"
+                    ] == "BUY"
                 ).sum()
             ),
 
@@ -3922,8 +3497,7 @@ async def debug_data(
                 (
                     normalized[
                         "Signal"
-                    ]
-                    == "SELL"
+                    ] == "SELL"
                 ).sum()
             ),
 
@@ -3932,8 +3506,7 @@ async def debug_data(
                 (
                     normalized[
                         "Signal"
-                    ]
-                    == "HOLD"
+                    ] == "HOLD"
                 ).sum()
             ),
 
@@ -3941,10 +3514,10 @@ async def debug_data(
             len(strong),
 
         "plan":
-            config["name"],
+            "OPEN",
 
         "plan_limit":
-            config["display_limit"],
+            999999,
 
         "min_score":
             MIN_SIGNAL_SCORE,
@@ -3990,13 +3563,11 @@ async def debug_data(
 # ============================================================
 # TEK SİNYAL
 # ============================================================
+# HERKESE AÇIK
 
-@app.get(
-    "/api/signal/{ticker}"
-)
+@app.get("/api/signal/{ticker}")
 async def single_signal(
-    ticker: str,
-    user=Depends(get_current_user)
+    ticker: str
 ):
 
     signal_file, df = (
@@ -4007,8 +3578,7 @@ async def single_signal(
 
         raise HTTPException(
             status_code=404,
-            detail=
-                "Henüz sinyal verisi yok."
+            detail="Henüz sinyal verisi yok."
         )
 
     df = normalize_signal_dataframe(
@@ -4032,8 +3602,7 @@ async def single_signal(
 
         raise HTTPException(
             status_code=404,
-            detail=
-                f"{ticker} bulunamadı."
+            detail=f"{ticker} bulunamadı."
         )
 
     result, live_meta = (
@@ -4068,15 +3637,10 @@ async def single_signal(
 # ============================================================
 # MONTE CARLO
 # ============================================================
+# HERKESE AÇIK
 
-@app.get(
-    "/api/montecarlo"
-)
-async def montecarlo(
-    user=Depends(
-        require_plan("PRO")
-    )
-):
+@app.get("/api/montecarlo")
+async def montecarlo():
 
     files = [
 
@@ -4085,13 +3649,11 @@ async def montecarlo(
 
         BASE_DIR /
         "level1000_monte_carlo.csv",
-
     ]
 
     for path in files:
 
         if not path.exists():
-
             continue
 
         try:
@@ -4119,7 +3681,6 @@ async def montecarlo(
             }
 
         except Exception:
-
             continue
 
     return {
@@ -4136,9 +3697,7 @@ async def montecarlo(
 # ERROR HANDLERS
 # ============================================================
 
-@app.exception_handler(
-    404
-)
+@app.exception_handler(404)
 async def not_found(
     request: Request,
     exc
@@ -4170,9 +3729,7 @@ async def not_found(
     )
 
 
-@app.exception_handler(
-    500
-)
+@app.exception_handler(500)
 async def server_error(
     request: Request,
     exc
@@ -4202,25 +3759,21 @@ async def server_error(
 
 
 # ============================================================
-# LEVEL 1000 AI - GOOGLE SEO
-# PUBLIC STOCK PAGES
+# SEO
 # ============================================================
 
-SEO_BASE_URL = "https://level1000-2.onrender.com"
+SEO_BASE_URL = (
+    "https://level1000-2.onrender.com"
+)
 
 
 # ============================================================
-# PUBLIC TICKER LIST
+# PUBLIC TICKERS
 # ============================================================
 
 def get_public_tickers():
 
     result = set()
-
-
-    # --------------------------------------------------------
-    # SIGNAL CSV
-    # --------------------------------------------------------
 
     try:
 
@@ -4233,8 +3786,7 @@ def get_public_tickers():
             )
 
             if (
-                df is not None
-                and not df.empty
+                not df.empty
                 and "Ticker" in df.columns
             ):
 
@@ -4263,13 +3815,8 @@ def get_public_tickers():
     except Exception:
         pass
 
-
-    # --------------------------------------------------------
-    # SYMBOLS.TXT
-    # --------------------------------------------------------
-
-    symbols_file = Path(
-        "symbols.txt"
+    symbols_file = (
+        BASE_DIR / "symbols.txt"
     )
 
     if symbols_file.exists():
@@ -4317,12 +3864,6 @@ def get_public_tickers():
 
         except Exception:
             pass
-
-
-    # --------------------------------------------------------
-    # POPÜLER ABD HİSSELERİ
-    # TAM 50 TICKER
-    # --------------------------------------------------------
 
     result.update({
 
@@ -4379,11 +3920,6 @@ def get_public_tickers():
 
     })
 
-
-    # --------------------------------------------------------
-    # ETF
-    # --------------------------------------------------------
-
     result.update({
 
         "SPY",
@@ -4411,11 +3947,6 @@ def get_public_tickers():
 
     })
 
-
-    # --------------------------------------------------------
-    # KRİPTO
-    # --------------------------------------------------------
-
     result.update({
 
         "BTC-USD",
@@ -4431,10 +3962,7 @@ def get_public_tickers():
 
     })
 
-
-    return sorted(
-        result
-    )
+    return sorted(result)
 
 
 # ============================================================
@@ -4447,7 +3975,6 @@ def get_public_signal(ticker):
         ticker
     ).strip().upper()
 
-
     try:
 
         signal_file, df = find_signal_file()
@@ -4455,18 +3982,15 @@ def get_public_signal(ticker):
         if df is None or df.empty:
             return None
 
-
         df = normalize_signal_dataframe(
             df
         )
 
         if (
-            df is None
-            or df.empty
+            df.empty
             or "Ticker" not in df.columns
         ):
             return None
-
 
         result = df[
             df["Ticker"]
@@ -4476,13 +4000,10 @@ def get_public_signal(ticker):
             == ticker
         ].copy()
 
-
         if result.empty:
             return None
 
-
         row = result.iloc[0]
-
 
         probability = _clean_float(
             row.get(
@@ -4490,20 +4011,17 @@ def get_public_signal(ticker):
             )
         )
 
-
         predicted_return = _clean_float(
             row.get(
                 "AI_Predicted_Return"
             )
         )
 
-
         price = _clean_float(
             row.get(
                 "Price"
             )
         )
-
 
         signal = str(
             row.get(
@@ -4512,10 +4030,8 @@ def get_public_signal(ticker):
             )
         ).strip().upper()
 
-
         if not signal:
             signal = "VERİ YOK"
-
 
         date = str(
             row.get(
@@ -4523,7 +4039,6 @@ def get_public_signal(ticker):
                 "-"
             )
         )
-
 
         return {
 
@@ -4542,7 +4057,6 @@ def get_public_signal(ticker):
             "has_signal": True
 
         }
-
 
     except Exception:
 
@@ -4565,14 +4079,12 @@ async def public_stock_page(
         ticker
     ).strip().upper()
 
-
     if not ticker:
 
         raise HTTPException(
             status_code=404,
             detail="Hisse bulunamadı."
         )
-
 
     if len(ticker) > 30:
 
@@ -4581,19 +4093,9 @@ async def public_stock_page(
             detail="Geçersiz sembol."
         )
 
-
-    # --------------------------------------------------------
-    # CSV'DEN SİNYAL
-    # --------------------------------------------------------
-
     data = get_public_signal(
         ticker
     )
-
-
-    # --------------------------------------------------------
-    # CSV'DE YOKSA DA SAYFA AÇ
-    # --------------------------------------------------------
 
     if data is None:
 
@@ -4612,41 +4114,29 @@ async def public_stock_page(
             "date": "-",
 
             "has_signal": False
-
         }
-
 
     safe_ticker = escape(
         data["ticker"]
     )
 
-
     safe_signal = escape(
         data["signal"]
     )
 
-
-    probability = data[
-        "probability"
-    ]
-
+    probability = data["probability"]
 
     predicted_return = data[
         "predicted_return"
     ]
 
-
-    price = data[
-        "price"
-    ]
-
+    price = data["price"]
 
     date = escape(
         str(
             data["date"]
         )
     )
-
 
     if probability is not None:
 
@@ -4658,7 +4148,6 @@ async def public_stock_page(
 
         probability_text = "Henüz yok"
 
-
     if predicted_return is not None:
 
         predicted_text = (
@@ -4668,7 +4157,6 @@ async def public_stock_page(
     else:
 
         predicted_text = "Henüz yok"
-
 
     if price is not None:
 
@@ -4680,31 +4168,26 @@ async def public_stock_page(
 
         price_text = "Henüz yok"
 
-
     encoded_ticker = quote(
         ticker,
         safe=".-_"
     )
-
 
     canonical = (
         f"{SEO_BASE_URL}/hisse/"
         f"{encoded_ticker}"
     )
 
-
     title = (
         f"{safe_ticker} Hisse Senedi Analizi | "
         f"Fiyat ve AI Sinyali | LEVEL 1000 AI"
     )
-
 
     description = (
         f"{safe_ticker} hisse senedi analizi, "
         f"fiyat, AI sinyali, AI olasılığı ve "
         f"tahmini getiri bilgilerini inceleyin."
     )
-
 
     return HTMLResponse(
 
@@ -4739,7 +4222,6 @@ async def public_stock_page(
     href="{canonical}"
 >
 
-
 <meta
     property="og:type"
     content="website"
@@ -4765,7 +4247,6 @@ async def public_stock_page(
     content="LEVEL 1000 AI"
 >
 
-
 <script type="application/ld+json">
 
 {{
@@ -4782,7 +4263,6 @@ async def public_stock_page(
 }}
 
 </script>
-
 
 <style>
 
@@ -5010,7 +4490,6 @@ h2 {{
 
     gap:
         12px;
-
 }}
 
 .links a {{
@@ -5020,7 +4499,6 @@ h2 {{
 
     text-decoration:
         none;
-
 }}
 
 footer {{
@@ -5042,12 +4520,9 @@ footer {{
 
 </head>
 
-
 <body>
 
-
 <div class="container">
-
 
 <div class="topbar">
 
@@ -5064,7 +4539,6 @@ footer {{
 
 </div>
 
-
 <div class="card">
 
     <h1>
@@ -5078,9 +4552,7 @@ footer {{
 
     </p>
 
-
     <div class="grid">
-
 
         <div class="stat">
 
@@ -5094,7 +4566,6 @@ footer {{
 
         </div>
 
-
         <div class="stat">
 
             <div class="stat-title">
@@ -5106,7 +4577,6 @@ footer {{
             </div>
 
         </div>
-
 
         <div class="stat">
 
@@ -5120,7 +4590,6 @@ footer {{
 
         </div>
 
-
         <div class="stat">
 
             <div class="stat-title">
@@ -5132,7 +4601,6 @@ footer {{
             </div>
 
         </div>
-
 
         <div class="stat">
 
@@ -5146,11 +4614,9 @@ footer {{
 
         </div>
 
-
     </div>
 
 </div>
-
 
 <div class="card">
 
@@ -5173,7 +4639,6 @@ footer {{
 
 </div>
 
-
 <div class="card">
 
     <h2>
@@ -5188,20 +4653,19 @@ footer {{
         piyasa araştırması yapılmasına yardımcı
         olmak amacıyla geliştirilmiştir.
 
+        Platform normal ziyaretçiler için
+        üyelik veya satın alma zorunluluğu
+        olmadan kullanılabilir.
+
     </p>
 
     <div class="links">
 
         <a href="/hisse/AAPL">AAPL</a>
-
         <a href="/hisse/NVDA">NVDA</a>
-
         <a href="/hisse/TSLA">TSLA</a>
-
         <a href="/hisse/MSFT">MSFT</a>
-
         <a href="/hisse/AMZN">AMZN</a>
-
         <a href="/hisse/GOOGL">GOOGL</a>
 
     </div>
@@ -5216,7 +4680,6 @@ footer {{
     </a>
 
 </div>
-
 
 <div class="card">
 
@@ -5237,14 +4700,12 @@ footer {{
 
 </div>
 
-
 <footer>
 
     LEVEL 1000 AI —
     Yapay zeka destekli piyasa araştırma platformu.
 
 </footer>
-
 
 </div>
 
@@ -5285,7 +4746,6 @@ async def sitemap():
 
     ]
 
-
     for ticker in get_public_tickers():
 
         encoded = quote(
@@ -5297,13 +4757,11 @@ async def sitemap():
             f"{SEO_BASE_URL}/hisse/{encoded}"
         )
 
-
     urls = list(
         dict.fromkeys(
             urls
         )
     )
-
 
     xml = [
 
@@ -5313,7 +4771,6 @@ async def sitemap():
 
     ]
 
-
     for url in urls:
 
         xml.append(
@@ -5322,11 +4779,9 @@ async def sitemap():
             f"</url>"
         )
 
-
     xml.append(
         "</urlset>"
     )
-
 
     return PlainTextResponse(
 
@@ -5354,15 +4809,23 @@ async def robots():
     )
 
     return PlainTextResponse(
+
         content=robots_text,
+
         media_type="text/plain",
+
         headers={
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache",
-            "Expires": "0",
+
+            "Cache-Control":
+                "no-cache, no-store, must-revalidate",
+
+            "Pragma":
+                "no-cache",
+
+            "Expires":
+                "0",
         },
     )
-
 
 
 # ============================================================
@@ -5389,25 +4852,66 @@ if __name__ == "__main__":
     print("")
     print("=" * 70)
     print(" LEVEL 1000 AI")
+    print(" PUBLIC / ÜYELİKSİZ SİSTEM")
+    print(" SATIN ALMA ZORUNLULUĞU YOK")
+    print(" TÜM NORMAL ÖZELLİKLER AÇIK")
+    print(" ADMIN SİSTEMİ KORUMALI")
     print(" CANLI FİYAT + 429 KORUMASI AKTİF")
-    print(" OTOMATİK ADMIN SİSTEMİ AKTİF")
     print("=" * 70)
+
     print(
-        "Kaynak : Yahoo Finance / yfinance"
+        "Public Access     :",
+        PUBLIC_ACCESS
     )
+
     print(
-        "Cache  :",
+        "Membership Required: NO"
+    )
+
+    print(
+        "Payment Required   : NO"
+    )
+
+    print(
+        "Signals            : UNLIMITED"
+    )
+
+    print(
+        "Backtest           : OPEN"
+    )
+
+    print(
+        "Paper Trading      : OPEN"
+    )
+
+    print(
+        "Monte Carlo        : OPEN"
+    )
+
+    print(
+        "Advanced AI        : OPEN"
+    )
+
+    print(
+        "Kaynak             : Yahoo Finance / yfinance"
+    )
+
+    print(
+        "Cache              :",
         LIVE_PRICE_CACHE_SECONDS,
         "saniye"
     )
+
     print(
-        "Interval:",
+        "Interval           :",
         LIVE_INTERVAL
     )
+
     print(
-        "Port   :",
+        "Port               :",
         port
     )
+
     print("=" * 70)
     print("")
 
