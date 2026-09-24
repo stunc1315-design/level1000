@@ -1,67 +1,33 @@
-/* =========================================================
-   LEVEL 1000 AI
-   PUBLIC / OPEN MODE
-   FAST FRONTEND
-   ========================================================= */
-
 "use strict";
 
-const API_BASE = "";
+/* =========================================================
+   LEVEL 1000 AI - PUBLIC FRONTEND
+   ========================================================= */
 
-const DISPLAY_LIMIT = 300;
+const API_BASE = "";
 const PAGE_SIZE = 50;
 
 let allSignals = [];
 let filteredSignals = [];
 let currentPage = 1;
-
-let runPollTimer = null;
-let refreshTimer = null;
 let isLoadingSignals = false;
-
-
-/* =========================================================
-   API
-   ========================================================= */
-
-async function publicFetch(url, options = {}) {
-    const config = {
-        ...options,
-        headers: {
-            Accept: "application/json",
-            ...(options.body ? { "Content-Type": "application/json" } : {}),
-            ...(options.headers || {})
-        }
-    };
-
-    return fetch(API_BASE + url, config);
-}
-
-
-async function readJson(response) {
-    try {
-        return await response.json();
-    } catch {
-        return {};
-    }
-}
-
+let refreshTimer = null;
+let runPollTimer = null;
 
 /* =========================================================
-   HELPERS
+   YARDIMCILAR
    ========================================================= */
+
+function byId(id) {
+    return document.getElementById(id);
+}
 
 function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
+    const el = byId(id);
+    if (el) {
+        el.textContent = value ?? "";
+    }
 }
-
-
-function setHTML(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = value;
-}
-
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -72,67 +38,115 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
-
-function escapeJs(value) {
-    return String(value ?? "")
-        .replaceAll("\\", "\\\\")
-        .replaceAll("'", "\\'")
-        .replaceAll("\n", "\\n")
-        .replaceAll("\r", "\\r");
+function numberValue(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
 }
 
+function formatNumber(value, decimals = 2) {
+    const n = numberValue(value);
 
-function formatNumber(value, digits = 2) {
-    if (
-        value === null ||
-        value === undefined ||
-        value === "" ||
-        Number.isNaN(Number(value))
-    ) {
+    if (n === null) {
         return "-";
     }
 
-    return Number(value).toLocaleString("tr-TR", {
-        minimumFractionDigits: digits,
-        maximumFractionDigits: digits
+    return n.toLocaleString("tr-TR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
     });
 }
 
-
 function formatPercent(value) {
-    if (
-        value === null ||
-        value === undefined ||
-        value === "" ||
-        Number.isNaN(Number(value))
-    ) {
+    const n = numberValue(value);
+
+    if (n === null) {
         return "-";
     }
 
-    let n = Number(value);
+    let percent = n;
 
-    if (Math.abs(n) <= 1) {
-        n *= 100;
+    /*
+       API:
+       0.7467 = 74.67%
+       0.0336 = 3.36%
+       74.67  = 74.67%
+    */
+    if (Math.abs(percent) <= 1) {
+        percent *= 100;
     }
 
-    return `${n.toFixed(2)}%`;
+    return percent.toLocaleString("tr-TR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }) + "%";
 }
 
+function valueClass(value) {
+    const n = numberValue(value);
+
+    if (n === null) {
+        return "neutral";
+    }
+
+    if (n > 0) {
+        return "positive";
+    }
+
+    if (n < 0) {
+        return "negative";
+    }
+
+    return "neutral";
+}
 
 function signalClass(signal) {
-    signal = String(signal || "").toUpperCase();
+    const s = String(signal || "").toUpperCase();
 
-    if (signal === "BUY" || signal === "AL") {
-        return "buy";
+    if (s === "BUY" || s === "AL") {
+        return "signal-buy";
     }
 
-    if (signal === "SELL" || signal === "SAT") {
-        return "sell";
+    if (s === "SELL" || s === "SAT") {
+        return "signal-sell";
     }
 
-    return "hold";
+    return "signal-hold";
 }
 
+/* =========================================================
+   API
+   ========================================================= */
+
+async function publicFetch(url, options = {}) {
+    const headers = {
+        "Accept": "application/json"
+    };
+
+    if (options.body) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    if (options.headers) {
+        Object.assign(headers, options.headers);
+    }
+
+    return fetch(API_BASE + url, {
+        ...options,
+        headers
+    });
+}
+
+async function readJson(response) {
+    try {
+        return await response.json();
+    } catch {
+        return {};
+    }
+}
+
+/* =========================================================
+   SİNYAL NORMALİZASYONU
+   ========================================================= */
 
 function normalizeSignal(row) {
     let signal =
@@ -146,9 +160,17 @@ function normalizeSignal(row) {
 
     signal = String(signal).toUpperCase();
 
-    if (signal === "AL") signal = "BUY";
-    if (signal === "SAT") signal = "SELL";
-    if (signal === "BEKLE") signal = "HOLD";
+    if (signal === "AL") {
+        signal = "BUY";
+    }
+
+    if (signal === "SAT") {
+        signal = "SELL";
+    }
+
+    if (signal === "BEKLE") {
+        signal = "HOLD";
+    }
 
     return {
         symbol:
@@ -158,7 +180,7 @@ function normalizeSignal(row) {
             row.Ticker ??
             "-",
 
-        signal,
+        signal: signal,
 
         score:
             row.score ??
@@ -174,6 +196,13 @@ function normalizeSignal(row) {
             row.Close ??
             null,
 
+        change:
+            row.change ??
+            row.Change ??
+            row.daily_change_percent ??
+            row.Daily_Change_Percent ??
+            null,
+
         predictedReturn:
             row.predicted_return ??
             row.Predicted_Return ??
@@ -181,13 +210,6 @@ function normalizeSignal(row) {
             row.AI_Predicted_Return ??
             row.expected_return ??
             row.Expected_Return ??
-            null,
-
-        change:
-            row.change ??
-            row.Change ??
-            row.daily_change_percent ??
-            row.Daily_Change_Percent ??
             null,
 
         priceStatus:
@@ -207,185 +229,80 @@ function normalizeSignal(row) {
     };
 }
 
-
 /* =========================================================
-   TOAST
+   TABLO
    ========================================================= */
 
-function showToast(message, type = "info") {
-    const old = document.querySelector(".level-toast");
-
-    if (old) {
-        old.remove();
-    }
-
-    const toast = document.createElement("div");
-
-    toast.className = `level-toast ${type}`;
-    toast.textContent = message;
-
-    Object.assign(toast.style, {
-        position: "fixed",
-        right: "20px",
-        bottom: "20px",
-        zIndex: "999999",
-        padding: "13px 18px",
-        borderRadius: "12px",
-        background: "#ffffff",
-        color: "#111827",
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 10px 35px rgba(0,0,0,.18)",
-        fontSize: "14px",
-        fontWeight: "600",
-        maxWidth: "380px"
-    });
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.remove();
-        }
-    }, 3500);
+function getTableBody() {
+    return byId("signalsBody");
 }
 
+function showTableLoading() {
+    const tbody = getTableBody();
 
-/* =========================================================
-   PUBLIC SESSION
-   ========================================================= */
-
-async function checkSession() {
-    showAppScreen();
-    return true;
-}
-
-
-function showAppScreen() {
-    const auth = document.getElementById("authScreen");
-    const app = document.getElementById("appScreen");
-
-    if (auth) {
-        auth.style.display = "none";
-    }
-
-    if (app) {
-        app.style.display = "block";
-    }
-}
-
-
-function showAuthScreen() {
-    showAppScreen();
-}
-
-
-function requirePlan() {
-    return true;
-}
-
-
-function selectPlan() {
-    return true;
-}
-
-
-async function loadPlan() {
-    setText("userPlan", "OPEN");
-    setText("planName", "OPEN");
-
-    return {
-        ok: true,
-        plan: "OPEN",
-        plan_level: 999999
-    };
-}
-
-
-/* =========================================================
-   SIGNAL DATA
-   ========================================================= */
-
-async function loadSignals() {
-
-    if (isLoadingSignals) {
+    if (!tbody) {
+        console.error("LEVEL 1000: signalsBody bulunamadı.");
         return;
     }
 
-    isLoadingSignals = true;
-
-    showTableLoading();
-
-    try {
-
-        const response = await publicFetch("/api/signals");
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await readJson(response);
-
-        if (!data || !Array.isArray(data.signals)) {
-            throw new Error("Sinyal verisi bulunamadı.");
-        }
-
-        /*
-         * ÖNEMLİ:
-         * 166.200 kayıt bellekte tutulabilir.
-         * Ancak HTML'e sadece gerekli sayfa basılır.
-         */
-
-        allSignals = data.signals;
-
-        updateKPIsFromAPI(data);
-
-        filteredSignals = allSignals;
-
-        currentPage = 1;
-
-        renderCurrentPage();
-
-        setText(
-            "signalUpdated",
-            data.updated_at ||
-            data.last_update ||
-            new Date().toLocaleString("tr-TR")
-        );
-
-        setText(
-            "totalSignalInfo",
-            `${allSignals.length.toLocaleString("tr-TR")} sinyal`
-        );
-
-        return data;
-
-    } catch (error) {
-
-        console.error("Signals:", error);
-
-        showTableError(
-            "Sinyal verileri yüklenemedi."
-        );
-
-        return null;
-
-    } finally {
-
-        isLoadingSignals = false;
-    }
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" style="text-align:center;padding:35px;">
+                <div style="font-size:28px;margin-bottom:8px;">⏳</div>
+                <strong>Veriler yükleniyor...</strong>
+                <div style="margin-top:6px;opacity:.7;">
+                    Sinyal verisi alınıyor.
+                </div>
+            </td>
+        </tr>
+    `;
 }
 
+function showTableError(message) {
+    const tbody = getTableBody();
+
+    if (!tbody) {
+        return;
+    }
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" style="text-align:center;padding:35px;">
+                <div style="font-size:28px;margin-bottom:8px;">⚠️</div>
+                <strong>Veriler yüklenemedi</strong>
+                <div style="margin-top:8px;opacity:.8;">
+                    ${escapeHtml(message)}
+                </div>
+                <button
+                    onclick="loadSignals()"
+                    style="
+                        margin-top:15px;
+                        padding:9px 15px;
+                        border:1px solid #475569;
+                        border-radius:8px;
+                        cursor:pointer;
+                    "
+                >
+                    Tekrar Dene
+                </button>
+            </td>
+        </tr>
+    `;
+}
 
 /* =========================================================
    KPI
    ========================================================= */
 
-function updateKPIsFromAPI(data) {
-
+function updateKPIs(data) {
     const buy = Number(data.buy || 0);
     const sell = Number(data.sell || 0);
     const hold = Number(data.hold || 0);
-    const total = Number(data.total || allSignals.length || 0);
+    const total = Number(
+        data.total ||
+        allSignals.length ||
+        0
+    );
 
     setText(
         "buyCount",
@@ -393,308 +310,145 @@ function updateKPIsFromAPI(data) {
     );
 
     setText(
-        "sellCount",
+        "satışSayısı",
         sell.toLocaleString("tr-TR")
     );
 
     setText(
-        "holdCount",
+        "tutmaSayısı",
         hold.toLocaleString("tr-TR")
     );
 
     setText(
-        "topCount",
-        Math.min(20, total).toLocaleString("tr-TR")
-    );
-
-    setText(
-        "totalCount",
-        total.toLocaleString("tr-TR")
-    );
-
-    setText(
-        "signalCount",
+        "toplamSayısı",
         total.toLocaleString("tr-TR")
     );
 }
 
+/* =========================================================
+   SİNYALLERİ YÜKLE
+   ========================================================= */
 
-function updateKPIsFromFilteredData() {
+async function loadSignals() {
+    if (isLoadingSignals) {
+        return null;
+    }
 
-    let buy = 0;
-    let sell = 0;
-    let hold = 0;
+    isLoadingSignals = true;
 
-    for (const row of filteredSignals) {
+    showTableLoading();
 
-        const signal = normalizeSignal(row).signal;
+    try {
+        console.log("LEVEL 1000: /api/signals yükleniyor...");
 
-        if (signal === "BUY") {
-            buy++;
-        } else if (signal === "SELL") {
-            sell++;
-        } else {
-            hold++;
+        const response = await publicFetch("/api/signals");
+
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
         }
-    }
 
-    setText("buyCount", buy.toLocaleString("tr-TR"));
-    setText("sellCount", sell.toLocaleString("tr-TR"));
-    setText("holdCount", hold.toLocaleString("tr-TR"));
-}
+        const data = await readJson(response);
 
-
-/* =========================================================
-   TABLE LOADING
-   ========================================================= */
-
-function getTableBody() {
-
-    return (
-        document.getElementById("signalsTableBody") ||
-        document.querySelector("#signalsTable tbody")
-    );
-}
-
-
-function showTableLoading() {
-
-    const tbody = getTableBody();
-
-    if (!tbody) return;
-
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="20" style="
-                text-align:center;
-                padding:45px 20px;
-            ">
-                <div style="
-                    font-size:30px;
-                    margin-bottom:10px;
-                ">⏳</div>
-
-                <strong>Veriler yükleniyor...</strong>
-
-                <div style="
-                    margin-top:8px;
-                    opacity:.7;
-                ">
-                    Sinyal motorundan veriler alınıyor.
-                </div>
-            </td>
-        </tr>
-    `;
-}
-
-
-function showTableError(message) {
-
-    const tbody = getTableBody();
-
-    if (!tbody) return;
-
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="20" style="
-                text-align:center;
-                padding:40px;
-            ">
-                <strong>${escapeHtml(message)}</strong>
-
-                <div style="
-                    margin-top:8px;
-                    opacity:.7;
-                ">
-                    Sayfayı yenileyerek tekrar deneyin.
-                </div>
-            </td>
-        </tr>
-    `;
-}
-
-
-/* =========================================================
-   FILTER
-   ========================================================= */
-
-let activeSignalFilter = "ALL";
-
-
-function filterSignals() {
-
-    const input =
-        document.getElementById("signalSearch") ||
-        document.getElementById("searchInput");
-
-    const query =
-        input ?
-        input.value.trim().toLowerCase() :
-        "";
-
-    filteredSignals = allSignals.filter(row => {
-
-        const s = normalizeSignal(row);
-
-        const matchesSearch =
-            !query ||
-            String(s.symbol)
-                .toLowerCase()
-                .includes(query);
-
-        const matchesFilter =
-            activeSignalFilter === "ALL" ||
-            s.signal === activeSignalFilter;
-
-        return matchesSearch && matchesFilter;
-    });
-
-    currentPage = 1;
-
-    updateKPIsFromFilteredData();
-
-    renderCurrentPage();
-}
-
-
-function searchSignals() {
-    filterSignals();
-}
-
-
-function setSignalFilter(filter) {
-
-    activeSignalFilter = String(filter || "ALL").toUpperCase();
-
-    document
-        .querySelectorAll("[data-signal-filter]")
-        .forEach(button => {
-
-            const value =
-                String(
-                    button.dataset.signalFilter || "ALL"
-                ).toUpperCase();
-
-            button.classList.toggle(
-                "active",
-                value === activeSignalFilter
+        if (!data || !Array.isArray(data.signals)) {
+            throw new Error(
+                "API geçerli sinyal verisi döndürmedi."
             );
-        });
+        }
 
-    filterSignals();
-}
+        console.log(
+            "LEVEL 1000:",
+            data.signals.length,
+            "sinyal alındı."
+        );
 
+        allSignals = data.signals;
+        filteredSignals = [...allSignals];
+        currentPage = 1;
 
-/* =========================================================
-   PAGINATION
-   ========================================================= */
+        updateKPIs(data);
+        renderCurrentPage();
 
-function getPageCount() {
+        setText("apiStatus", "ONLINE");
+        setText("marketStatus", "AKTİF");
+        setText("liveStatus", "Aktif");
+        setText("accessStatus", "PUBLIC");
 
-    return Math.max(
-        1,
-        Math.ceil(
-            filteredSignals.length / PAGE_SIZE
-        )
-    );
-}
+        return data;
 
+    } catch (error) {
 
-function getPageRows() {
+        console.error(
+            "LEVEL 1000 API HATASI:",
+            error
+        );
 
-    const start =
-        (currentPage - 1) * PAGE_SIZE;
+        showTableError(
+            "Sinyal verileri yüklenemedi. API bağlantısını kontrol edin."
+        );
 
-    return filteredSignals.slice(
-        start,
-        start + PAGE_SIZE
-    );
-}
+        setText("apiStatus", "HATA");
+        setText("marketStatus", "HATA");
 
+        return null;
 
-function changePage(page) {
-
-    const maxPage = getPageCount();
-
-    page = Number(page);
-
-    if (!Number.isFinite(page)) {
-        return;
-    }
-
-    page = Math.max(
-        1,
-        Math.min(maxPage, page)
-    );
-
-    currentPage = page;
-
-    renderCurrentPage();
-
-    const table =
-        document.getElementById("signalsTable");
-
-    if (table) {
-        table.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
+    } finally {
+        isLoadingSignals = false;
     }
 }
 
-
 /* =========================================================
-   RENDER
+   TABLOYU RENDER
    ========================================================= */
 
 function renderCurrentPage() {
-
     const tbody = getTableBody();
 
-    if (!tbody) return;
+    if (!tbody) {
+        console.error(
+            "LEVEL 1000: signalsBody bulunamadı."
+        );
+        return;
+    }
 
-    const rows = getPageRows();
+    const total = filteredSignals.length;
 
-    if (!rows.length) {
-
+    if (total === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="20" style="
-                    text-align:center;
-                    padding:40px;
-                ">
+                <td colspan="7" style="text-align:center;padding:30px;">
                     Sonuç bulunamadı.
                 </td>
             </tr>
         `;
 
         renderPagination();
-
         return;
     }
 
-    /*
-     * SADECE 50 SATIR DOM'A BASILIYOR.
-     * 166.200 satır asla DOM'a basılmıyor.
-     */
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
 
-    tbody.innerHTML = rows.map((row, index) => {
+    /*
+       ÖNEMLİ:
+       166.200 kaydın tamamını DOM'a basmıyoruz.
+       Sadece 50 kayıt gösteriyoruz.
+    */
+    const rows = filteredSignals.slice(start, end);
+
+    tbody.innerHTML = rows.map(row => {
 
         const s = normalizeSignal(row);
 
-        const globalIndex =
-            (currentPage - 1) * PAGE_SIZE +
-            index +
-            1;
-
-        const cls = signalClass(s.signal);
+        const changeClass = valueClass(s.change);
+        const returnClass = valueClass(s.predictedReturn);
 
         return `
-            <tr data-ticker="${escapeHtml(s.symbol)}">
-
-                <td>
-                    ${globalIndex}
-                </td>
+            <tr
+                class="signal-row"
+                data-symbol="${escapeHtml(s.symbol)}"
+                style="cursor:pointer;"
+                onclick="openSignal('${String(s.symbol).replaceAll("'", "\\'")}')"
+            >
 
                 <td>
                     <strong>
@@ -703,7 +457,7 @@ function renderCurrentPage() {
                 </td>
 
                 <td>
-                    <span class="signal-badge ${cls}">
+                    <span class="${signalClass(s.signal)}">
                         ${escapeHtml(s.signal)}
                     </span>
                 </td>
@@ -715,37 +469,21 @@ function renderCurrentPage() {
                 </td>
 
                 <td>
-                    ${formatPercent(s.predictedReturn)}
-                </td>
-
-                <td>
                     ${formatNumber(s.price)}
                 </td>
 
-                <td>
+                <td class="${changeClass}">
                     ${formatPercent(s.change)}
                 </td>
 
-                <td>
-                    ${
-                        s.priceStatus
-                            ? escapeHtml(s.priceStatus)
-                            : "-"
-                    }
+                <td class="${returnClass}">
+                    <strong>
+                        ${formatPercent(s.predictedReturn)}
+                    </strong>
                 </td>
 
                 <td>
                     ${escapeHtml(s.date)}
-                </td>
-
-                <td>
-                    <button
-                        type="button"
-                        class="signal-detail-btn"
-                        onclick="openSignal('${escapeJs(s.symbol)}')"
-                    >
-                        Detay
-                    </button>
                 </td>
 
             </tr>
@@ -756,151 +494,218 @@ function renderCurrentPage() {
     renderPagination();
 }
 
+/* =========================================================
+   ARAMA
+   ========================================================= */
+
+function filterSignals() {
+    const input = byId("signalSearch");
+
+    const query = input
+        ? input.value.trim().toLowerCase()
+        : "";
+
+    filteredSignals = allSignals.filter(row => {
+
+        const s = normalizeSignal(row);
+
+        return String(s.symbol)
+            .toLowerCase()
+            .includes(query);
+
+    });
+
+    currentPage = 1;
+
+    renderCurrentPage();
+}
+
+function searchSignals() {
+    filterSignals();
+}
 
 /* =========================================================
-   PAGINATION UI
+   SAYFALAMA
    ========================================================= */
+
+function getPageCount() {
+    return Math.max(
+        1,
+        Math.ceil(
+            filteredSignals.length / PAGE_SIZE
+        )
+    );
+}
+
+function changePage(page) {
+
+    const maxPage = getPageCount();
+
+    const requestedPage = Number(page);
+
+    if (!Number.isFinite(requestedPage)) {
+        return;
+    }
+
+    currentPage = Math.max(
+        1,
+        Math.min(
+            maxPage,
+            requestedPage
+        )
+    );
+
+    renderCurrentPage();
+
+    const section = byId("signalsSection");
+
+    if (section) {
+        section.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+}
 
 function renderPagination() {
 
-    let container =
-        document.getElementById("signalsPagination");
+    const section = byId("signalsSection");
+
+    if (!section) {
+        return;
+    }
+
+    let container = byId("signalsPagination");
 
     if (!container) {
 
-        const table =
-            document.getElementById("signalsTable");
+        container = document.createElement("div");
 
-        if (!table) return;
-
-        container =
-            document.createElement("div");
-
-        container.id =
-            "signalsPagination";
+        container.id = "signalsPagination";
 
         container.style.cssText = `
             display:flex;
-            align-items:center;
             justify-content:center;
-            gap:8px;
+            align-items:center;
             flex-wrap:wrap;
-            margin:18px 0 8px;
+            gap:7px;
+            padding:18px;
         `;
 
-        table.parentNode.appendChild(container);
+        section.appendChild(container);
     }
 
     const pages = getPageCount();
 
-    if (pages <= 1) {
-
-        container.innerHTML = `
-            <span style="opacity:.7;font-size:13px;">
-                ${filteredSignals.length.toLocaleString("tr-TR")} sonuç
-            </span>
-        `;
-
+    if (filteredSignals.length === 0) {
+        container.innerHTML = "";
         return;
     }
 
-    const buttons = [];
+    let html = "";
 
-    buttons.push(`
+    const buttonStyle = `
+        padding:8px 12px;
+        border:1px solid #334155;
+        border-radius:8px;
+        background:#111827;
+        color:white;
+        cursor:pointer;
+    `;
+
+    const activeStyle = `
+        padding:8px 12px;
+        border:1px solid #2563eb;
+        border-radius:8px;
+        background:#2563eb;
+        color:white;
+        cursor:pointer;
+    `;
+
+    html += `
         <button
-            type="button"
-            class="pagination-btn"
             onclick="changePage(${currentPage - 1})"
-            ${currentPage <= 1 ? "disabled" : ""}
+            ${currentPage === 1 ? "disabled" : ""}
+            style="${buttonStyle}"
         >
             ‹
         </button>
-    `);
+    `;
 
-    let start = Math.max(
+    const start = Math.max(
         1,
         currentPage - 2
     );
 
-    let end = Math.min(
+    const end = Math.min(
         pages,
         currentPage + 2
     );
 
     if (start > 1) {
 
-        buttons.push(`
+        html += `
             <button
-                type="button"
-                class="pagination-btn"
                 onclick="changePage(1)"
+                style="${buttonStyle}"
             >
                 1
             </button>
-        `);
+        `;
 
         if (start > 2) {
-            buttons.push(`<span>…</span>`);
+            html += `
+                <span style="padding:8px;">
+                    …
+                </span>
+            `;
         }
     }
 
     for (let i = start; i <= end; i++) {
 
-        buttons.push(`
+        html += `
             <button
-                type="button"
-                class="pagination-btn ${i === currentPage ? "active" : ""}"
                 onclick="changePage(${i})"
+                style="${i === currentPage ? activeStyle : buttonStyle}"
             >
                 ${i}
             </button>
-        `);
+        `;
     }
 
     if (end < pages) {
 
         if (end < pages - 1) {
-            buttons.push(`<span>…</span>`);
+            html += `
+                <span style="padding:8px;">
+                    …
+                </span>
+            `;
         }
 
-        buttons.push(`
+        html += `
             <button
-                type="button"
-                class="pagination-btn"
                 onclick="changePage(${pages})"
+                style="${buttonStyle}"
             >
                 ${pages}
             </button>
-        `);
+        `;
     }
 
-    buttons.push(`
+    html += `
         <button
-            type="button"
-            class="pagination-btn"
             onclick="changePage(${currentPage + 1})"
-            ${currentPage >= pages ? "disabled" : ""}
+            ${currentPage === pages ? "disabled" : ""}
+            style="${buttonStyle}"
         >
             ›
         </button>
-    `);
-
-    container.innerHTML = buttons.join("");
-
-    const info = document.createElement("div");
-
-    info.style.cssText = `
-        width:100%;
-        text-align:center;
-        margin-top:5px;
-        font-size:12px;
-        opacity:.65;
     `;
 
     const startItem =
-        filteredSignals.length
-            ? ((currentPage - 1) * PAGE_SIZE) + 1
-            : 0;
+        (currentPage - 1) * PAGE_SIZE + 1;
 
     const endItem =
         Math.min(
@@ -908,38 +713,27 @@ function renderPagination() {
             filteredSignals.length
         );
 
-    info.textContent =
-        `${startItem.toLocaleString("tr-TR")} - ${endItem.toLocaleString("tr-TR")} / ${filteredSignals.length.toLocaleString("tr-TR")}`;
+    html += `
+        <span
+            style="
+                margin-left:10px;
+                opacity:.75;
+                font-size:14px;
+            "
+        >
+            ${startItem.toLocaleString("tr-TR")}
+            -
+            ${endItem.toLocaleString("tr-TR")}
+            /
+            ${filteredSignals.length.toLocaleString("tr-TR")}
+        </span>
+    `;
 
-    container.appendChild(info);
+    container.innerHTML = html;
 }
 
-
 /* =========================================================
-   MAIN REFRESH
-   ========================================================= */
-
-async function refreshData() {
-
-    try {
-
-        await Promise.all([
-            loadSignals(),
-            loadStatus()
-        ]);
-
-    } catch (error) {
-
-        console.error(
-            "Refresh:",
-            error
-        );
-    }
-}
-
-
-/* =========================================================
-   STATUS
+   DURUM
    ========================================================= */
 
 async function loadStatus() {
@@ -967,19 +761,10 @@ async function loadStatus() {
                 : "HAZIR"
         );
 
-        if (data.last_update) {
-            setText(
-                "lastUpdate",
-                data.last_update
-            );
-        }
-
-        if (data.updated_at) {
-            setText(
-                "lastUpdate",
-                data.updated_at
-            );
-        }
+        setText(
+            "apiStatus",
+            "ONLINE"
+        );
 
         return data;
 
@@ -991,36 +776,45 @@ async function loadStatus() {
         );
 
         setText(
-            "systemStatus",
-            "BAĞLANTI BEKLENİYOR"
+            "apiStatus",
+            "HATA"
         );
 
         return null;
     }
 }
 
+/* =========================================================
+   YENİLE
+   ========================================================= */
+
+async function refreshData() {
+
+    await Promise.all([
+        loadSignals(),
+        loadStatus()
+    ]);
+}
 
 /* =========================================================
-   RUN ANALYSIS
+   AI ANALİZİ BAŞLAT
    ========================================================= */
 
 async function runAnalysis() {
 
-    const buttons =
-        document.querySelectorAll(
-            "#runAnalysisBtn, .run-analysis-btn, [data-action='run-analysis']"
-        );
+    const button =
+        byId("runAnalysisButton");
 
-    buttons.forEach(button => {
-
+    if (button) {
         button.disabled = true;
-
-        button.dataset.oldText =
-            button.textContent;
-
         button.textContent =
-            "Analiz Başlatılıyor...";
-    });
+            "Analiz başlatılıyor...";
+    }
+
+    setText(
+        "runStatus",
+        "Analiz başlatılıyor..."
+    );
 
     try {
 
@@ -1045,10 +839,10 @@ async function runAnalysis() {
             );
         }
 
-        showToast(
+        setText(
+            "runStatus",
             data.message ||
-            "Analiz başlatıldı.",
-            "success"
+            "Analiz çalışıyor..."
         );
 
         monitorRun();
@@ -1060,26 +854,22 @@ async function runAnalysis() {
             error
         );
 
-        showToast(
+        setText(
+            "runStatus",
             error.message ||
-            "Analiz başlatılamadı.",
-            "error"
+            "Analiz başlatılamadı."
         );
 
-        buttons.forEach(button => {
-
+        if (button) {
             button.disabled = false;
-
             button.textContent =
-                button.dataset.oldText ||
-                "Analizi Başlat";
-        });
+                "⚡ AI ANALİZİNİ BAŞLAT";
+        }
     }
 }
 
-
 /* =========================================================
-   RUN MONITOR
+   ANALİZ DURUMU
    ========================================================= */
 
 async function monitorRun() {
@@ -1088,412 +878,106 @@ async function monitorRun() {
         clearInterval(runPollTimer);
     }
 
-    let attempts = 0;
-
-    async function check() {
-
-        attempts++;
-
-        try {
-
-            const response =
-                await publicFetch(
-                    "/api/run-status"
-                );
-
-            const data =
-                await readJson(response);
-
-            const running =
-                data.running === true ||
-                data.status === "running";
-
-            if (running) {
-
-                setText(
-                    "systemStatus",
-                    "ANALİZ ÇALIŞIYOR"
-                );
-
-                if (data.message) {
-
-                    setText(
-                        "analysisProgress",
-                        data.message
-                    );
-                }
-
-                return;
-            }
-
-            clearInterval(
-                runPollTimer
-            );
-
-            runPollTimer = null;
-
-            setText(
-                "systemStatus",
-                "HAZIR"
-            );
-
-            const buttons =
-                document.querySelectorAll(
-                    "#runAnalysisBtn, .run-analysis-btn, [data-action='run-analysis']"
-                );
-
-            buttons.forEach(button => {
-
-                button.disabled = false;
-
-                button.textContent =
-                    button.dataset.oldText ||
-                    "Analizi Başlat";
-            });
-
-            await loadSignals();
-
-            showToast(
-                data.error
-                    ? data.error
-                    : "Analiz tamamlandı.",
-                data.error
-                    ? "error"
-                    : "success"
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Run status:",
-                error
-            );
-
-            if (attempts >= 10) {
-
-                clearInterval(
-                    runPollTimer
-                );
-
-                runPollTimer = null;
-
-                const buttons =
-                    document.querySelectorAll(
-                        "#runAnalysisBtn, .run-analysis-btn, [data-action='run-analysis']"
-                    );
-
-                buttons.forEach(button => {
-
-                    button.disabled = false;
-
-                    button.textContent =
-                        button.dataset.oldText ||
-                        "Analizi Başlat";
-                });
-            }
-        }
-    }
-
-    await check();
-
     runPollTimer =
         setInterval(
-            check,
+            async () => {
+
+                try {
+
+                    const response =
+                        await publicFetch(
+                            "/api/run-status"
+                        );
+
+                    const data =
+                        await readJson(response);
+
+                    const running =
+                        data.running === true ||
+                        data.status === "running";
+
+                    if (running) {
+
+                        setText(
+                            "runStatus",
+                            data.message ||
+                            "Analiz çalışıyor..."
+                        );
+
+                        return;
+                    }
+
+                    clearInterval(
+                        runPollTimer
+                    );
+
+                    runPollTimer = null;
+
+                    setText(
+                        "runStatus",
+                        data.error ||
+                        data.message ||
+                        "Analiz tamamlandı."
+                    );
+
+                    const button =
+                        byId("runAnalysisButton");
+
+                    if (button) {
+                        button.disabled = false;
+                        button.textContent =
+                            "⚡ AI ANALİZİNİ BAŞLAT";
+                    }
+
+                    await loadSignals();
+
+                } catch (error) {
+
+                    console.error(
+                        "Çalışma durumu:",
+                        error
+                    );
+
+                }
+
+            },
             3000
         );
 }
 
-
 /* =========================================================
-   SINGLE SIGNAL
-   ========================================================= */
-
-async function openSignal(ticker) {
-
-    if (!ticker) return;
-
-    try {
-
-        const response =
-            await publicFetch(
-                `/api/signal/${encodeURIComponent(ticker)}`
-            );
-
-        const data =
-            await readJson(response);
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `HTTP ${response.status}`
-            );
-        }
-
-        renderAdvancedResult(
-            `${ticker} Analizi`,
-            data
-        );
-
-        const section =
-            document.getElementById(
-                "advancedResults"
-            ) ||
-            document.getElementById(
-                "advancedResult"
-            );
-
-        if (section) {
-
-            section.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }
-
-    } catch (error) {
-
-        console.error(
-            "Signal:",
-            error
-        );
-
-        showToast(
-            `${ticker} detay verisi alınamadı.`,
-            "error"
-        );
-    }
-}
-
-
-/* =========================================================
-   BACKTEST
-   ========================================================= */
-
-async function loadBacktest() {
-
-    renderAdvancedResult(
-        "Backtest",
-        {
-            loading: "Backtest çalıştırılıyor..."
-        }
-    );
-
-    try {
-
-        const response =
-            await publicFetch(
-                "/api/backtest"
-            );
-
-        const data =
-            await readJson(response);
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `HTTP ${response.status}`
-            );
-        }
-
-        renderAdvancedResult(
-            "Backtest Sonucu",
-            data
-        );
-
-        return data;
-
-    } catch (error) {
-
-        renderAdvancedResult(
-            "Backtest",
-            {
-                error: error.message
-            }
-        );
-
-        return null;
-    }
-}
-
-
-/* =========================================================
-   PAPER
-   ========================================================= */
-
-async function loadPaper() {
-
-    renderAdvancedResult(
-        "Paper Trading",
-        {
-            loading: "Paper Trading verileri yükleniyor..."
-        }
-    );
-
-    try {
-
-        const response =
-            await publicFetch(
-                "/api/paper"
-            );
-
-        const data =
-            await readJson(response);
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `HTTP ${response.status}`
-            );
-        }
-
-        renderAdvancedResult(
-            "Paper Trading",
-            data
-        );
-
-        return data;
-
-    } catch (error) {
-
-        renderAdvancedResult(
-            "Paper Trading",
-            {
-                error: error.message
-            }
-        );
-
-        return null;
-    }
-}
-
-
-/* =========================================================
-   MONTE CARLO
-   ========================================================= */
-
-async function loadMonteCarlo() {
-
-    renderAdvancedResult(
-        "Monte Carlo",
-        {
-            loading: "Monte Carlo analizi çalıştırılıyor..."
-        }
-    );
-
-    try {
-
-        const response =
-            await publicFetch(
-                "/api/montecarlo"
-            );
-
-        const data =
-            await readJson(response);
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `HTTP ${response.status}`
-            );
-        }
-
-        renderAdvancedResult(
-            "Monte Carlo",
-            data
-        );
-
-        return data;
-
-    } catch (error) {
-
-        renderAdvancedResult(
-            "Monte Carlo",
-            {
-                error: error.message
-            }
-        );
-
-        return null;
-    }
-}
-
-
-/* =========================================================
-   ADVANCED AI
-   ========================================================= */
-
-async function loadAdvancedAI() {
-
-    try {
-
-        const response =
-            await publicFetch(
-                "/api/metrics"
-            );
-
-        const data =
-            await readJson(response);
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `HTTP ${response.status}`
-            );
-        }
-
-        renderAdvancedResult(
-            "Gelişmiş AI",
-            data
-        );
-
-        return data;
-
-    } catch (error) {
-
-        renderAdvancedResult(
-            "Gelişmiş AI",
-            {
-                error: error.message
-            }
-        );
-
-        return null;
-    }
-}
-
-
-/* =========================================================
-   ADVANCED RESULT
+   GELİŞMİŞ ANALİZ SONUÇLARI
    ========================================================= */
 
 function renderAdvancedResult(title, data) {
 
-    const box =
-        document.getElementById(
-            "advancedResults"
-        ) ||
-        document.getElementById(
-            "advancedResult"
-        );
+    const section =
+        byId("advancedResults");
 
-    if (!box) return;
+    const box =
+        byId("advancedResultsBody");
+
+    if (!section || !box) {
+        return;
+    }
+
+    section.style.display = "block";
+
+    setText(
+        "advancedResultsTitle",
+        title
+    );
+
+    setText(
+        "advancedResultsSubtitle",
+        "LEVEL 1000 AI sonuçları"
+    );
 
     if (!data) {
 
         box.innerHTML = `
-            <div class="advanced-result">
-                <h3>${escapeHtml(title)}</h3>
-                <p>Veri bulunamadı.</p>
+            <div style="padding:20px;">
+                Veri bulunamadı.
             </div>
         `;
 
@@ -1503,12 +987,8 @@ function renderAdvancedResult(title, data) {
     if (data.error) {
 
         box.innerHTML = `
-            <div class="advanced-result">
-                <h3>${escapeHtml(title)}</h3>
-
-                <p>
-                    ${escapeHtml(data.error)}
-                </p>
+            <div style="padding:20px;">
+                ⚠️ ${escapeHtml(data.error)}
             </div>
         `;
 
@@ -1518,12 +998,19 @@ function renderAdvancedResult(title, data) {
     if (data.loading) {
 
         box.innerHTML = `
-            <div class="advanced-result">
-                <h3>${escapeHtml(title)}</h3>
+            <div style="padding:20px;">
+                ⏳ ${escapeHtml(data.loading)}
+            </div>
+        `;
 
-                <p>
-                    ⏳ ${escapeHtml(data.loading)}
-                </p>
+        return;
+    }
+
+    if (data.yükleniyor) {
+
+        box.innerHTML = `
+            <div style="padding:20px;">
+                ⏳ ${escapeHtml(data.yükleniyor)}
             </div>
         `;
 
@@ -1586,20 +1073,13 @@ function renderAdvancedResult(title, data) {
                             label
                         );
 
-                    } else if (
-                        Array.isArray(value)
-                    ) {
-
-                        entries.push([
-                            label,
-                            `${value.length} kayıt`
-                        ]);
-
                     } else {
 
                         entries.push([
                             label,
-                            value
+                            Array.isArray(value)
+                                ? `${value.length} kayıt`
+                                : value
                         ]);
                     }
                 });
@@ -1608,75 +1088,344 @@ function renderAdvancedResult(title, data) {
 
     walk(data);
 
-    box.innerHTML = `
-        <div class="advanced-result">
+    if (!entries.length) {
 
-            <h3>
-                ${escapeHtml(title)}
-            </h3>
-
-            <div class="advanced-result-grid">
-
-                ${
-                    entries
-                        .slice(0, 100)
-                        .map(([key, value]) => `
-                            <div class="advanced-item">
-
-                                <div class="advanced-key">
-                                    ${escapeHtml(key)}
-                                </div>
-
-                                <div class="advanced-value">
-                                    ${escapeHtml(value)}
-                                </div>
-
-                            </div>
-                        `)
-                        .join("")
-                }
-
+        box.innerHTML = `
+            <div style="padding:20px;">
+                Sonuç bulunamadı.
             </div>
+        `;
 
-        </div>
-    `;
+        return;
+    }
+
+    box.innerHTML = entries
+        .slice(0, 100)
+        .map(([key, value]) => `
+            <div
+                style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:20px;
+                    padding:10px 12px;
+                    border-bottom:1px solid rgba(255,255,255,.08);
+                "
+            >
+                <strong>
+                    ${escapeHtml(key)}
+                </strong>
+
+                <span>
+                    ${escapeHtml(value)}
+                </span>
+            </div>
+        `)
+        .join("");
 }
 
-
 /* =========================================================
-   ADMIN
+   BACKTEST
    ========================================================= */
 
-function openAdmin() {
-    window.location.href = "/admin";
-}
+async function loadBacktest() {
 
-
-/* =========================================================
-   LOGOUT
-   ========================================================= */
-
-async function logout() {
+    renderAdvancedResult(
+        "Backtest",
+        {
+            loading:
+                "Backtest verileri yükleniyor..."
+        }
+    );
 
     try {
 
-        await publicFetch(
-            "/api/logout",
-            {
-                method: "POST",
-                body: JSON.stringify({})
-            }
+        const response =
+            await publicFetch(
+                "/api/backtest"
+            );
+
+        const data =
+            await readJson(response);
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        renderAdvancedResult(
+            "Backtest Sonucu",
+            data
         );
 
-    } catch {}
+    } catch (error) {
 
+        renderAdvancedResult(
+            "Backtest",
+            {
+                error: error.message
+            }
+        );
+    }
+}
+
+/* =========================================================
+   PAPER TRADING
+   ========================================================= */
+
+async function loadPaper() {
+
+    renderAdvancedResult(
+        "Paper Trading",
+        {
+            loading:
+                "Paper Trading verileri yükleniyor..."
+        }
+    );
+
+    try {
+
+        const response =
+            await publicFetch(
+                "/api/paper"
+            );
+
+        const data =
+            await readJson(response);
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        renderAdvancedResult(
+            "Paper Trading",
+            data
+        );
+
+    } catch (error) {
+
+        renderAdvancedResult(
+            "Paper Trading",
+            {
+                error: error.message
+            }
+        );
+    }
+}
+
+/* =========================================================
+   MONTE CARLO
+   ========================================================= */
+
+async function loadMonteCarlo() {
+
+    renderAdvancedResult(
+        "Monte Carlo",
+        {
+            loading:
+                "Monte Carlo analizi çalıştırılıyor..."
+        }
+    );
+
+    try {
+
+        const response =
+            await publicFetch(
+                "/api/montecarlo"
+            );
+
+        const data =
+            await readJson(response);
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        renderAdvancedResult(
+            "Monte Carlo Sonucu",
+            data
+        );
+
+    } catch (error) {
+
+        renderAdvancedResult(
+            "Monte Carlo",
+            {
+                error: error.message
+            }
+        );
+    }
+}
+
+/* =========================================================
+   GELİŞMİŞ AI
+   ========================================================= */
+
+async function loadAdvancedAI() {
+
+    renderAdvancedResult(
+        "Gelişmiş AI",
+        {
+            loading:
+                "AI verileri yükleniyor..."
+        }
+    );
+
+    try {
+
+        const response =
+            await publicFetch(
+                "/api/metrics"
+            );
+
+        const data =
+            await readJson(response);
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        renderAdvancedResult(
+            "Gelişmiş AI",
+            data
+        );
+
+    } catch (error) {
+
+        renderAdvancedResult(
+            "Gelişmiş AI",
+            {
+                error: error.message
+            }
+        );
+    }
+}
+
+/* =========================================================
+   SİNYAL DETAYI
+   ========================================================= */
+
+async function openSignal(ticker) {
+
+    if (!ticker) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await publicFetch(
+                "/api/signal/" +
+                encodeURIComponent(ticker)
+            );
+
+        const data =
+            await readJson(response);
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        renderAdvancedResult(
+            `${ticker} Analizi`,
+            data
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Sinyal detayı:",
+            error
+        );
+
+        renderAdvancedResult(
+            `${ticker} Analizi`,
+            {
+                error: error.message
+            }
+        );
+    }
+}
+
+/* =========================================================
+   PUBLIC MOD
+   ========================================================= */
+
+function showAppScreen() {
+
+    const auth =
+        byId("authScreen");
+
+    const app =
+        byId("appScreen");
+
+    if (auth) {
+        auth.style.display = "none";
+    }
+
+    if (app) {
+        app.style.display = "block";
+    }
+}
+
+async function checkSession() {
+    showAppScreen();
+    return true;
+}
+
+function showAuthScreen() {
     showAppScreen();
 }
 
+function requirePlan() {
+    return true;
+}
 
-/* =========================================================
-   OLD AUTH COMPATIBILITY
-   ========================================================= */
+function selectPlan() {
+    return true;
+}
+
+async function loadPlan() {
+
+    setText(
+        "userPlan",
+        "OPEN"
+    );
+
+    setText(
+        "planName",
+        "OPEN"
+    );
+
+    return {
+        ok: true,
+        plan: "OPEN",
+        plan_level: 999999
+    };
+}
 
 async function loginUser(event) {
 
@@ -1684,16 +1433,10 @@ async function loginUser(event) {
         event.preventDefault();
     }
 
-    showToast(
-        "Üyelik gerekmiyor. Site doğrudan kullanılabilir.",
-        "info"
-    );
-
     showAppScreen();
 
     return true;
 }
-
 
 async function registerUser(event) {
 
@@ -1701,194 +1444,44 @@ async function registerUser(event) {
         event.preventDefault();
     }
 
-    showToast(
-        "Kayıt gerekmiyor. Site doğrudan kullanılabilir.",
-        "info"
-    );
-
     showAppScreen();
 
     return true;
 }
 
-
-/* =========================================================
-   EVENTS
-   ========================================================= */
-
-function setupEvents() {
-
-    const search =
-        document.getElementById(
-            "signalSearch"
-        ) ||
-        document.getElementById(
-            "searchInput"
-        );
-
-    if (search) {
-
-        search.addEventListener(
-            "input",
-            filterSignals
-        );
-    }
-
-
-    document
-        .querySelectorAll(
-            "#runAnalysisBtn, .run-analysis-btn, [data-action='run-analysis']"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                event => {
-
-                    event.preventDefault();
-
-                    runAnalysis();
-                }
-            );
-        });
-
-
-    document
-        .querySelectorAll(
-            "#backtestBtn, [data-action='backtest']"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                event => {
-
-                    event.preventDefault();
-
-                    loadBacktest();
-                }
-            );
-        });
-
-
-    document
-        .querySelectorAll(
-            "#paperBtn, [data-action='paper']"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                event => {
-
-                    event.preventDefault();
-
-                    loadPaper();
-                }
-            );
-        });
-
-
-    document
-        .querySelectorAll(
-            "#monteCarloBtn, [data-action='montecarlo']"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                event => {
-
-                    event.preventDefault();
-
-                    loadMonteCarlo();
-                }
-            );
-        });
-
-
-    document
-        .querySelectorAll(
-            "#advancedAIBtn, [data-action='advanced-ai']"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                event => {
-
-                    event.preventDefault();
-
-                    loadAdvancedAI();
-                }
-            );
-        });
-
-
-    document
-        .querySelectorAll(
-            "[data-signal-filter]"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                event => {
-
-                    event.preventDefault();
-
-                    setSignalFilter(
-                        button.dataset.signalFilter
-                    );
-                }
-            );
-        });
+async function logout() {
+    showAppScreen();
+    return true;
 }
 
+function openAdmin() {
+    window.location.href = "/admin";
+}
 
 /* =========================================================
-   KEYBOARD SEARCH
-   ========================================================= */
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key === "/" &&
-            document.activeElement?.tagName !== "INPUT" &&
-            document.activeElement?.tagName !== "TEXTAREA"
-        ) {
-
-            event.preventDefault();
-
-            const search =
-                document.getElementById(
-                    "signalSearch"
-                ) ||
-                document.getElementById(
-                    "searchInput"
-                );
-
-            if (search) {
-                search.focus();
-            }
-        }
-    }
-);
-
-
-/* =========================================================
-   START
+   BAŞLAT
    ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
     async () => {
 
+        console.log(
+            "LEVEL 1000 AI başlatılıyor..."
+        );
+
         showAppScreen();
 
-        setupEvents();
+        const search =
+            byId("signalSearch");
+
+        if (search) {
+
+            search.addEventListener(
+                "input",
+                filterSignals
+            );
+        }
 
         await refreshData();
 
@@ -1897,10 +1490,8 @@ document.addEventListener(
         }
 
         /*
-         * 30 saniyede bir yenile.
-         * Her yenilemede sadece 50 satır DOM'a basılır.
-         */
-
+           Her 30 saniyede fiyat/sinyal verisini yenile.
+        */
         refreshTimer =
             setInterval(
                 refreshData,
@@ -1908,7 +1499,6 @@ document.addEventListener(
             );
     }
 );
-
 
 /* =========================================================
    GLOBAL
@@ -1918,35 +1508,29 @@ window.loadSignals = loadSignals;
 window.renderSignals = renderCurrentPage;
 window.filterSignals = filterSignals;
 window.searchSignals = searchSignals;
-window.setSignalFilter = setSignalFilter;
-
 window.changePage = changePage;
-
 window.refreshData = refreshData;
 window.loadStatus = loadStatus;
-
 window.runAnalysis = runAnalysis;
 window.monitorRun = monitorRun;
-
 window.loadBacktest = loadBacktest;
 window.loadPaper = loadPaper;
 window.loadMonteCarlo = loadMonteCarlo;
 window.loadAdvancedAI = loadAdvancedAI;
-
 window.openSignal = openSignal;
+window.renderAdvancedResult = renderAdvancedResult;
 window.openAdmin = openAdmin;
 
 window.loginUser = loginUser;
 window.registerUser = registerUser;
 window.logout = logout;
-
 window.checkSession = checkSession;
 window.showAppScreen = showAppScreen;
 window.showAuthScreen = showAuthScreen;
-
 window.requirePlan = requirePlan;
 window.selectPlan = selectPlan;
 window.loadPlan = loadPlan;
 
-window.renderAdvancedResult =
-    renderAdvancedResult;
+console.log(
+    "LEVEL 1000 AI frontend hazır."
+);
