@@ -1,2985 +1,2999 @@
-```html
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
+    <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="LEVEL 1000 AI — Yapay zeka destekli piyasa istihbarat ve finansal sinyal analiz platformu.">
 
-<title>LEVEL 1000 AI — Market Intelligence</title>
+    <meta name="google-site-verification"
+          content="v6Pkn_EJCKqnxuI8-4z0hhF-qjBw7oey4zhaGWPKtZU">
 
-<meta
-    name="description"
-    content="LEVEL 1000 AI — Yapay zeka destekli piyasa istihbarat ve sinyal analiz platformu."
->
+    <link rel="canonical" href="https://level1000-2.onrender.com/">
 
-<meta name="robots" content="index, follow">
+    <title>LEVEL 1000 AI | Market Intelligence</title>
 
-<meta
-    name="google-site-verification"
-    content="v6Pkn_EJCKqnxuI8-4z0hhF-qjBw7oey4zhaGWPKtZU"
->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<link
-    rel="canonical"
-    href="https://level1000-2.onrender.com/"
->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="LEVEL 1000 AI">
-<meta
-    property="og:description"
-    content="AI Market Intelligence Platform"
->
-<meta
-    property="og:url"
-    content="https://level1000-2.onrender.com/"
->
+    <script async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+            crossorigin="anonymous"></script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="/static/style.css?v=17">
 
-<link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-    rel="stylesheet"
->
+    <style>
+        /* =========================================================
+           LEVEL 1000 AI — PREMIUM TERMINAL UI
+           Existing IDs / API compatibility preserved
+        ========================================================= */
 
-<style>
+        :root {
+            --bg: #050811;
+            --bg-2: #080d18;
+            --panel: rgba(13, 19, 32, .82);
+            --panel-solid: #0d1421;
+            --panel-light: #111a2b;
 
-:root {
+            --border: rgba(148, 163, 184, .12);
+            --border-strong: rgba(148, 163, 184, .20);
 
-    --bg:
-        #030507;
+            --text: #f4f7fb;
+            --muted: #8995a8;
+            --muted-2: #5f6b7d;
 
-    --surface:
-        #080b10;
+            --blue: #4f8cff;
+            --blue-light: #78a8ff;
 
-    --surface-2:
-        #0c1118;
+            --green: #24d17e;
+            --green-soft: rgba(36, 209, 126, .12);
 
-    --surface-3:
-        #101720;
+            --red: #ff5d6c;
+            --red-soft: rgba(255, 93, 108, .12);
 
-    --line:
-        #19222e;
+            --yellow: #f4c95d;
+            --yellow-soft: rgba(244, 201, 93, .12);
 
-    --line-2:
-        #253140;
+            --purple: #8b7cff;
+            --cyan: #4fd9ff;
 
-    --text:
-        #f1f5f9;
+            --shadow:
+                0 25px 80px rgba(0, 0, 0, .38);
 
-    --muted:
-        #718096;
+            --radius: 18px;
+            --radius-sm: 12px;
 
-    --muted-2:
-        #526173;
+            --mono: "JetBrains Mono", monospace;
+            --sans: "Inter", sans-serif;
+        }
 
-    --blue:
-        #3b82f6;
+        * {
+            box-sizing: border-box;
+        }
 
-    --blue-light:
-        #60a5fa;
+        html {
+            scroll-behavior: smooth;
+        }
 
-    --green:
-        #22c55e;
+        body {
+            margin: 0;
+            min-height: 100vh;
 
-    --red:
-        #ef4444;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 0%, rgba(79, 140, 255, .13), transparent 30%),
+                radial-gradient(circle at 90% 5%, rgba(139, 124, 255, .11), transparent 28%),
+                radial-gradient(circle at 50% 60%, rgba(79, 217, 255, .035), transparent 32%),
+                var(--bg);
 
-    --yellow:
-        #eab308;
+            font-family: var(--sans);
+            overflow-x: hidden;
+        }
 
-    --purple:
-        #8b5cf6;
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: .22;
 
-}
+            background-image:
+                linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
 
+            background-size: 48px 48px;
 
-/* =========================================================
-   RESET
-   ========================================================= */
+            mask-image: linear-gradient(
+                to bottom,
+                black,
+                transparent 75%
+            );
 
-* {
-    box-sizing: border-box;
-}
+            z-index: -1;
+        }
 
-html {
-    scroll-behavior: smooth;
-}
+        button,
+        input {
+            font-family: inherit;
+        }
 
-body {
+        button {
+            cursor: pointer;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        ::selection {
+            background: rgba(79, 140, 255, .35);
+            color: white;
+        }
+
+        /* =========================================================
+           TOP NAV
+        ========================================================= */
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+
+            height: 76px;
+
+            border-bottom: 1px solid var(--border);
 
-    margin: 0;
+            background: rgba(5, 8, 17, .78);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+        }
 
-    min-height: 100vh;
+        .topbar-inner {
+            width: min(1480px, calc(100% - 40px));
+            height: 100%;
+            margin: auto;
 
-    background:
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
 
-        radial-gradient(
-            ellipse 80% 45% at 50% -10%,
-            rgba(37,99,235,.13),
-            transparent 70%
-        ),
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
 
-        radial-gradient(
-            ellipse 40% 35% at 100% 45%,
-            rgba(124,58,237,.06),
-            transparent 70%
-        ),
+        .brand-mark {
+            position: relative;
 
-        var(--bg);
+            width: 42px;
+            height: 42px;
 
-    color: var(--text);
+            display: grid;
+            place-items: center;
 
-    font-family:
-        "Inter",
-        Arial,
-        sans-serif;
+            border-radius: 12px;
 
-    -webkit-font-smoothing: antialiased;
+            background:
+                linear-gradient(145deg, #17284c, #0c1427);
 
-}
+            border: 1px solid rgba(120, 168, 255, .28);
 
-button,
-input {
+            box-shadow:
+                inset 0 1px rgba(255,255,255,.08),
+                0 0 30px rgba(79,140,255,.12);
 
-    font-family: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: -.04em;
+        }
 
-}
+        .brand-mark::after {
+            content: "";
+            position: absolute;
+            inset: 4px;
 
-button {
+            border-radius: 9px;
 
-    cursor: pointer;
+            border: 1px solid rgba(120,168,255,.10);
+        }
 
-}
+        .brand-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
 
-a {
+        .brand-name {
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: .08em;
+        }
 
-    color: inherit;
+        .brand-sub {
+            color: var(--muted-2);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .18em;
+        }
 
-}
+        .nav-center {
+            display: flex;
+            align-items: center;
+            gap: 9px;
 
+            color: var(--muted);
 
-/* =========================================================
-   HIDE OLD AUTH / PLAN UI
-   ========================================================= */
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .03em;
+        }
 
-#authScreen,
-#loginBox,
-#registerBox,
-#planModal,
-#planInfoBar,
-.plans-section,
-.user-plan,
-.feature-lock {
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
 
-    display: none !important;
+            padding: 8px 11px;
 
-}
+            border-radius: 999px;
 
-#appScreen {
+            border: 1px solid var(--border);
 
-    display: block !important;
+            background: rgba(255,255,255,.025);
+        }
 
-    min-height: 100vh;
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
 
-}
+            background: var(--green);
 
+            box-shadow: 0 0 12px rgba(36,209,126,.8);
+        }
 
-/* =========================================================
-   MAIN
-   ========================================================= */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-.app-container {
+        .nav-button {
+            height: 38px;
 
-    width:
-        min(
-            1480px,
-            calc(100% - 44px)
-        );
+            padding: 0 14px;
 
-    margin:
-        0 auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
 
-    padding:
-        18px 0 70px;
+            background: rgba(255,255,255,.035);
+            color: var(--muted);
 
-}
+            font-size: 11px;
+            font-weight: 700;
 
+            transition: .2s ease;
+        }
 
-/* =========================================================
-   TOP NAV
-   ========================================================= */
+        .nav-button:hover {
+            color: white;
+            border-color: rgba(120,168,255,.30);
+            background: rgba(79,140,255,.08);
+            transform: translateY(-1px);
+        }
 
-.top-header {
+        .nav-button.primary {
+            color: white;
 
-    position:
-        sticky;
+            border-color: rgba(79,140,255,.32);
 
-    top:
-        12px;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(79,140,255,.20),
+                    rgba(139,124,255,.12)
+                );
+        }
 
-    z-index:
-        100;
+        /* =========================================================
+           TICKER
+        ========================================================= */
 
-    margin-bottom:
-        14px;
+        .ticker {
+            height: 38px;
 
-    border:
-        1px solid rgba(37,49,64,.9);
+            border-bottom: 1px solid var(--border);
 
-    border-radius:
-        14px;
+            background: rgba(8, 13, 24, .75);
 
-    background:
-        rgba(3,5,7,.82);
+            overflow: hidden;
+        }
 
-    backdrop-filter:
-        blur(24px);
+        .ticker-track {
+            width: max-content;
+            min-width: 100%;
 
-    box-shadow:
-        0 12px 45px rgba(0,0,0,.35);
+            height: 100%;
 
-}
+            display: flex;
+            align-items: center;
 
-.header-inner {
+            animation: tickerMove 32s linear infinite;
+        }
 
-    min-height:
-        64px;
+        .ticker:hover .ticker-track {
+            animation-play-state: paused;
+        }
 
-    display:
-        flex;
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
 
-    align-items:
-        center;
+            padding: 0 26px;
 
-    justify-content:
-        space-between;
+            color: var(--muted-2);
 
-    padding:
-        9px 14px;
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: .08em;
 
-}
+            white-space: nowrap;
+        }
 
+        .ticker-item strong {
+            color: var(--muted);
+        }
 
-/* BRAND */
+        .ticker-item .live {
+            color: var(--green);
+        }
 
-.brand {
+        @keyframes tickerMove {
+            from {
+                transform: translateX(0);
+            }
 
-    display:
-        flex;
+            to {
+                transform: translateX(-30%);
+            }
+        }
 
-    align-items:
-        center;
+        /* =========================================================
+           MAIN
+        ========================================================= */
 
-    gap:
-        12px;
+        .page {
+            width: min(1480px, calc(100% - 40px));
+            margin: auto;
+        }
 
-}
+        .hero {
+            min-height: 470px;
 
-.brand-logo {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(360px, .65fr);
 
-    width:
-        42px;
+            gap: 24px;
 
-    height:
-        42px;
+            padding: 72px 0 48px;
+        }
 
-    display:
-        grid;
+        .hero-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
 
-    place-items:
-        center;
+            padding: 30px 0;
+        }
 
-    border-radius:
-        11px;
+        .eyebrow {
+            width: fit-content;
 
-    background:
-        linear-gradient(
-            135deg,
-            #2563eb,
-            #7c3aed
-        );
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
 
-    color:
-        white;
+            margin-bottom: 20px;
+            padding: 8px 11px;
 
-    font-size:
-        12px;
+            border: 1px solid rgba(79,140,255,.18);
+            border-radius: 999px;
 
-    font-weight:
-        900;
+            background: rgba(79,140,255,.06);
 
-    box-shadow:
-        0 0 28px rgba(59,130,246,.20);
+            color: #9dbdff;
 
-}
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .14em;
+        }
 
-.brand-title {
+        .eyebrow span {
+            width: 5px;
+            height: 5px;
 
-    font-size:
-        15px;
+            border-radius: 50%;
+            background: var(--blue);
 
-    font-weight:
-        900;
+            box-shadow: 0 0 12px rgba(79,140,255,.8);
+        }
 
-    letter-spacing:
-        .5px;
+        .hero h1 {
+            max-width: 850px;
 
-}
+            margin: 0;
 
-.brand-subtitle {
+            font-size: clamp(50px, 7vw, 92px);
+            line-height: .92;
 
-    margin-top:
-        3px;
+            letter-spacing: -.065em;
+            font-weight: 800;
+        }
 
-    color:
-        #64748b;
+        .hero h1 .gradient {
+            display: block;
 
-    font-size:
-        8px;
+            background:
+                linear-gradient(
+                    100deg,
+                    #fff 5%,
+                    #a9c6ff 48%,
+                    #6d8dff 80%
+                );
 
-    font-weight:
-        800;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
 
-    letter-spacing:
-        1.8px;
+        .hero-description {
+            max-width: 710px;
 
-}
+            margin: 28px 0 30px;
 
+            color: var(--muted);
 
-/* HEADER BUTTONS */
+            font-size: 15px;
+            line-height: 1.8;
+        }
 
-.header-actions {
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
 
-    display:
-        flex;
+        .hero-button {
+            height: 48px;
 
-    gap:
-        7px;
+            padding: 0 19px;
 
-}
+            border-radius: 12px;
 
-.header-button {
+            border: 1px solid var(--border);
 
-    padding:
-        8px 11px;
+            background: rgba(255,255,255,.035);
+            color: white;
 
-    border:
-        1px solid var(--line-2);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .02em;
 
-    border-radius:
-        8px;
+            transition: .2s ease;
+        }
 
-    background:
-        rgba(12,17,24,.8);
+        .hero-button:hover {
+            transform: translateY(-2px);
+            border-color: rgba(120,168,255,.32);
+        }
 
-    color:
-        #cbd5e1;
+        .hero-button.primary {
+            border-color: rgba(79,140,255,.40);
 
-    font-size:
-        9px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #316fe8,
+                    #5668e9
+                );
 
-    font-weight:
-        800;
+            box-shadow:
+                0 10px 35px rgba(49,111,232,.22);
+        }
 
-    transition:
-        .2s ease;
+        /* =========================================================
+           ENGINE PANEL
+        ========================================================= */
 
-}
+        .engine-panel {
+            position: relative;
 
-.header-button:hover {
+            min-height: 390px;
 
-    border-color:
-        #36567c;
+            padding: 22px;
 
-    background:
-        #101923;
+            overflow: hidden;
 
-}
+            border: 1px solid var(--border);
+            border-radius: 22px;
 
-#logoutButton {
+            background:
+                radial-gradient(
+                    circle at 100% 0%,
+                    rgba(79,140,255,.13),
+                    transparent 45%
+                ),
+                linear-gradient(
+                    145deg,
+                    rgba(17,26,43,.92),
+                    rgba(8,13,24,.92)
+                );
 
-    display:
-        none !important;
+            box-shadow: var(--shadow);
+        }
 
-}
+        .engine-panel::before {
+            content: "";
 
+            position: absolute;
+            inset: 0;
 
-/* =========================================================
-   MARKET STATUS STRIP
-   ========================================================= */
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent 49.8%,
+                    rgba(255,255,255,.025) 50%,
+                    transparent 50.2%
+                ),
+                linear-gradient(
+                    transparent 49.8%,
+                    rgba(255,255,255,.025) 50%,
+                    transparent 50.2%
+                );
 
-.market-strip {
+            background-size: 44px 44px;
+            opacity: .6;
+            pointer-events: none;
+        }
 
-    display:
-        grid;
+        .engine-header {
+            position: relative;
+            z-index: 1;
 
-    grid-template-columns:
-        1fr auto auto auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
 
-    align-items:
-        center;
+            margin-bottom: 35px;
+        }
 
-    gap:
-        20px;
+        .engine-title {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
 
-    min-height:
-        38px;
+        .engine-title strong {
+            font-size: 13px;
+            letter-spacing: .02em;
+        }
 
-    padding:
-        0 14px;
+        .engine-title span {
+            color: var(--muted-2);
 
-    margin-bottom:
-        14px;
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: .10em;
+        }
 
-    border:
-        1px solid var(--line);
+        .engine-live {
+            padding: 7px 9px;
 
-    border-radius:
-        9px;
+            border-radius: 8px;
 
-    background:
-        rgba(8,11,16,.8);
+            background: var(--green-soft);
+            color: var(--green);
 
-}
+            font-family: var(--mono);
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: .08em;
+        }
 
-.market-live {
+        .engine-core {
+            position: relative;
+            z-index: 1;
 
-    display:
-        flex;
+            width: 145px;
+            height: 145px;
 
-    align-items:
-        center;
+            margin: 0 auto 30px;
 
-    gap:
-        7px;
+            display: grid;
+            place-items: center;
 
-    color:
-        #8fa1b7;
+            border-radius: 50%;
 
-    font-size:
-        8px;
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(79,140,255,.18) 0%,
+                    rgba(79,140,255,.04) 48%,
+                    transparent 50%
+                );
 
-    font-weight:
-        800;
+            border: 1px solid rgba(79,140,255,.25);
 
-    letter-spacing:
-        .8px;
+            box-shadow:
+                0 0 70px rgba(79,140,255,.13),
+                inset 0 0 50px rgba(79,140,255,.05);
+        }
 
-}
+        .engine-core::before,
+        .engine-core::after {
+            content: "";
 
-.live-dot {
+            position: absolute;
 
-    width:
-        6px;
+            border-radius: 50%;
+            border: 1px solid rgba(79,140,255,.16);
+        }
 
-    height:
-        6px;
+        .engine-core::before {
+            inset: 14px;
+        }
 
-    border-radius:
-        50%;
+        .engine-core::after {
+            inset: 28px;
+            border-color: rgba(139,124,255,.20);
+        }
 
-    background:
-        var(--green);
+        .engine-core-text {
+            position: relative;
+            z-index: 2;
 
-    box-shadow:
-        0 0 10px rgba(34,197,94,.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
 
-}
+        .engine-core-text strong {
+            font-family: var(--mono);
+            font-size: 24px;
+            letter-spacing: -.05em;
+        }
 
-.market-item {
+        .engine-core-text span {
+            color: var(--muted-2);
 
-    color:
-        #566579;
+            font-family: var(--mono);
+            font-size: 7px;
+            letter-spacing: .16em;
+        }
 
-    font-size:
-        8px;
+        .engine-metrics {
+            position: relative;
+            z-index: 1;
 
-    font-weight:
-        700;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
 
-}
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
 
-.market-item strong {
+        .engine-metric {
+            padding: 15px 8px;
+            text-align: center;
+        }
 
-    color:
-        #94a3b8;
+        .engine-metric + .engine-metric {
+            border-left: 1px solid var(--border);
+        }
 
-}
+        .engine-metric strong {
+            display: block;
 
+            margin-bottom: 4px;
 
-/* =========================================================
-   HERO
-   ========================================================= */
+            font-family: var(--mono);
+            font-size: 13px;
+        }
 
-.hero {
+        .engine-metric span {
+            color: var(--muted-2);
 
-    position:
-        relative;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: .08em;
+        }
 
-    overflow:
-        hidden;
+        /* =========================================================
+           SECTION HEAD
+        ========================================================= */
 
-    min-height:
-        410px;
+        .section {
+            margin-bottom: 24px;
+        }
 
-    display:
-        flex;
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
 
-    align-items:
-        center;
+            margin-bottom: 14px;
+        }
 
-    margin-bottom:
-        14px;
+        .section-label {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
 
-    padding:
-        50px 58px;
+        .section-label small {
+            color: var(--blue-light);
 
-    border:
-        1px solid #1b2b40;
+            font-family: var(--mono);
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: .16em;
+        }
 
-    border-radius:
-        20px;
+        .section-label h2 {
+            margin: 0;
 
-    background:
+            font-size: 21px;
+            letter-spacing: -.035em;
+        }
 
-        linear-gradient(
-            110deg,
-            rgba(8,13,21,.98),
-            rgba(7,11,18,.96)
-        );
+        .section-label p {
+            margin: 0;
 
-    box-shadow:
-        0 25px 80px rgba(0,0,0,.28);
+            color: var(--muted-2);
 
-}
+            font-size: 10px;
+        }
 
+        /* =========================================================
+           KPI GRID
+        ========================================================= */
 
-/* grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
 
-.hero::before {
+        .kpi {
+            position: relative;
 
-    content:
-        "";
+            min-height: 140px;
 
-    position:
-        absolute;
+            padding: 19px;
 
-    inset:
-        0;
+            overflow: hidden;
 
-    background-image:
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
 
-        linear-gradient(
-            rgba(59,130,246,.035) 1px,
-            transparent 1px
-        ),
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(17,26,43,.85),
+                    rgba(10,15,26,.85)
+                );
 
-        linear-gradient(
-            90deg,
-            rgba(59,130,246,.035) 1px,
-            transparent 1px
-        );
+            transition: .22s ease;
+        }
 
-    background-size:
-        42px 42px;
+        .kpi:hover {
+            transform: translateY(-3px);
 
-    mask-image:
-        linear-gradient(
-            to right,
-            black,
-            transparent 85%
-        );
+            border-color: var(--border-strong);
 
-}
+            box-shadow:
+                0 18px 50px rgba(0,0,0,.25);
+        }
 
+        .kpi::after {
+            content: "";
 
-/* glow */
+            position: absolute;
 
-.hero::after {
+            width: 100px;
+            height: 100px;
 
-    content:
-        "";
+            right: -45px;
+            bottom: -55px;
 
-    position:
-        absolute;
+            border-radius: 50%;
 
-    width:
-        620px;
+            background: rgba(79,140,255,.08);
+            filter: blur(15px);
+        }
 
-    height:
-        620px;
+        .kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
 
-    right:
-        -280px;
+            margin-bottom: 24px;
+        }
 
-    top:
-        -260px;
+        .kpi-name {
+            color: var(--muted-2);
 
-    border-radius:
-        50%;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: .10em;
+        }
 
-    background:
-        radial-gradient(
-            circle,
-            rgba(37,99,235,.17),
-            transparent 68%
-        );
+        .kpi-icon {
+            width: 25px;
+            height: 25px;
 
-}
+            display: grid;
+            place-items: center;
 
-.hero-content {
+            border-radius: 7px;
 
-    position:
-        relative;
+            background: rgba(255,255,255,.04);
 
-    z-index:
-        2;
+            color: var(--muted);
+            font-size: 10px;
+        }
 
-    max-width:
-        850px;
+        .kpi-value {
+            position: relative;
+            z-index: 2;
 
-}
+            font-family: var(--mono);
+            font-size: 25px;
+            font-weight: 700;
 
-.hero-eyebrow {
+            letter-spacing: -.05em;
+        }
 
-    display:
-        flex;
+        .kpi-meta {
+            margin-top: 6px;
 
-    align-items:
-        center;
+            color: var(--muted-2);
 
-    gap:
-        9px;
+            font-size: 9px;
+        }
 
-    margin-bottom:
-        20px;
+        .kpi.buy .kpi-icon {
+            color: var(--green);
+            background: var(--green-soft);
+        }
 
-    color:
-        #6d9fe0;
+        .kpi.sell .kpi-icon {
+            color: var(--red);
+            background: var(--red-soft);
+        }
 
-    font-size:
-        9px;
+        .kpi.hold .kpi-icon {
+            color: var(--yellow);
+            background: var(--yellow-soft);
+        }
 
-    font-weight:
-        900;
+        /* =========================================================
+           SIGNALS
+        ========================================================= */
 
-    letter-spacing:
-        2px;
+        .signals-shell {
+            border: 1px solid var(--border);
+            border-radius: 20px;
 
-}
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(13,20,33,.94),
+                    rgba(8,13,23,.94)
+                );
 
-.hero-eyebrow span {
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
 
-    display:
-        inline-block;
+        .signals-toolbar {
+            min-height: 72px;
 
-    width:
-        7px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
 
-    height:
-        7px;
+            gap: 12px;
 
-    border-radius:
-        50%;
+            padding: 14px 16px;
 
-    background:
-        var(--green);
+            border-bottom: 1px solid var(--border);
 
-    box-shadow:
-        0 0 12px rgba(34,197,94,.7);
+            background: rgba(255,255,255,.015);
+        }
 
-}
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-.hero h1 {
+        .terminal-symbol {
+            width: 34px;
+            height: 34px;
 
-    margin:
-        0;
+            display: grid;
+            place-items: center;
 
-    font-size:
-        clamp(
-            48px,
-            7vw,
-            86px
-        );
+            border-radius: 9px;
 
-    line-height:
-        .9;
+            background: rgba(79,140,255,.09);
+            border: 1px solid rgba(79,140,255,.15);
 
-    letter-spacing:
-        -6px;
+            color: var(--blue-light);
 
-    font-weight:
-        900;
+            font-family: var(--mono);
+            font-size: 13px;
+        }
 
-}
+        .toolbar-title {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
 
-.hero h1 span {
+        .toolbar-title strong {
+            font-size: 12px;
+        }
 
-    background:
+        .toolbar-title span {
+            color: var(--muted-2);
+            font-size: 9px;
+        }
 
-        linear-gradient(
-            135deg,
-            #60a5fa 0%,
-            #818cf8 65%,
-            #a78bfa 100%
-        );
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    -webkit-background-clip:
-        text;
+        .search-wrap {
+            position: relative;
+        }
 
-    background-clip:
-        text;
+        .search-wrap::before {
+            content: "⌕";
 
-    color:
-        transparent;
+            position: absolute;
+            left: 12px;
+            top: 50%;
 
-}
+            transform: translateY(-52%);
 
-.hero-description {
+            color: var(--muted-2);
 
-    max-width:
-        720px;
+            font-size: 15px;
 
-    margin:
-        24px 0 0;
+            pointer-events: none;
+        }
 
-    color:
-        #77879c;
+        #signalSearch {
+            width: 250px;
+            height: 38px;
 
-    font-size:
-        13px;
+            padding: 0 12px 0 34px;
 
-    line-height:
-        1.85;
+            outline: none;
 
-}
+            border: 1px solid var(--border);
+            border-radius: 9px;
 
-.hero-actions {
+            background: rgba(255,255,255,.035);
 
-    display:
-        flex;
+            color: white;
 
-    flex-wrap:
-        wrap;
+            font-family: var(--mono);
+            font-size: 10px;
 
-    gap:
-        9px;
+            transition: .2s ease;
+        }
 
-    margin-top:
-        28px;
+        #signalSearch::placeholder {
+            color: var(--muted-2);
+        }
 
-}
+        #signalSearch:focus {
+            border-color: rgba(79,140,255,.40);
 
-.primary-button,
-.secondary-button {
+            box-shadow:
+                0 0 0 3px rgba(79,140,255,.07);
+        }
 
-    border-radius:
-        9px;
+        .refresh-small {
+            width: 38px;
+            height: 38px;
 
-    padding:
-        12px 16px;
+            display: grid;
+            place-items: center;
 
-    font-size:
-        10px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
 
-    font-weight:
-        900;
+            background: rgba(255,255,255,.035);
+            color: var(--muted);
 
-    transition:
-        .2s ease;
+            transition: .2s ease;
+        }
 
-}
+        .refresh-small:hover {
+            color: white;
+            border-color: rgba(79,140,255,.3);
+        }
 
-.primary-button {
+        .table-scroll {
+            width: 100%;
+            overflow-x: auto;
+        }
 
-    border:
-        0;
+        .signals-table {
+            width: 100%;
+            min-width: 880px;
 
-    color:
-        white;
+            border-collapse: collapse;
+        }
 
-    background:
-        linear-gradient(
-            135deg,
-            #2563eb,
-            #4f46e5
-        );
+        .signals-table thead {
+            background: rgba(255,255,255,.018);
+        }
 
-    box-shadow:
-        0 10px 30px rgba(37,99,235,.22);
+        .signals-table th {
+            height: 46px;
 
-}
+            padding: 0 17px;
 
-.primary-button:hover {
+            border-bottom: 1px solid var(--border);
 
-    transform:
-        translateY(-1px);
+            color: var(--muted-2);
 
-    box-shadow:
-        0 14px 35px rgba(37,99,235,.32);
+            text-align: left;
 
-}
+            font-family: var(--mono);
+            font-size: 8px;
+            font-weight: 700;
 
-.secondary-button {
+            letter-spacing: .10em;
 
-    border:
-        1px solid #26364a;
+            white-space: nowrap;
+        }
 
-    color:
-        #cbd5e1;
+        .signals-table td {
+            height: 54px;
 
-    background:
-        rgba(13,19,28,.8);
+            padding: 0 17px;
 
-}
+            border-bottom: 1px solid rgba(148,163,184,.065);
 
-.secondary-button:hover {
+            color: #cdd5e1;
 
-    border-color:
-        #42678f;
+            font-family: var(--mono);
+            font-size: 10px;
 
-}
+            white-space: nowrap;
+        }
 
+        .signals-table tbody tr {
+            transition: .15s ease;
+        }
 
-/* =========================================================
-   TERMINAL METRICS
-   ========================================================= */
+        .signals-table tbody tr:hover {
+            background: rgba(79,140,255,.045);
+        }
 
-.kpi-grid {
+        .signals-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
 
-    display:
-        grid;
+        .signals-table td:first-child {
+            color: white;
+            font-weight: 700;
+        }
 
-    grid-template-columns:
-        repeat(
-            5,
-            minmax(0,1fr)
-        );
+        /* JS generated signal badges usually inherit these */
+        .signal-buy,
+        .buy {
+            color: var(--green) !important;
+        }
 
-    margin-bottom:
-        14px;
+        .signal-sell,
+        .sell {
+            color: var(--red) !important;
+        }
 
-    border:
-        1px solid var(--line);
+        .signal-hold,
+        .hold {
+            color: var(--yellow) !important;
+        }
 
-    border-radius:
-        14px;
+        .signals-footer {
+            min-height: 48px;
 
-    overflow:
-        hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
 
-    background:
-        #080b10;
+            padding: 0 16px;
 
-}
+            border-top: 1px solid var(--border);
 
-.kpi-card {
+            color: var(--muted-2);
 
-    position:
-        relative;
+            font-family: var(--mono);
+            font-size: 9px;
+        }
 
-    min-height:
-        116px;
+        /* =========================================================
+           EXPLANATION
+        ========================================================= */
 
-    padding:
-        20px;
+        .info-panel {
+            display: grid;
+            grid-template-columns: 90px minmax(0, 1fr);
+            gap: 22px;
 
-    border-right:
-        1px solid var(--line);
+            padding: 28px;
 
-    background:
-        linear-gradient(
-            180deg,
-            rgba(14,20,28,.85),
-            rgba(7,10,15,.8)
-        );
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
 
-}
+            background:
+                radial-gradient(
+                    circle at 0% 50%,
+                    rgba(79,140,255,.08),
+                    transparent 30%
+                ),
+                rgba(13,20,33,.72);
+        }
 
-.kpi-card:last-child {
+        .info-number {
+            color: rgba(120,168,255,.18);
 
-    border-right:
-        0;
+            font-family: var(--mono);
+            font-size: 54px;
+            font-weight: 700;
+            line-height: 1;
+        }
 
-}
+        .info-content h3 {
+            margin: 0 0 9px;
 
-.kpi-card::before {
+            font-size: 16px;
+            letter-spacing: -.02em;
+        }
 
-    content:
-        "";
+        .info-content p {
+            max-width: 900px;
 
-    position:
-        absolute;
+            margin: 0;
 
-    left:
-        0;
+            color: var(--muted);
 
-    top:
-        0;
+            font-size: 11px;
+            line-height: 1.8;
+        }
 
-    width:
-        100%;
+        /* =========================================================
+           ANALYSIS
+        ========================================================= */
 
-    height:
-        1px;
+        .analysis-panel {
+            position: relative;
 
-    background:
-        #172231;
+            padding: 28px;
 
-}
+            overflow: hidden;
 
-.kpi-label {
+            border: 1px solid rgba(79,140,255,.17);
+            border-radius: 20px;
 
-    color:
-        #566579;
+            background:
+                radial-gradient(
+                    circle at 90% 20%,
+                    rgba(139,124,255,.11),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    145deg,
+                    rgba(14,24,44,.95),
+                    rgba(8,13,23,.95)
+                );
+        }
 
-    font-size:
-        8px;
+        .analysis-panel::after {
+            content: "AI";
 
-    font-weight:
-        900;
+            position: absolute;
+            right: 30px;
+            bottom: -25px;
 
-    letter-spacing:
-        1.2px;
+            color: rgba(255,255,255,.018);
 
-}
+            font-family: var(--mono);
+            font-size: 150px;
+            font-weight: 800;
+        }
 
-.kpi-value {
+        .analysis-content {
+            position: relative;
+            z-index: 2;
+        }
 
-    margin-top:
-        11px;
+        .analysis-kicker {
+            display: flex;
+            align-items: center;
+            gap: 8px;
 
-    font-size:
-        28px;
+            margin-bottom: 10px;
 
-    line-height:
-        1;
+            color: var(--blue-light);
 
-    font-weight:
-        900;
+            font-family: var(--mono);
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: .14em;
+        }
 
-    letter-spacing:
-        -1.5px;
+        .analysis-kicker span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
 
-}
+            background: var(--blue);
 
-.kpi-buy .kpi-value {
+            box-shadow: 0 0 12px rgba(79,140,255,.8);
+        }
 
-    color:
-        #4ade80;
+        .analysis-panel h3 {
+            margin: 0;
 
-}
+            font-size: 21px;
+            letter-spacing: -.035em;
+        }
 
-.kpi-sell .kpi-value {
+        .analysis-panel p {
+            max-width: 600px;
 
-    color:
-        #f87171;
+            margin: 9px 0 22px;
 
-}
+            color: var(--muted);
 
-.kpi-hold .kpi-value {
+            font-size: 11px;
+            line-height: 1.7;
+        }
 
-    color:
-        #facc15;
+        #runAnalysisButton {
+            min-height: 45px;
 
-}
+            padding: 0 17px;
 
+            border: 1px solid rgba(79,140,255,.30);
+            border-radius: 10px;
 
-/* =========================================================
-   INFO BAR
-   ========================================================= */
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(79,140,255,.18),
+                    rgba(139,124,255,.13)
+                );
 
-.info-card {
+            color: white;
 
-    margin-bottom:
-        14px;
+            font-size: 10px;
+            font-weight: 800;
 
-    padding:
-        19px 21px;
+            transition: .2s ease;
+        }
 
-    border:
-        1px solid var(--line);
+        #runAnalysisButton:hover {
+            transform: translateY(-2px);
 
-    border-radius:
-        12px;
+            border-color: rgba(79,140,255,.5);
 
-    background:
-        rgba(9,13,19,.9);
+            box-shadow:
+                0 12px 35px rgba(79,140,255,.12);
+        }
 
-}
+        #runStatus {
+            display: inline-block;
 
-.section-title {
+            margin-left: 12px;
 
-    margin:
-        0 0 7px;
+            color: var(--muted-2);
 
-    font-size:
-        13px;
+            font-family: var(--mono);
+            font-size: 9px;
+        }
 
-    font-weight:
-        900;
+        /* =========================================================
+           ADVANCED
+        ========================================================= */
 
-    letter-spacing:
-        -.2px;
+        .advanced-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
 
-}
+        .advanced-card {
+            position: relative;
 
-.section-text {
+            min-height: 215px;
 
-    margin:
-        0;
+            display: flex;
+            flex-direction: column;
 
-    color:
-        #69798e;
+            padding: 22px;
 
-    font-size:
-        10px;
+            border: 1px solid var(--border);
+            border-radius: 17px;
 
-    line-height:
-        1.8;
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(17,26,43,.76),
+                    rgba(9,14,24,.76)
+                );
 
-}
+            overflow: hidden;
 
+            transition: .22s ease;
+        }
 
-/* =========================================================
-   MAIN TERMINAL
-   ========================================================= */
+        .advanced-card:hover {
+            transform: translateY(-4px);
 
-.dashboard-card {
+            border-color: rgba(120,168,255,.25);
 
-    margin-bottom:
-        14px;
+            box-shadow:
+                0 20px 55px rgba(0,0,0,.28);
+        }
 
-    border:
-        1px solid var(--line);
+        .advanced-icon {
+            width: 39px;
+            height: 39px;
 
-    border-radius:
-        14px;
+            display: grid;
+            place-items: center;
 
-    overflow:
-        hidden;
+            margin-bottom: 25px;
 
-    background:
-        #080c12;
+            border-radius: 11px;
 
-    box-shadow:
-        0 12px 40px rgba(0,0,0,.14);
+            background: rgba(79,140,255,.08);
+            border: 1px solid rgba(79,140,255,.12);
 
-}
+            color: var(--blue-light);
 
-.card-header {
+            font-size: 14px;
+        }
 
-    min-height:
-        62px;
+        .advanced-card h3 {
+            margin: 0 0 7px;
 
-    display:
-        flex;
+            font-size: 13px;
+        }
 
-    align-items:
-        center;
+        .advanced-card p {
+            margin: 0;
 
-    justify-content:
-        space-between;
+            color: var(--muted);
 
-    gap:
-        15px;
+            font-size: 10px;
+            line-height: 1.65;
+        }
 
-    padding:
-        12px 17px;
+        .advanced-card button {
+            width: fit-content;
 
-    border-bottom:
-        1px solid var(--line);
+            margin-top: auto;
+            padding: 0;
 
-    background:
-        rgba(10,15,22,.75);
+            border: 0;
 
-}
+            background: transparent;
+            color: var(--blue-light);
 
-.card-header-left {
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .08em;
+        }
 
-    display:
-        flex;
+        .advanced-card button:hover {
+            color: white;
+        }
 
-    align-items:
-        center;
+        /* =========================================================
+           ADVANCED RESULTS
+        ========================================================= */
 
-    gap:
-        10px;
+        #advancedResults {
+            display: none;
 
-}
+            padding: 22px;
 
-.card-header-icon {
+            border: 1px solid var(--border);
+            border-radius: 17px;
 
-    width:
-        30px;
+            background: rgba(13,20,33,.75);
+        }
 
-    height:
-        30px;
+        #advancedResultsTitle {
+            margin: 0 0 5px;
+            font-size: 16px;
+        }
 
-    display:
-        grid;
+        #advancedResultsSubtitle {
+            margin: 0 0 18px;
+            color: var(--muted-2);
+            font-size: 10px;
+        }
 
-    place-items:
-        center;
+        /* =========================================================
+           STATUS
+        ========================================================= */
 
-    border:
-        1px solid #1e3047;
+        .status-shell {
+            border: 1px solid var(--border);
+            border-radius: 18px;
 
-    border-radius:
-        8px;
+            overflow: hidden;
 
-    background:
-        #0d1723;
+            background: rgba(13,20,33,.76);
+        }
 
-}
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+        }
 
-.card-header h2 {
+        .status-item {
+            min-height: 105px;
 
-    margin:
-        0;
+            padding: 20px;
 
-    font-size:
-        12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
 
-    font-weight:
-        900;
+            border-right: 1px solid var(--border);
+        }
 
-}
+        .status-item:last-child {
+            border-right: 0;
+        }
 
-.card-header p {
+        .status-label {
+            color: var(--muted-2);
 
-    margin:
-        3px 0 0;
+            font-family: var(--mono);
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: .10em;
+        }
 
-    color:
-        #536276;
+        .status-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
 
-    font-size:
-        8px;
+            color: var(--green);
 
-}
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 700;
+        }
 
-.refresh-button {
+        .status-value::before {
+            content: "";
 
-    padding:
-        8px 10px;
+            width: 6px;
+            height: 6px;
 
-    border:
-        1px solid var(--line-2);
+            border-radius: 50%;
 
-    border-radius:
-        7px;
+            background: currentColor;
 
-    background:
-        #0c131c;
+            box-shadow: 0 0 12px currentColor;
+        }
 
-    color:
-        #8fa0b5;
+        /* =========================================================
+           RISK
+        ========================================================= */
 
-    font-size:
-        8px;
+        .risk-panel {
+            display: flex;
+            gap: 16px;
 
-    font-weight:
-        800;
+            padding: 20px 22px;
 
-}
+            border: 1px solid rgba(244,201,93,.14);
+            border-radius: 14px;
 
-.refresh-button:hover {
+            background: rgba(244,201,93,.035);
+        }
 
-    border-color:
-        #355a86;
+        .risk-icon {
+            width: 34px;
+            height: 34px;
 
-    color:
-        white;
+            flex: 0 0 auto;
 
-}
+            display: grid;
+            place-items: center;
 
+            border-radius: 9px;
 
-/* =========================================================
-   SEARCH
-   ========================================================= */
+            background: var(--yellow-soft);
 
-.search-wrapper {
+            color: var(--yellow);
+        }
 
-    padding:
-        12px;
+        .risk-content strong {
+            display: block;
 
-    border-bottom:
-        1px solid var(--line);
+            margin-bottom: 5px;
 
-    background:
-        #070a0f;
+            color: #e9d69a;
 
-}
+            font-size: 11px;
+        }
 
-#signalSearch {
+        .risk-content p {
+            margin: 0;
 
-    width:
-        100%;
+            color: var(--muted);
 
-    height:
-        38px;
+            font-size: 9px;
+            line-height: 1.7;
+        }
 
-    padding:
-        0 13px;
+        /* =========================================================
+           FOOTER
+        ========================================================= */
 
-    border:
-        1px solid #1b2735;
+        footer {
+            margin-top: 70px;
+            padding: 30px 0 42px;
 
-    border-radius:
-        8px;
+            border-top: 1px solid var(--border);
+        }
 
-    outline:
-        none;
+        .footer-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
 
-    background:
-        #05080c;
+            gap: 20px;
+        }
 
-    color:
-        #dbe4ef;
+        .footer-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-    font-size:
-        10px;
+        .footer-brand strong {
+            font-size: 12px;
+        }
 
-}
+        .footer-brand span {
+            color: var(--muted-2);
 
-#signalSearch::placeholder {
+            font-family: var(--mono);
+            font-size: 8px;
+            letter-spacing: .08em;
+        }
 
-    color:
-        #455467;
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 18px;
+        }
 
-}
+        .footer-links a {
+            color: var(--muted-2);
 
-#signalSearch:focus {
+            font-size: 9px;
+            font-weight: 600;
 
-    border-color:
-        #315681;
+            transition: .2s ease;
+        }
 
-    box-shadow:
-        0 0 0 3px rgba(59,130,246,.05);
+        .footer-links a:hover {
+            color: white;
+        }
 
-}
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
 
+            margin-top: 24px;
+            padding-top: 18px;
 
-/* =========================================================
-   TABLE
-   ========================================================= */
+            border-top: 1px solid rgba(148,163,184,.06);
 
-.table-wrapper {
+            color: var(--muted-2);
 
-    width:
-        100%;
+            font-family: var(--mono);
+            font-size: 8px;
+            letter-spacing: .05em;
+        }
 
-    overflow-x:
-        auto;
+        /* =========================================================
+           MESSAGE
+        ========================================================= */
 
-}
+        #message {
+            position: fixed;
 
-.signals-table {
+            left: 50%;
+            bottom: 24px;
 
-    width:
-        100%;
+            transform: translateX(-50%);
 
-    min-width:
-        850px;
+            z-index: 999;
 
-    border-collapse:
-        collapse;
+            max-width: calc(100% - 30px);
 
-}
+            padding: 11px 15px;
 
-.signals-table th {
+            border: 1px solid var(--border-strong);
+            border-radius: 10px;
 
-    height:
-        40px;
+            background: rgba(13,20,33,.94);
 
-    padding:
-        0 14px;
+            color: white;
 
-    text-align:
-        left;
+            box-shadow: var(--shadow);
 
-    background:
-        #090d13;
+            font-size: 10px;
 
-    border-bottom:
-        1px solid var(--line);
+            backdrop-filter: blur(18px);
 
-    color:
-        #536276;
+            display: none;
+        }
 
-    font-size:
-        8px;
+        /* =========================================================
+           APP / AUTH COMPATIBILITY
+        ========================================================= */
 
-    font-weight:
-        900;
+        #authScreen {
+            display: none !important;
+        }
 
-    letter-spacing:
-        .9px;
+        #appScreen {
+            display: block;
+        }
 
-}
+        /* =========================================================
+           MOBILE
+        ========================================================= */
 
-.signals-table td {
+        @media (max-width: 1100px) {
 
-    height:
-        49px;
+            .hero {
+                grid-template-columns: 1fr;
+            }
 
-    padding:
-        0 14px;
+            .engine-panel {
+                min-height: 330px;
+            }
 
-    border-bottom:
-        1px solid rgba(25,34,46,.65);
+            .kpi-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
 
-    color:
-        #aebbc9;
+            .advanced-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
 
-    font-size:
-        10px;
+        @media (max-width: 760px) {
 
-}
+            .topbar {
+                height: 66px;
+            }
 
-.signals-table tbody tr {
+            .topbar-inner,
+            .page {
+                width: min(100% - 24px, 1480px);
+            }
 
-    transition:
-        background .15s ease;
+            .brand-copy {
+                display: none;
+            }
 
-}
+            .nav-center {
+                display: none;
+            }
 
-.signals-table tbody tr:hover {
+            .nav-actions {
+                margin-left: auto;
+            }
 
-    background:
-        rgba(59,130,246,.025);
+            .nav-button {
+                padding: 0 10px;
+            }
 
-}
+            .nav-button.admin {
+                display: none;
+            }
 
-.signals-table tbody tr:last-child td {
+            .hero {
+                min-height: auto;
 
-    border-bottom:
-        0;
+                padding: 48px 0 32px;
+            }
 
-}
+            .hero-left {
+                padding: 0;
+            }
 
-.signals-table strong {
+            .hero h1 {
+                font-size: clamp(46px, 16vw, 76px);
+            }
 
-    color:
-        #dce5ef;
+            .hero-description {
+                font-size: 13px;
+                line-height: 1.7;
+            }
 
-    font-weight:
-        800;
+            .hero-actions {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
 
-}
+            .hero-button {
+                width: 100%;
+            }
 
-.signal-badge {
+            .engine-panel {
+                min-height: 340px;
+            }
 
-    display:
-        inline-flex;
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
 
-    align-items:
-        center;
+            .kpi {
+                min-height: 125px;
+            }
 
-    justify-content:
-        center;
+            .kpi-value {
+                font-size: 21px;
+            }
 
-    min-width:
-        55px;
+            .signals-toolbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
 
-    padding:
-        5px 8px;
+            .toolbar-right {
+                width: 100%;
+            }
 
-    border-radius:
-        5px;
+            .search-wrap {
+                flex: 1;
+            }
 
-    font-size:
-        8px;
+            #signalSearch {
+                width: 100%;
+            }
 
-    font-weight:
-        900;
+            .info-panel {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
 
-    letter-spacing:
-        .5px;
+            .info-number {
+                font-size: 34px;
+            }
 
-}
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
 
-.signal-buy {
+            .status-item:nth-child(2) {
+                border-right: 0;
+            }
 
-    color:
-        #4ade80;
+            .status-item:nth-child(-n+2) {
+                border-bottom: 1px solid var(--border);
+            }
 
-    background:
-        rgba(34,197,94,.07);
+            .advanced-grid {
+                grid-template-columns: 1fr;
+            }
 
-    border:
-        1px solid rgba(34,197,94,.17);
+            .footer-top,
+            .footer-bottom {
+                flex-direction: column;
+                align-items: flex-start;
+            }
 
-}
+            .footer-links {
+                justify-content: flex-start;
+            }
+        }
 
-.signal-sell {
+        @media (max-width: 460px) {
 
-    color:
-        #f87171;
+            .kpi-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
 
-    background:
-        rgba(239,68,68,.07);
+            .kpi {
+                padding: 14px;
+            }
 
-    border:
-        1px solid rgba(239,68,68,.17);
+            .kpi-name {
+                font-size: 8px;
+            }
 
-}
+            .kpi-value {
+                font-size: 18px;
+            }
 
-.signal-hold {
+            .status-item {
+                padding: 15px;
+            }
 
-    color:
-        #facc15;
+            .analysis-panel,
+            .info-panel {
+                padding: 20px;
+            }
 
-    background:
-        rgba(234,179,8,.07);
-
-    border:
-        1px solid rgba(234,179,8,.17);
-
-}
-
-.score-value {
-
-    color:
-        #dbeafe;
-
-    font-weight:
-        800;
-
-}
-
-.positive {
-
-    color:
-        #4ade80 !important;
-
-}
-
-.negative {
-
-    color:
-        #f87171 !important;
-
-}
-
-.neutral {
-
-    color:
-        #facc15 !important;
-
-}
-
-
-/* =========================================================
-   RUN ANALYSIS
-   ========================================================= */
-
-.run-section {
-
-    padding:
-        16px;
-
-}
-
-.run-button {
-
-    width:
-        100%;
-
-    height:
-        43px;
-
-    border:
-        0;
-
-    border-radius:
-        8px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #2563eb,
-            #5b21b6
-        );
-
-    color:
-        white;
-
-    font-size:
-        9px;
-
-    font-weight:
-        900;
-
-    letter-spacing:
-        .7px;
-
-    box-shadow:
-        0 10px 25px rgba(37,99,235,.14);
-
-}
-
-.run-button:hover {
-
-    filter:
-        brightness(1.08);
-
-}
-
-.run-button:disabled {
-
-    opacity:
-        .5;
-
-    cursor:
-        wait;
-
-}
-
-.run-status {
-
-    margin-top:
-        9px;
-
-    text-align:
-        center;
-
-    color:
-        #536276;
-
-    font-size:
-        8px;
-
-}
-
-
-/* =========================================================
-   ADVANCED
-   ========================================================= */
-
-.advanced-grid {
-
-    display:
-        grid;
-
-    grid-template-columns:
-        repeat(
-            4,
-            minmax(0,1fr)
-        );
-
-    gap:
-        1px;
-
-    background:
-        var(--line);
-
-}
-
-.advanced-card {
-
-    min-height:
-        180px;
-
-    padding:
-        21px;
-
-    background:
-        #090e15;
-
-    transition:
-        .2s ease;
-
-}
-
-.advanced-card:hover {
-
-    background:
-        #0d141e;
-
-}
-
-.advanced-icon {
-
-    width:
-        34px;
-
-    height:
-        34px;
-
-    display:
-        grid;
-
-    place-items:
-        center;
-
-    margin-bottom:
-        16px;
-
-    border:
-        1px solid #1d3046;
-
-    border-radius:
-        8px;
-
-    background:
-        #0c1622;
-
-    font-size:
-        16px;
-
-}
-
-.advanced-card h3 {
-
-    margin:
-        0 0 7px;
-
-    font-size:
-        11px;
-
-    font-weight:
-        900;
-
-}
-
-.advanced-card p {
-
-    margin:
-        0;
-
-    color:
-        #5e6e82;
-
-    font-size:
-        9px;
-
-    line-height:
-        1.75;
-
-}
-
-.feature-button {
-
-    margin-top:
-        15px;
-
-    padding:
-        7px 10px;
-
-    border:
-        1px solid #1e2d3f;
-
-    border-radius:
-        6px;
-
-    background:
-        #0a111a;
-
-    color:
-        #9aabc0;
-
-    font-size:
-        8px;
-
-    font-weight:
-        800;
-
-}
-
-.feature-button:hover {
-
-    border-color:
-        #365a83;
-
-    color:
-        white;
-
-}
-
-
-/* =========================================================
-   RESULTS
-   ========================================================= */
-
-#advancedResultsBody {
-
-    color:
-        #aebbc9;
-
-}
-
-
-/* =========================================================
-   STATUS
-   ========================================================= */
-
-.status-grid {
-
-    display:
-        grid;
-
-    grid-template-columns:
-        repeat(
-            4,
-            1fr
-        );
-
-    gap:
-        1px;
-
-    background:
-        var(--line);
-
-}
-
-.status-item {
-
-    padding:
-        16px;
-
-    background:
-        #090e15;
-
-}
-
-.status-label {
-
-    margin-bottom:
-        7px;
-
-    color:
-        #4e5d70;
-
-    font-size:
-        7px;
-
-    font-weight:
-        900;
-
-    letter-spacing:
-        1px;
-
-}
-
-.status-value {
-
-    color:
-        #aebbc9;
-
-    font-size:
-        10px;
-
-    font-weight:
-        900;
-
-}
-
-.online {
-
-    color:
-        #4ade80 !important;
-
-}
-
-
-/* =========================================================
-   MESSAGE
-   ========================================================= */
-
-#message {
-
-    display:
-        none;
-
-    margin-bottom:
-        14px;
-
-    padding:
-        10px 12px;
-
-    border:
-        1px solid #24364c;
-
-    border-radius:
-        8px;
-
-    background:
-        #0a111a;
-
-    color:
-        #aebbc9;
-
-    font-size:
-        9px;
-
-}
-
-
-/* =========================================================
-   RISK
-   ========================================================= */
-
-.risk-card {
-
-    margin-bottom:
-        14px;
-
-    padding:
-        16px 18px;
-
-    border:
-        1px solid rgba(234,179,8,.13);
-
-    border-radius:
-        11px;
-
-    background:
-        rgba(234,179,8,.025);
-
-}
-
-.risk-card h3 {
-
-    margin:
-        0 0 6px;
-
-    color:
-        #d7bd62;
-
-    font-size:
-        9px;
-
-    font-weight:
-        900;
-
-}
-
-.risk-card p {
-
-    margin:
-        0;
-
-    color:
-        #5f6d7f;
-
-    font-size:
-        8px;
-
-    line-height:
-        1.8;
-
-}
-
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-footer {
-
-    padding:
-        24px 10px 5px;
-
-    text-align:
-        center;
-
-    color:
-        #3e4b5c;
-
-    font-size:
-        8px;
-
-    line-height:
-        1.9;
-
-}
-
-.footer-links {
-
-    display:
-        flex;
-
-    justify-content:
-        center;
-
-    flex-wrap:
-        wrap;
-
-    gap:
-        15px;
-
-    margin-bottom:
-        7px;
-
-}
-
-.footer-links a {
-
-    color:
-        #59687b;
-
-    text-decoration:
-        none;
-
-}
-
-.footer-links a:hover {
-
-    color:
-        #8ebcf4;
-
-}
-
-
-/* =========================================================
-   MOBILE
-   ========================================================= */
-
-@media (max-width: 1050px) {
-
-    .kpi-grid {
-
-        grid-template-columns:
-            repeat(3,1fr);
-
-    }
-
-    .kpi-card:nth-child(3) {
-
-        border-right:
-            0;
-
-    }
-
-    .advanced-grid {
-
-        grid-template-columns:
-            repeat(2,1fr);
-
-    }
-
-    .status-grid {
-
-        grid-template-columns:
-            repeat(2,1fr);
-
-    }
-
-    .market-strip {
-
-        grid-template-columns:
-            1fr auto;
-
-    }
-
-    .market-item:nth-last-child(-n+2) {
-
-        display:
-            none;
-
-    }
-
-}
-
-
-@media (max-width: 700px) {
-
-    .app-container {
-
-        width:
-            calc(100% - 18px);
-
-        padding-top:
-            9px;
-
-    }
-
-    .top-header {
-
-        position:
-            relative;
-
-        top:
-            0;
-
-    }
-
-    .header-actions {
-
-        display:
-            none;
-
-    }
-
-    .market-strip {
-
-        min-height:
-            34px;
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-    .market-item {
-
-        display:
-            none;
-
-    }
-
-    .hero {
-
-        min-height:
-            350px;
-
-        padding:
-            35px 23px;
-
-    }
-
-    .hero h1 {
-
-        font-size:
-            46px;
-
-        letter-spacing:
-            -3px;
-
-    }
-
-    .hero-description {
-
-        font-size:
-            11px;
-
-    }
-
-    .kpi-grid {
-
-        grid-template-columns:
-            repeat(2,1fr);
-
-    }
-
-    .kpi-card {
-
-        border-right:
-            1px solid var(--line);
-
-        border-bottom:
-            1px solid var(--line);
-
-    }
-
-    .kpi-card:nth-child(2n) {
-
-        border-right:
-            0;
-
-    }
-
-    .kpi-value {
-
-        font-size:
-            23px;
-
-    }
-
-    .advanced-grid {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-    .status-grid {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-    .card-header {
-
-        align-items:
-            flex-start;
-
-        flex-direction:
-            column;
-
-    }
-
-}
-
-
-@media (max-width: 430px) {
-
-    .hero h1 {
-
-        font-size:
-            39px;
-
-    }
-
-    .hero-actions {
-
-        flex-direction:
-            column;
-
-    }
-
-    .primary-button,
-    .secondary-button {
-
-        width:
-            100%;
-
-    }
-
-}
-
-
-/* =========================================================
-   SCROLLBAR
-   ========================================================= */
-
-::-webkit-scrollbar {
-
-    width:
-        7px;
-
-    height:
-        7px;
-
-}
-
-::-webkit-scrollbar-track {
-
-    background:
-        #05070a;
-
-}
-
-::-webkit-scrollbar-thumb {
-
-    background:
-        #1c2938;
-
-    border-radius:
-        10px;
-
-}
-
-::-webkit-scrollbar-thumb:hover {
-
-    background:
-        #2a405a;
-
-}
-
-</style>
-
+            .engine-panel {
+                padding: 17px;
+            }
+        }
+    </style>
 </head>
-
 
 <body>
 
-
-<div id="appScreen">
-
-<div class="app-container">
-
-
-<!-- ======================================================
+<!-- =========================================================
      HEADER
-     ====================================================== -->
+========================================================= -->
 
-<header class="top-header">
+<header class="topbar">
 
-<div class="header-inner">
+    <div class="topbar-inner">
 
-<div class="brand">
+        <a href="/" class="brand">
 
-<div class="brand-logo">
-L1K
-</div>
+            <div class="brand-mark">
+                L1K
+            </div>
 
-<div>
+            <div class="brand-copy">
+                <div class="brand-name">
+                    LEVEL 1000 AI
+                </div>
 
-<div class="brand-title">
-LEVEL 1000 AI
-</div>
+                <div class="brand-sub">
+                    AI MARKET INTELLIGENCE
+                </div>
+            </div>
 
-<div class="brand-subtitle">
-AI MARKET INTELLIGENCE
-</div>
+        </a>
 
-</div>
+        <div class="nav-center">
 
-</div>
+            <div class="nav-status">
+                <span class="status-dot"></span>
+                MARKET INTELLIGENCE SYSTEM
+            </div>
 
+            <div class="nav-status">
+                AI ACTIVE
+            </div>
 
-<div class="header-actions">
+            <div class="nav-status">
+                DATA LIVE
+            </div>
 
-<button
-    type="button"
-    class="header-button"
-    onclick="refreshData()"
->
-↻ YENİLE
-</button>
+            <div class="nav-status">
+                ACCESS PUBLIC
+            </div>
 
-<button
-    type="button"
-    id="adminButton"
-    class="header-button"
-    style="display:none;"
-    onclick="openAdmin()"
->
-ADMIN
-</button>
+        </div>
 
-<button
-    type="button"
-    id="logoutButton"
-    class="header-button"
->
-ÇIKIŞ
-</button>
+        <div class="nav-actions">
 
-</div>
+            <button
+                class="nav-button"
+                onclick="refreshData()">
+                ↻ YENİLE
+            </button>
 
-</div>
+            <button
+                id="adminButton"
+                class="nav-button admin"
+                onclick="openAdmin()">
+                ADMIN
+            </button>
+
+        </div>
+
+    </div>
 
 </header>
 
 
-<!-- ======================================================
-     MARKET STRIP
-     ====================================================== -->
+<!-- =========================================================
+     TICKER
+========================================================= -->
 
-<div class="market-strip">
+<div class="ticker">
 
-<div class="market-live">
+    <div class="ticker-track">
 
-<span class="live-dot"></span>
+        <div class="ticker-item">
+            <span class="status-dot"></span>
+            <strong class="live">SYSTEM ONLINE</strong>
+        </div>
 
-MARKET INTELLIGENCE SYSTEM
+        <div class="ticker-item">
+            <strong>AI ENGINE</strong>
+            ACTIVE
+        </div>
 
-</div>
+        <div class="ticker-item">
+            <strong>MARKET DATA</strong>
+            LIVE
+        </div>
 
-<div class="market-item">
-AI <strong>ACTIVE</strong>
-</div>
+        <div class="ticker-item">
+            <strong>PRICE SOURCE</strong>
+            YAHOO FINANCE
+        </div>
 
-<div class="market-item">
-DATA <strong>LIVE</strong>
-</div>
+        <div class="ticker-item">
+            <strong>ACCESS</strong>
+            PUBLIC
+        </div>
 
-<div class="market-item">
-ACCESS <strong>PUBLIC</strong>
-</div>
+        <div class="ticker-item">
+            <strong>REAL MONEY</strong>
+            NO
+        </div>
 
-</div>
+        <div class="ticker-item">
+            <strong>AUTO EXECUTION</strong>
+            NO
+        </div>
 
+        <div class="ticker-item">
+            <strong>AI SIGNALS</strong>
+            BUY / SELL / HOLD
+        </div>
 
-<!-- ======================================================
-     HERO
-     ====================================================== -->
+        <!-- duplicate for continuous ticker -->
 
-<section class="hero">
+        <div class="ticker-item">
+            <span class="status-dot"></span>
+            <strong class="live">SYSTEM ONLINE</strong>
+        </div>
 
-<div class="hero-content">
+        <div class="ticker-item">
+            <strong>AI ENGINE</strong>
+            ACTIVE
+        </div>
 
-<div class="hero-eyebrow">
+        <div class="ticker-item">
+            <strong>MARKET DATA</strong>
+            LIVE
+        </div>
 
-<span></span>
+        <div class="ticker-item">
+            <strong>PRICE SOURCE</strong>
+            YAHOO FINANCE
+        </div>
 
-PUBLIC AI MARKET INTELLIGENCE
+        <div class="ticker-item">
+            <strong>ACCESS</strong>
+            PUBLIC
+        </div>
 
-</div>
-
-
-<h1>
-LEVEL <span>1000</span>
-</h1>
-
-
-<p class="hero-description">
-
-Yapay zeka destekli piyasa istihbarat platformu.
-Binlerce finansal varlığı analiz ederek BUY, SELL ve HOLD
-sinyalleri, AI olasılıkları ve tahmini getirileri tek bir
-profesyonel terminal üzerinden inceleyin.
-
-</p>
-
-
-<div class="hero-actions">
-
-<button
-    type="button"
-    class="primary-button"
-    onclick="document.getElementById('signalsSection').scrollIntoView({behavior:'smooth'})"
->
-📊 PİYASA SİNYALLERİ
-</button>
-
-<button
-    type="button"
-    class="secondary-button"
-    onclick="runAnalysis()"
->
-⚡ AI TARAMASINI BAŞLAT
-</button>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- ======================================================
-     KPI
-     ====================================================== -->
-
-<section class="kpi-grid">
-
-<div class="kpi-card kpi-buy">
-
-<div class="kpi-label">
-BUY SIGNALS
-</div>
-
-<div
-    class="kpi-value"
-    id="buyCount"
->
--
-</div>
+    </div>
 
 </div>
 
 
-<div class="kpi-card kpi-sell">
+<!-- =========================================================
+     APP
+========================================================= -->
 
-<div class="kpi-label">
-SELL SIGNALS
-</div>
+<main id="appScreen">
 
-<div
-    class="kpi-value"
-    id="sellCount"
->
--
-</div>
-
-</div>
+    <div class="page">
 
 
-<div class="kpi-card kpi-hold">
+        <!-- =====================================================
+             HERO
+        ====================================================== -->
 
-<div class="kpi-label">
-HOLD SIGNALS
-</div>
+        <section class="hero">
 
-<div
-    class="kpi-value"
-    id="holdCount"
->
--
-</div>
+            <div class="hero-left">
 
-</div>
+                <div class="eyebrow">
+                    <span></span>
+                    PUBLIC AI MARKET INTELLIGENCE
+                </div>
 
+                <h1>
+                    MARKET
+                    <span class="gradient">
+                        INTELLIGENCE.
+                    </span>
+                </h1>
 
-<div class="kpi-card">
+                <p class="hero-description">
+                    Yapay zeka destekli piyasa istihbarat platformu.
+                    Binlerce finansal varlığı analiz ederek BUY, SELL ve
+                    HOLD sinyalleri, AI olasılıkları ve tahmini getirileri
+                    tek bir profesyonel terminal üzerinden inceleyin.
+                </p>
 
-<div class="kpi-label">
-TOP SIGNALS
-</div>
+                <div class="hero-actions">
 
-<div
-    class="kpi-value"
-    id="topCount"
->
--
-</div>
+                    <button
+                        class="hero-button primary"
+                        onclick="document.getElementById('signalsSection').scrollIntoView({behavior:'smooth'})">
+                        ◈ PİYASA SİNYALLERİNİ GÖR
+                    </button>
 
-</div>
+                    <button
+                        class="hero-button"
+                        onclick="runAnalysis()">
+                        ⚡ AI TARAMASINI BAŞLAT
+                    </button>
 
+                </div>
 
-<div class="kpi-card">
-
-<div class="kpi-label">
-TOTAL RECORDS
-</div>
-
-<div
-    class="kpi-value"
-    id="totalCount"
->
--
-</div>
-
-</div>
-
-</section>
+            </div>
 
 
-<!-- MESSAGE -->
+            <!-- AI ENGINE -->
+
+            <div class="engine-panel">
+
+                <div class="engine-header">
+
+                    <div class="engine-title">
+                        <strong>LEVEL 1000 ENGINE</strong>
+                        <span>AI SIGNAL PROCESSING CORE</span>
+                    </div>
+
+                    <div class="engine-live">
+                        ● LIVE
+                    </div>
+
+                </div>
+
+                <div class="engine-core">
+
+                    <div class="engine-core-text">
+
+                        <strong>L1K</strong>
+
+                        <span>
+                            AI CORE
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="engine-metrics">
+
+                    <div class="engine-metric">
+
+                        <strong id="engineSignalMetric">
+                            —
+                        </strong>
+
+                        <span>
+                            SIGNALS
+                        </span>
+
+                    </div>
+
+                    <div class="engine-metric">
+
+                        <strong>
+                            LIVE
+                        </strong>
+
+                        <span>
+                            MARKET
+                        </span>
+
+                    </div>
+
+                    <div class="engine-metric">
+
+                        <strong>
+                            AI
+                        </strong>
+
+                        <span>
+                            ENGINE
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             MARKET OVERVIEW
+        ====================================================== -->
+
+        <section class="section">
+
+            <div class="section-head">
+
+                <div class="section-label">
+
+                    <small>MARKET OVERVIEW</small>
+
+                    <h2>
+                        Piyasa Sinyalleri
+                    </h2>
+
+                    <p>
+                        LEVEL 1000 AI tarafından üretilen güncel sinyal görünümü
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="kpi-grid">
+
+
+                <!-- BUY -->
+
+                <div class="kpi buy">
+
+                    <div class="kpi-top">
+
+                        <span class="kpi-name">
+                            BUY SIGNALS
+                        </span>
+
+                        <span class="kpi-icon">
+                            ↗
+                        </span>
+
+                    </div>
+
+                    <div
+                        id="buyCount"
+                        class="kpi-value">
+                        —
+                    </div>
+
+                    <div class="kpi-meta">
+                        Pozitif model sinyalleri
+                    </div>
+
+                </div>
+
+
+                <!-- SELL -->
+
+                <div class="kpi sell">
+
+                    <div class="kpi-top">
+
+                        <span class="kpi-name">
+                            SELL SIGNALS
+                        </span>
+
+                        <span class="kpi-icon">
+                            ↘
+                        </span>
+
+                    </div>
+
+                    <div
+                        id="sellCount"
+                        class="kpi-value">
+                        —
+                    </div>
+
+                    <div class="kpi-meta">
+                        Negatif model sinyalleri
+                    </div>
+
+                </div>
+
+
+                <!-- HOLD -->
+
+                <div class="kpi hold">
+
+                    <div class="kpi-top">
+
+                        <span class="kpi-name">
+                            HOLD SIGNALS
+                        </span>
+
+                        <span class="kpi-icon">
+                            —
+                        </span>
+
+                    </div>
+
+                    <div
+                        id="holdCount"
+                        class="kpi-value">
+                        —
+                    </div>
+
+                    <div class="kpi-meta">
+                        Nötr model sinyalleri
+                    </div>
+
+                </div>
+
+
+                <!-- TOP -->
+
+                <div class="kpi">
+
+                    <div class="kpi-top">
+
+                        <span class="kpi-name">
+                            TOP SIGNALS
+                        </span>
+
+                        <span class="kpi-icon">
+                            ◆
+                        </span>
+
+                    </div>
+
+                    <div
+                        id="topCount"
+                        class="kpi-value">
+                        —
+                    </div>
+
+                    <div class="kpi-meta">
+                        Öne çıkan sonuçlar
+                    </div>
+
+                </div>
+
+
+                <!-- TOTAL -->
+
+                <div class="kpi">
+
+                    <div class="kpi-top">
+
+                        <span class="kpi-name">
+                            TOTAL RECORDS
+                        </span>
+
+                        <span class="kpi-icon">
+                            #
+                        </span>
+
+                    </div>
+
+                    <div
+                        id="totalCount"
+                        class="kpi-value">
+                        —
+                    </div>
+
+                    <div class="kpi-meta">
+                        Veri tabanındaki kayıtlar
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             SIGNAL TABLE
+        ====================================================== -->
+
+        <section
+            id="signalsSection"
+            class="section">
+
+            <div class="signals-shell">
+
+                <div class="signals-toolbar">
+
+                    <div class="toolbar-left">
+
+                        <div class="terminal-symbol">
+                            ▦
+                        </div>
+
+                        <div class="toolbar-title">
+
+                            <strong>
+                                AI MARKET SIGNALS
+                            </strong>
+
+                            <span>
+                                Gerçek zamanlı fiyat verileri ve model çıktıları
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="toolbar-right">
+
+                        <div class="search-wrap">
+
+                            <input
+                                id="signalSearch"
+                                type="text"
+                                placeholder="Sembol veya sinyal ara..."
+                                autocomplete="off">
+
+                        </div>
+
+                        <button
+                            class="refresh-small"
+                            onclick="refreshData()"
+                            title="Yenile">
+                            ↻
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="table-scroll">
+
+                    <table class="signals-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    SEMBOL
+                                </th>
+
+                                <th>
+                                    SİNYAL
+                                </th>
+
+                                <th>
+                                    AI OLASILIK
+                                </th>
+
+                                <th>
+                                    FİYAT
+                                </th>
+
+                                <th>
+                                    GÜNLÜK DEĞİŞİM
+                                </th>
+
+                                <th>
+                                    TAHMİNİ GETİRİ
+                                </th>
+
+                                <th>
+                                    TARİH
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="signalsBody">
+
+                            <tr>
+
+                                <td colspan="7"
+                                    style="text-align:center;color:#5f6b7d;height:100px;">
+                                    Sinyaller yükleniyor...
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <div class="signals-footer">
+
+                    <span>
+                        LEVEL 1000 SIGNAL ENGINE
+                    </span>
+
+                    <span>
+                        LIVE PRICE DATA
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             HOW IT WORKS
+        ====================================================== -->
+
+        <section class="section">
+
+            <div class="info-panel">
+
+                <div class="info-number">
+                    01
+                </div>
+
+                <div class="info-content">
+
+                    <h3>
+                        LEVEL 1000 NASIL ÇALIŞIR?
+                    </h3>
+
+                    <p>
+                        Sistem; piyasa verilerini, teknik göstergeleri ve AI
+                        model çıktılarını kullanarak BUY, SELL ve HOLD
+                        sinyalleri üretir. AI olasılığı ve tahmini getiri
+                        değerleri model çıktılarıdır; kesin sonuç veya
+                        garanti anlamına gelmez.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             AI ANALYSIS
+        ====================================================== -->
+
+        <section class="section">
+
+            <div class="analysis-panel">
+
+                <div class="analysis-content">
+
+                    <div class="analysis-kicker">
+                        <span></span>
+                        AI ANALYSIS ENGINE
+                    </div>
+
+                    <h3>
+                        Yeni piyasa taraması başlatın
+                    </h3>
+
+                    <p>
+                        LEVEL 1000 AI motorunu çalıştırarak mevcut piyasa
+                        verileri üzerinde yeni bir analiz süreci başlatın.
+                    </p>
+
+                    <button
+                        id="runAnalysisButton"
+                        onclick="runAnalysis()">
+                        ⚡ LEVEL 1000 AI ANALİZİNİ BAŞLAT
+                    </button>
+
+                    <span id="runStatus">
+                        Sistem hazır.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             ADVANCED ANALYSIS
+        ====================================================== -->
+
+        <section class="section">
+
+            <div class="section-head">
+
+                <div class="section-label">
+
+                    <small>INTELLIGENCE SUITE</small>
+
+                    <h2>
+                        Gelişmiş Analiz
+                    </h2>
+
+                    <p>
+                        Model ve risk analiz araçları
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="advanced-grid">
+
+
+                <!-- AI -->
+
+                <div class="advanced-card">
+
+                    <div class="advanced-icon">
+                        ◈
+                    </div>
+
+                    <h3>
+                        GELİŞMİŞ AI
+                    </h3>
+
+                    <p>
+                        AI sinyallerini, olasılıkları ve tahmini getiri
+                        çıktılarını inceleyin.
+                    </p>
+
+                    <button
+                        onclick="requirePlan('advanced')">
+                        ANALİZLERİ GÖR →
+                    </button>
+
+                </div>
+
+
+                <!-- BACKTEST -->
+
+                <div class="advanced-card">
+
+                    <div class="advanced-icon">
+                        ↗
+                    </div>
+
+                    <h3>
+                        BACKTEST
+                    </h3>
+
+                    <p>
+                        Geçmiş dönem performans ve model sonuçlarını
+                        inceleyin.
+                    </p>
+
+                    <button
+                        onclick="loadBacktest()">
+                        BACKTEST AÇ →
+                    </button>
+
+                </div>
+
+
+                <!-- PAPER -->
+
+                <div class="advanced-card">
+
+                    <div class="advanced-icon">
+                        ▣
+                    </div>
+
+                    <h3>
+                        PAPER TRADING
+                    </h3>
+
+                    <p>
+                        Gerçek para kullanmadan oluşturulan işlem
+                        sonuçlarını görüntüleyin.
+                    </p>
+
+                    <button
+                        onclick="loadPaper()">
+                        PAPER TRADING →
+                    </button>
+
+                </div>
+
+
+                <!-- MONTE -->
+
+                <div class="advanced-card">
+
+                    <div class="advanced-icon">
+                        ◌
+                    </div>
+
+                    <h3>
+                        MONTE CARLO
+                    </h3>
+
+                    <p>
+                        Simülasyon sonuçlarını ve risk analizlerini
+                        görüntüleyin.
+                    </p>
+
+                    <button
+                        onclick="loadMonteCarlo()">
+                        SİMÜLASYONU AÇ →
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             ADVANCED RESULTS
+        ====================================================== -->
+
+        <section class="section">
+
+            <div id="advancedResults">
+
+                <h3 id="advancedResultsTitle">
+                    ANALİZ SONUÇLARI
+                </h3>
+
+                <p id="advancedResultsSubtitle">
+                    LEVEL 1000 AI analiz sonuçları
+                </p>
+
+                <div id="advancedResultsBody"></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             SYSTEM STATUS
+        ====================================================== -->
+
+        <section class="section">
+
+            <div class="section-head">
+
+                <div class="section-label">
+
+                    <small>SYSTEM MONITOR</small>
+
+                    <h2>
+                        Sistem Durumu
+                    </h2>
+
+                    <p>
+                        LEVEL 1000 servislerinin mevcut durumu
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="status-shell">
+
+                <div class="status-grid">
+
+
+                    <div class="status-item">
+
+                        <span class="status-label">
+                            API
+                        </span>
+
+                        <span
+                            id="apiStatus"
+                            class="status-value">
+                            ONLINE
+                        </span>
+
+                    </div>
+
+
+                    <div class="status-item">
+
+                        <span class="status-label">
+                            MARKET DATA
+                        </span>
+
+                        <span
+                            id="marketStatus"
+                            class="status-value">
+                            AKTİF
+                        </span>
+
+                    </div>
+
+
+                    <div class="status-item">
+
+                        <span class="status-label">
+                            LIVE PRICE
+                        </span>
+
+                        <span
+                            id="liveStatus"
+                            class="status-value">
+                            Aktif
+                        </span>
+
+                    </div>
+
+
+                    <div class="status-item">
+
+                        <span class="status-label">
+                            ACCESS
+                        </span>
+
+                        <span
+                            id="accessStatus"
+                            class="status-value">
+                            PUBLIC
+                        </span>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             RISK
+        ====================================================== -->
+
+        <section class="section">
+
+            <div class="risk-panel">
+
+                <div class="risk-icon">
+                    !
+                </div>
+
+                <div class="risk-content">
+
+                    <strong>
+                        RİSK UYARISI
+                    </strong>
+
+                    <p>
+                        LEVEL 1000 AI tarafından sunulan sinyaller,
+                        AI olasılıkları, tahmini getiriler, backtest
+                        sonuçları ve diğer veriler yatırım tavsiyesi
+                        veya finansal danışmanlık değildir. Geçmiş
+                        performans gelecekteki sonuçların garantisi değildir.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </div>
+
+
+    <!-- =========================================================
+         FOOTER
+    ========================================================== -->
+
+    <footer>
+
+        <div class="page">
+
+            <div class="footer-top">
+
+                <div class="footer-brand">
+
+                    <strong>
+                        LEVEL 1000 AI
+                    </strong>
+
+                    <span>
+                        AI MARKET INTELLIGENCE PLATFORM
+                    </span>
+
+                </div>
+
+
+                <nav class="footer-links">
+
+                    <a href="/about">
+                        Hakkında
+                    </a>
+
+                    <a href="/guide">
+                        Rehber
+                    </a>
+
+                    <a href="/risk">
+                        Risk
+                    </a>
+
+                    <a href="/privacy">
+                        Gizlilik
+                    </a>
+
+                    <a href="/cookies">
+                        Çerezler
+                    </a>
+
+                    <a href="/terms">
+                        Kullanım Şartları
+                    </a>
+
+                    <a href="/contact">
+                        İletişim
+                    </a>
+
+                </nav>
+
+            </div>
+
+
+            <div class="footer-bottom">
+
+                <span>
+                    LEVEL 1000 AI © 2026
+                </span>
+
+                <span>
+                    GERÇEK PARA: HAYIR · OTOMATİK EMİR: HAYIR
+                </span>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+</main>
+
+
+<!-- =========================================================
+     MESSAGE
+========================================================= -->
 
 <div id="message"></div>
 
 
-<!-- ======================================================
-     SIGNAL TERMINAL
-     ====================================================== -->
+<!-- =========================================================
+     EXISTING JAVASCRIPT
+     API / FUNCTION COMPATIBILITY PRESERVED
+========================================================= -->
 
-<section
-    class="dashboard-card"
-    id="signalsSection"
->
+<script src="/static/script.js?v=1002"></script>
 
-<div class="card-header">
 
-<div class="card-header-left">
+<script>
+    /*
+     * UI-only compatibility helpers.
+     * Existing application functions remain in script.js.
+     */
 
-<div class="card-header-icon">
-▦
-</div>
+    document.addEventListener("DOMContentLoaded", function () {
 
-<div>
+        const search = document.getElementById("signalSearch");
 
-<h2>
-AI PİYASA SİNYALLERİ
-</h2>
+        if (search) {
 
-<p>
-Gerçek zamanlı fiyat verileri ve model çıktıları
-</p>
+            search.addEventListener("input", function () {
 
-</div>
+                const value = this.value.trim().toLowerCase();
 
-</div>
+                const rows = document.querySelectorAll(
+                    "#signalsBody tr"
+                );
 
+                rows.forEach(function (row) {
 
-<button
-    type="button"
-    class="refresh-button"
-    onclick="refreshData()"
->
-↻ YENİLE
-</button>
+                    const text =
+                        row.textContent.toLowerCase();
 
-</div>
+                    if (!value || text.includes(value)) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
 
+                });
 
-<div class="search-wrapper">
+            });
 
-<input
-    id="signalSearch"
-    type="text"
-    autocomplete="off"
-    placeholder="🔎  Sembol veya sinyal ara..."
->
+        }
 
-</div>
+        /*
+         * Keep the small engine metric visually synchronized
+         * when the signal counter is updated by the existing JS.
+         */
 
+        const total =
+            document.getElementById("topCount");
 
-<div class="table-wrapper">
+        const engineMetric =
+            document.getElementById("engineSignalMetric");
 
-<table class="signals-table">
+        if (total && engineMetric) {
 
-<thead>
+            const observer =
+                new MutationObserver(function () {
 
-<tr>
+                    const value =
+                        total.textContent.trim();
 
-<th>SEMBOL</th>
+                    if (value && value !== "—") {
+                        engineMetric.textContent = value;
+                    }
 
-<th>SİNYAL</th>
+                });
 
-<th>AI OLASILIK</th>
+            observer.observe(total, {
+                childList: true,
+                characterData: true,
+                subtree: true
+            });
 
-<th>FİYAT</th>
+        }
 
-<th>GÜNLÜK DEĞİŞİM</th>
-
-<th>TAHMİNİ GETİRİ</th>
-
-<th>TARİH</th>
-
-</tr>
-
-</thead>
-
-
-<tbody id="signalsBody">
-
-<tr>
-
-<td colspan="7">
-Veriler yükleniyor...
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- ======================================================
-     INFO
-     ====================================================== -->
-
-<section class="info-card">
-
-<h2 class="section-title">
-LEVEL 1000 NASIL ÇALIŞIR?
-</h2>
-
-<p class="section-text">
-
-Sistem; piyasa verilerini, teknik göstergeleri ve AI model
-çıktılarını kullanarak BUY, SELL ve HOLD sinyalleri üretir.
-AI olasılığı ve tahmini getiri değerleri model çıktılarıdır;
-kesin sonuç veya garanti anlamına gelmez.
-
-</p>
-
-</section>
-
-
-<!-- ======================================================
-     AI SCAN
-     ====================================================== -->
-
-<section class="dashboard-card">
-
-<div class="card-header">
-
-<div class="card-header-left">
-
-<div class="card-header-icon">
-⚡
-</div>
-
-<div>
-
-<h2>
-AI ANALİZ MOTORU
-</h2>
-
-<p>
-Yeni piyasa taraması başlatın
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="run-section">
-
-<button
-    type="button"
-    id="runAnalysisButton"
-    class="run-button"
-    onclick="runAnalysis()"
->
-⚡ LEVEL 1000 AI ANALİZİNİ BAŞLAT
-</button>
-
-<div
-    id="runStatus"
-    class="run-status"
->
-Sistem hazır.
-</div>
-
-</div>
-
-</section>
-
-
-<!-- ======================================================
-     ADVANCED
-     ====================================================== -->
-
-<section class="dashboard-card">
-
-<div class="card-header">
-
-<div class="card-header-left">
-
-<div class="card-header-icon">
-◈
-</div>
-
-<div>
-
-<h2>
-GELİŞMİŞ ANALİZ
-</h2>
-
-<p>
-Model ve risk analiz araçları
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="advanced-grid">
-
-
-<div class="advanced-card">
-
-<div class="advanced-icon">
-🧠
-</div>
-
-<h3>
-GELİŞMİŞ AI
-</h3>
-
-<p>
-AI sinyallerini, olasılıkları ve tahmini getiri
-çıktılarını inceleyin.
-</p>
-
-<button
-    type="button"
-    class="feature-button"
-    onclick="loadSignals()"
->
-ANALİZLERİ GÖR
-</button>
-
-</div>
-
-
-<div class="advanced-card">
-
-<div class="advanced-icon">
-↗
-</div>
-
-<h3>
-BACKTEST
-</h3>
-
-<p>
-Geçmiş dönem performans ve model sonuçlarını
-inceleyin.
-</p>
-
-<button
-    type="button"
-    class="feature-button"
-    onclick="loadBacktest()"
->
-BACKTEST AÇ
-</button>
-
-</div>
-
-
-<div class="advanced-card">
-
-<div class="advanced-icon">
-▣
-</div>
-
-<h3>
-PAPER TRADING
-</h3>
-
-<p>
-Gerçek para kullanmadan oluşturulan işlem
-sonuçlarını görüntüleyin.
-</p>
-
-<button
-    type="button"
-    class="feature-button"
-    onclick="loadPaper()"
->
-PAPER TRADING
-</button>
-
-</div>
-
-
-<div class="advanced-card">
-
-<div class="advanced-icon">
-◌
-</div>
-
-<h3>
-MONTE CARLO
-</h3>
-
-<p>
-Simülasyon sonuçlarını ve risk analizlerini
-görüntüleyin.
-</p>
-
-<button
-    type="button"
-    class="feature-button"
-    onclick="loadMonteCarlo()"
->
-SİMÜLASYONU AÇ
-</button>
-
-</div>
-
-
-</div>
-
-</section>
-
-
-<!-- ======================================================
-     RESULTS
-     ====================================================== -->
-
-<section
-    class="dashboard-card"
-    id="advancedResults"
-    style="display:none;"
->
-
-<div class="card-header">
-
-<div class="card-header-left">
-
-<div class="card-header-icon">
-≡
-</div>
-
-<div>
-
-<h2 id="advancedResultsTitle">
-Gelişmiş Analiz
-</h2>
-
-<p id="advancedResultsSubtitle">
-Sonuçlar
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div
-    id="advancedResultsBody"
-    style="
-        padding:18px;
-        overflow:auto;
-    "
-></div>
-
-</section>
-
-
-<!-- ======================================================
-     SYSTEM
-     ====================================================== -->
-
-<section class="dashboard-card">
-
-<div class="card-header">
-
-<div class="card-header-left">
-
-<div class="card-header-icon">
-●
-</div>
-
-<div>
-
-<h2>
-SİSTEM DURUMU
-</h2>
-
-<p>
-LEVEL 1000 servislerinin mevcut durumu
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="status-grid">
-
-
-<div class="status-item">
-
-<div class="status-label">
-API
-</div>
-
-<div
-    class="status-value online"
-    id="apiStatus"
->
-ONLINE
-</div>
-
-</div>
-
-
-<div class="status-item">
-
-<div class="status-label">
-MARKET DATA
-</div>
-
-<div
-    class="status-value"
-    id="marketStatus"
->
-Kontrol ediliyor...
-</div>
-
-</div>
-
-
-<div class="status-item">
-
-<div class="status-label">
-LIVE PRICE
-</div>
-
-<div
-    class="status-value"
-    id="liveStatus"
->
-Aktif
-</div>
-
-</div>
-
-
-<div class="status-item">
-
-<div class="status-label">
-ACCESS
-</div>
-
-<div
-    class="status-value online"
-    id="accessStatus"
->
-PUBLIC
-</div>
-
-</div>
-
-
-</div>
-
-</section>
-
-
-<!-- ======================================================
-     RISK
-     ====================================================== -->
-
-<section class="risk-card">
-
-<h3>
-⚠️ RİSK UYARISI
-</h3>
-
-<p>
-
-LEVEL 1000 AI tarafından sunulan sinyaller,
-AI olasılıkları, tahmini getiriler, backtest sonuçları
-ve diğer veriler yatırım tavsiyesi veya finansal
-danışmanlık değildir. Geçmiş performans gelecekteki
-sonuçların garantisi değildir.
-
-</p>
-
-</section>
-
-
-<!-- ======================================================
-     FOOTER
-     ====================================================== -->
-
-<footer>
-
-<div class="footer-links">
-
-<a href="/about">Hakkında</a>
-
-<a href="/guide">Rehber</a>
-
-<a href="/risk">Risk</a>
-
-<a href="/privacy">Gizlilik</a>
-
-<a href="/cookies">Çerezler</a>
-
-<a href="/terms">Kullanım Şartları</a>
-
-<a href="/contact">İletişim</a>
-
-</div>
-
-<div>
-LEVEL 1000 AI © 2026
-</div>
-
-<div>
-GERÇEK PARA: HAYIR · OTOMATİK EMİR: HAYIR
-</div>
-
-</footer>
-
-
-</div>
-
-</div>
-
-
-<!-- ======================================================
-     TEK SCRIPT
-     ====================================================== -->
-
-<script src="/static/script.js?v=1004"></script>
+    });
+</script>
 
 </body>
-
 </html>
-```
