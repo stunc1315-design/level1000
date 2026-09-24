@@ -414,7 +414,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .engine-metrics {
@@ -526,10 +528,21 @@
             font-size: 9px;
         }
 
-        .kpi.buy .kpi-value { color: var(--green); }
-        .kpi.sell .kpi-value { color: var(--red); }
-        .kpi.hold .kpi-value { color: var(--yellow); }
-        .kpi.top .kpi-value { color: var(--blue); }
+        .kpi.buy .kpi-value {
+            color: var(--green);
+        }
+
+        .kpi.sell .kpi-value {
+            color: var(--red);
+        }
+
+        .kpi.hold .kpi-value {
+            color: var(--yellow);
+        }
+
+        .kpi.top .kpi-value {
+            color: var(--blue);
+        }
 
         /* SIGNALS */
 
@@ -645,6 +658,39 @@
             border-top: 1px solid var(--border);
             color: var(--muted);
             font-size: 10px;
+            flex-wrap: wrap;
+        }
+
+        #paginationControls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        #paginationControls button {
+            border: 1px solid var(--border2);
+            background: rgba(255,255,255,.035);
+            color: #dce4ef;
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        #paginationControls button:hover:not(:disabled) {
+            background: rgba(255,255,255,.09);
+        }
+
+        #paginationControls button:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+        #paginationControls .page-current {
+            color: #04110b;
+            background: var(--green);
+            border-color: var(--green);
         }
 
         /* HOW */
@@ -705,7 +751,7 @@
             font-size: 11px;
         }
 
-        #runAnalysisButton {
+        .analysis-panel .primary-btn {
             margin-top: 20px;
         }
 
@@ -1025,6 +1071,16 @@
                 display: block;
                 margin: 10px 0 0;
             }
+
+            .pagination {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            #paginationControls {
+                width: 100%;
+                justify-content: flex-start;
+            }
         }
 
         @media (max-width: 450px) {
@@ -1050,10 +1106,6 @@
 
 <body>
 
-<!-- =========================================================
-     APP
-========================================================= -->
-
 <div id="appScreen">
 
     <!-- HEADER -->
@@ -1061,12 +1113,21 @@
         <div class="container header-inner">
 
             <div class="brand">
-                <div class="brand-mark">L1K</div>
+
+                <div class="brand-mark">
+                    L1K
+                </div>
 
                 <div>
-                    <div class="brand-name">LEVEL 1000 AI</div>
-                    <div class="brand-sub">AI MARKET INTELLIGENCE</div>
+                    <div class="brand-name">
+                        LEVEL 1000 AI
+                    </div>
+
+                    <div class="brand-sub">
+                        AI MARKET INTELLIGENCE
+                    </div>
                 </div>
+
             </div>
 
             <div class="header-actions">
@@ -1094,12 +1155,14 @@
                 </button>
 
             </div>
+
         </div>
     </header>
 
 
     <!-- TICKER -->
     <div class="ticker">
+
         <div class="container ticker-inner">
 
             <div class="ticker-item">
@@ -1132,6 +1195,7 @@
             </div>
 
         </div>
+
     </div>
 
 
@@ -1139,6 +1203,7 @@
 
         <!-- HERO -->
         <section class="hero">
+
             <div class="container hero-grid">
 
                 <div class="hero-main">
@@ -1170,6 +1235,7 @@
                             ◈ PİYASA SİNYALLERİNİ GÖR
                         </button>
 
+                        <!-- TEK runAnalysisButton -->
                         <button
                             id="runAnalysisButton"
                             class="secondary-btn"
@@ -1181,7 +1247,10 @@
 
                     </div>
 
-                    <span id="runStatus"></span>
+                    <!-- TEK runStatus -->
+                    <span id="runStatus">
+                        Sistem hazır.
+                    </span>
 
                 </div>
 
@@ -1192,6 +1261,7 @@
                     <div class="engine-top">
 
                         <div>
+
                             <div class="engine-title">
                                 LEVEL 1000 ENGINE
                             </div>
@@ -1205,6 +1275,7 @@
                             ">
                                 AI SIGNAL PROCESSING CORE
                             </div>
+
                         </div>
 
                         <div class="engine-live">
@@ -1254,16 +1325,19 @@
                 </aside>
 
             </div>
+
         </section>
 
 
         <!-- MARKET OVERVIEW -->
         <section class="section">
+
             <div class="container">
 
                 <div class="section-heading">
 
                     <div>
+
                         <div class="section-kicker">
                             MARKET OVERVIEW
                         </div>
@@ -1275,6 +1349,7 @@
                         <div class="section-subtitle">
                             LEVEL 1000 AI tarafından üretilen güncel sinyal görünümü
                         </div>
+
                     </div>
 
                 </div>
@@ -1283,6 +1358,7 @@
                 <div class="kpi-grid">
 
                     <div class="kpi buy">
+
                         <div class="kpi-label">
                             BUY SIGNALS
                         </div>
@@ -1297,10 +1373,12 @@
                         <div class="kpi-note">
                             Pozitif model sinyalleri
                         </div>
+
                     </div>
 
 
                     <div class="kpi sell">
+
                         <div class="kpi-label">
                             SELL SIGNALS
                         </div>
@@ -1315,10 +1393,12 @@
                         <div class="kpi-note">
                             Negatif model sinyalleri
                         </div>
+
                     </div>
 
 
                     <div class="kpi hold">
+
                         <div class="kpi-label">
                             HOLD SIGNALS
                         </div>
@@ -1333,10 +1413,12 @@
                         <div class="kpi-note">
                             Nötr model sinyalleri
                         </div>
+
                     </div>
 
 
                     <div class="kpi top">
+
                         <div class="kpi-label">
                             TOP SIGNALS
                         </div>
@@ -1351,10 +1433,12 @@
                         <div class="kpi-note">
                             Öne çıkan sonuçlar
                         </div>
+
                     </div>
 
 
                     <div class="kpi">
+
                         <div class="kpi-label">
                             TOTAL RECORDS
                         </div>
@@ -1369,11 +1453,13 @@
                         <div class="kpi-note">
                             Veri tabanındaki kayıtlar
                         </div>
+
                     </div>
 
                 </div>
 
             </div>
+
         </section>
 
 
@@ -1390,17 +1476,24 @@
                     <div class="signals-toolbar">
 
                         <div class="signals-title">
+
                             <i></i>
-                            <span>AI MARKET SIGNALS</span>
+
+                            <span>
+                                AI MARKET SIGNALS
+                            </span>
+
                         </div>
 
                         <div class="search-box">
+
                             <input
                                 id="signalSearch"
                                 type="search"
                                 autocomplete="off"
                                 placeholder="Sembol veya sinyal ara..."
                             >
+
                         </div>
 
                     </div>
@@ -1411,27 +1504,59 @@
                         <table>
 
                             <thead>
+
                                 <tr>
-                                    <th>SEMBOL</th>
-                                    <th>SİNYAL</th>
-                                    <th>AI OLASILIK</th>
-                                    <th>FİYAT</th>
-                                    <th>GÜNLÜK DEĞİŞİM</th>
-                                    <th>TAHMİNİ GETİRİ</th>
-                                    <th>TARİH</th>
+
+                                    <th>
+                                        SEMBOL
+                                    </th>
+
+                                    <th>
+                                        SİNYAL
+                                    </th>
+
+                                    <th>
+                                        AI OLASILIK
+                                    </th>
+
+                                    <th>
+                                        FİYAT
+                                    </th>
+
+                                    <th>
+                                        GÜNLÜK DEĞİŞİM
+                                    </th>
+
+                                    <th>
+                                        TAHMİNİ GETİRİ
+                                    </th>
+
+                                    <th>
+                                        TARİH
+                                    </th>
+
                                 </tr>
+
                             </thead>
 
                             <tbody id="signalsBody">
+
                                 <tr>
-                                    <td colspan="7" style="
-                                        text-align:center;
-                                        padding:40px;
-                                        color:#718096;
-                                    ">
+
+                                    <td
+                                        colspan="7"
+                                        style="
+                                            text-align:center;
+                                            padding:40px;
+                                            color:#718096;
+                                        "
+                                    >
                                         Sinyaller yükleniyor...
+
                                     </td>
+
                                 </tr>
+
                             </tbody>
 
                         </table>
@@ -1439,21 +1564,54 @@
                     </div>
 
 
+                    <!-- DİNAMİK PAGINATION -->
                     <div class="pagination">
 
                         <div>
+
                             LEVEL 1000 SIGNAL ENGINE
-                            <span style="margin-left:8px;color:#28e98b;">
+
+                            <span style="
+                                margin-left:8px;
+                                color:#28e98b;
+                            ">
                                 LIVE PRICE DATA
                             </span>
+
                         </div>
 
-                        <div>
-                            ‹ &nbsp; 1 &nbsp; 2 &nbsp; 3 &nbsp; … &nbsp; 259 &nbsp; ›
+
+                        <div id="paginationControls">
+
+                            <button
+                                type="button"
+                                disabled
+                            >
+                                ‹ Önceki
+                            </button>
+
+                            <button
+                                type="button"
+                                class="page-current"
+                                disabled
+                            >
+                                1
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled
+                            >
+                                Sonraki ›
+                            </button>
+
                         </div>
 
-                        <div>
-                            1 - 50 / 12.918
+
+                        <div id="paginationInfo">
+
+                            1 - 50 / —
+
                         </div>
 
                     </div>
@@ -1473,6 +1631,7 @@
                 <div class="section-heading">
 
                     <div>
+
                         <div class="section-kicker">
                             01
                         </div>
@@ -1484,6 +1643,7 @@
                         <div class="section-subtitle">
                             Sinyal üretim sürecinin temel aşamaları
                         </div>
+
                     </div>
 
                 </div>
@@ -1492,42 +1652,74 @@
                 <div class="how-grid">
 
                     <div class="how-card">
-                        <div class="how-number">01 / DATA</div>
-                        <h3>Piyasa Verisi</h3>
+
+                        <div class="how-number">
+                            01 / DATA
+                        </div>
+
+                        <h3>
+                            Piyasa Verisi
+                        </h3>
+
                         <p>
                             Finansal varlıklara ait piyasa verileri sistem
                             tarafından işlenmek üzere alınır.
                         </p>
+
                     </div>
 
 
                     <div class="how-card">
-                        <div class="how-number">02 / FEATURES</div>
-                        <h3>Teknik Analiz</h3>
+
+                        <div class="how-number">
+                            02 / FEATURES
+                        </div>
+
+                        <h3>
+                            Teknik Analiz
+                        </h3>
+
                         <p>
                             Fiyat hareketleri ve teknik göstergeler model
                             girdilerine dönüştürülür.
                         </p>
+
                     </div>
 
 
                     <div class="how-card">
-                        <div class="how-number">03 / AI</div>
-                        <h3>AI Model</h3>
+
+                        <div class="how-number">
+                            03 / AI
+                        </div>
+
+                        <h3>
+                            AI Model
+                        </h3>
+
                         <p>
                             Model girdileri değerlendirilerek BUY, SELL ve HOLD
                             sinyalleri oluşturulur.
                         </p>
+
                     </div>
 
 
                     <div class="how-card">
-                        <div class="how-number">04 / OUTPUT</div>
-                        <h3>Sinyal Çıktısı</h3>
+
+                        <div class="how-number">
+                            04 / OUTPUT
+                        </div>
+
+                        <h3>
+                            Sinyal Çıktısı
+                        </h3>
+
                         <p>
                             AI olasılığı ve tahmini getiri gibi model çıktıları
                             terminal üzerinde gösterilir.
                         </p>
+
                     </div>
 
                 </div>
@@ -1557,8 +1749,8 @@
                         üzerinde yeni bir analiz süreci başlatın.
                     </p>
 
+                    <!-- ID YOK: duplicate ID problemi çözüldü -->
                     <button
-                        id="runAnalysisButton"
                         class="primary-btn"
                         type="button"
                         onclick="runAnalysis()"
@@ -1566,8 +1758,14 @@
                         ⚡ LEVEL 1000 AI ANALİZİNİ BAŞLAT
                     </button>
 
-                    <span id="runStatus">
-                        Sistem hazır.
+                    <span
+                        style="
+                            margin-left:12px;
+                            color:#8e99aa;
+                            font-size:10px;
+                        "
+                    >
+                        Yukarıdaki analiz durumu kullanılır.
                     </span>
 
                 </div>
@@ -1585,6 +1783,7 @@
                 <div class="section-heading">
 
                     <div>
+
                         <div class="section-kicker">
                             INTELLIGENCE SUITE
                         </div>
@@ -1596,6 +1795,7 @@
                         <div class="section-subtitle">
                             Model ve risk analiz araçları
                         </div>
+
                     </div>
 
                 </div>
@@ -1605,7 +1805,9 @@
 
                     <div class="advanced-card">
 
-                        <div class="advanced-icon">◈</div>
+                        <div class="advanced-icon">
+                            ◈
+                        </div>
 
                         <h3>
                             GELİŞMİŞ AI
@@ -1628,7 +1830,9 @@
 
                     <div class="advanced-card">
 
-                        <div class="advanced-icon">↗</div>
+                        <div class="advanced-icon">
+                            ↗
+                        </div>
 
                         <h3>
                             BACKTEST
@@ -1651,7 +1855,9 @@
 
                     <div class="advanced-card">
 
-                        <div class="advanced-icon">▣</div>
+                        <div class="advanced-icon">
+                            ▣
+                        </div>
 
                         <h3>
                             PAPER TRADING
@@ -1674,7 +1880,9 @@
 
                     <div class="advanced-card">
 
-                        <div class="advanced-icon">◌</div>
+                        <div class="advanced-icon">
+                            ◌
+                        </div>
 
                         <h3>
                             MONTE CARLO
@@ -1726,6 +1934,7 @@
                 <div class="section-heading">
 
                     <div>
+
                         <div class="section-kicker">
                             SYSTEM MONITOR
                         </div>
@@ -1737,6 +1946,7 @@
                         <div class="section-subtitle">
                             LEVEL 1000 servislerinin mevcut durumu
                         </div>
+
                     </div>
 
                 </div>
@@ -1747,31 +1957,54 @@
                     <div class="system-grid">
 
                         <div class="system-item">
-                            <label>API</label>
+
+                            <label>
+                                API
+                            </label>
+
                             <strong id="apiStatus">
                                 ONLINE
                             </strong>
+
                         </div>
 
+
                         <div class="system-item">
-                            <label>MARKET DATA</label>
+
+                            <label>
+                                MARKET DATA
+                            </label>
+
                             <strong id="marketStatus">
                                 AKTİF
                             </strong>
+
                         </div>
 
+
                         <div class="system-item">
-                            <label>LIVE PRICE</label>
+
+                            <label>
+                                LIVE PRICE
+                            </label>
+
                             <strong id="liveStatus">
                                 AKTİF
                             </strong>
+
                         </div>
 
+
                         <div class="system-item">
-                            <label>ACCESS</label>
+
+                            <label>
+                                ACCESS
+                            </label>
+
                             <strong id="accessStatus">
                                 PUBLIC
                             </strong>
+
                         </div>
 
                     </div>
@@ -1841,13 +2074,33 @@
 
                 <div class="footer-links">
 
-                    <a href="#">Hakkında</a>
-                    <a href="#">Rehber</a>
-                    <a href="#">Risk</a>
-                    <a href="#">Gizlilik</a>
-                    <a href="#">Çerezler</a>
-                    <a href="#">Kullanım Şartları</a>
-                    <a href="#">İletişim</a>
+                    <a href="/about">
+                        Hakkında
+                    </a>
+
+                    <a href="/guide">
+                        Rehber
+                    </a>
+
+                    <a href="/risk">
+                        Risk
+                    </a>
+
+                    <a href="/privacy">
+                        Gizlilik
+                    </a>
+
+                    <a href="/cookies">
+                        Çerezler
+                    </a>
+
+                    <a href="/terms">
+                        Kullanım Şartları
+                    </a>
+
+                    <a href="/contact">
+                        İletişim
+                    </a>
 
                 </div>
 
@@ -1865,61 +2118,19 @@
 </div>
 
 
-<!-- =========================================================
-     AUTH SCREEN
-     Mevcut JS'nin auth beklentisini korumak için bırakıldı.
-========================================================= -->
+<!-- AUTH SCREEN -->
+<div
+    id="authScreen"
+    style="display:none;"
+></div>
 
-<div id="authScreen" style="display:none;"></div>
 
-
-<!-- =========================================================
-     MESSAGE
-========================================================= -->
-
+<!-- MESSAGE -->
 <div id="message"></div>
 
 
-<!-- =========================================================
-     EXISTING JS
-     API / ID bağlantıları değiştirilmedi.
-========================================================= -->
-
+<!-- EXISTING OPTIMIZED JS -->
 <script src="/static/script.js?v=1002"></script>
-
-
-<!-- =========================================================
-     SMALL UI HELPERS
-     API çağrısı yok.
-========================================================= -->
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    const search = document.getElementById("signalSearch");
-
-    if (search) {
-        search.addEventListener("input", function () {
-            const value = this.value.trim().toLowerCase();
-
-            document
-                .querySelectorAll("#signalsBody tr")
-                .forEach(function (row) {
-
-                    const text = row.innerText.toLowerCase();
-
-                    if (!value || text.includes(value)) {
-                        row.style.display = "";
-                    } else {
-                        row.style.display = "none";
-                    }
-
-                });
-        });
-    }
-
-});
-</script>
 
 </body>
 </html>

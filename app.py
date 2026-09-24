@@ -13,6 +13,7 @@
 # ADVANCED AI  : HERKESE AÇIK
 # ADMIN        : KORUMALI
 # LIVE PRICE   : YAHOO / yfinance + CACHE + 429 KORUMASI
+# PERFORMANCE  : SIGNAL CACHE + PAGINATION + SERVER SEARCH
 # ============================================================
 
 from pathlib import Path
@@ -26,6 +27,7 @@ import sqlite3
 import time
 import math
 import warnings
+import asyncio
 from html import escape
 from urllib.parse import quote
 
@@ -85,10 +87,11 @@ DATA_DIR.mkdir(
 
 app = FastAPI(
     title="LEVEL 1000 AI",
-    version="11.0"
+    version="11.1"
 )
 
 if STATIC_DIR.exists():
+
     app.mount(
         "/static",
         StaticFiles(
@@ -129,6 +132,7 @@ SECRET_KEY = os.environ.get(
 )
 
 if not SECRET_KEY:
+
     SECRET_KEY = secrets.token_urlsafe(48)
 
 ALGORITHM = "HS256"
@@ -139,8 +143,6 @@ password_hash = PasswordHash.recommended()
 # ============================================================
 # ESKİ PLANLAR
 # ============================================================
-# Veritabanı uyumluluğu için tutuluyor.
-# Normal ziyaretçiye hiçbir erişim kısıtlaması uygulamaz.
 
 PLANS = {
 
@@ -180,6 +182,63 @@ PLANS = {
 
 
 MIN_SIGNAL_SCORE = 0
+
+
+# ============================================================
+# SIGNAL PERFORMANCE CACHE
+# ============================================================
+#
+# EN ÖNEMLİ OPTİMİZASYON:
+#
+# Eski sistem:
+#
+# CSV -> her request yeniden oku
+# CSV -> normalize
+# CSV -> sort
+# CSV -> live price
+# CSV -> JSON
+#
+# Yeni sistem:
+#
+# CSV -> CACHE
+#       |
+#       +-> istatistik
+#       +-> sıralanmış güçlü sinyaller
+#       +-> arama
+#       +-> pagination
+#
+# CSV değiştiğinde cache otomatik yenilenir.
+# ============================================================
+
+SIGNAL_CACHE_LOCK = threading.RLock()
+
+SIGNAL_CACHE = {
+    "path": None,
+    "mtime_ns": None,
+    "df": None,
+    "strong": None,
+    "total": 0,
+    "buy": 0,
+    "sell": 0,
+    "hold": 0,
+    "loaded_at": 0.0,
+}
+
+SIGNAL_CACHE_TTL = 60
+
+
+# ============================================================
+# PAPER CACHE
+# ============================================================
+
+PAPER_CACHE_LOCK = threading.RLock()
+
+PAPER_CACHE = {
+    "path": None,
+    "mtime_ns": None,
+    "df": None,
+    "loaded_at": 0.0,
+}
 
 
 # ============================================================
@@ -268,28 +327,36 @@ def ensure_env_admin():
     )
 
     if not admin_email:
+
         print(
             "[ADMIN] LEVEL1000_ADMIN_EMAIL bulunamadı."
         )
+
         return
 
     if not admin_password:
+
         print(
             "[ADMIN] LEVEL1000_ADMIN_PASSWORD bulunamadı."
         )
+
         return
 
     if "@" not in admin_email:
+
         print(
             "[ADMIN] Geçersiz admin email:",
             admin_email
         )
+
         return
 
     if len(admin_password) < 6:
+
         print(
             "[ADMIN] Admin şifresi en az 6 karakter olmalıdır."
         )
+
         return
 
     conn = get_db()
@@ -359,7 +426,7 @@ def ensure_env_admin():
                     "LEVEL 1000 Admin",
                     admin_email,
                     new_hash,
-                    created_at
+                    admin_email and created_at,
                 )
             )
 
@@ -426,9 +493,11 @@ def normalize_plan_name(plan):
         "MAX-PRO",
         "MAX_PRO"
     ):
+
         return "MAX PRO"
 
     if plan == "PRO":
+
         return "PRO"
 
     return "FREE"
@@ -436,14 +505,12 @@ def normalize_plan_name(plan):
 
 def get_plan_config(user=None):
 
-    # ========================================================
-    # ARTIK NORMAL KULLANICIYA HER ŞEY AÇIK
-    # ========================================================
-
     if PUBLIC_ACCESS:
+
         return PUBLIC_PLAN
 
     if not user:
+
         return PUBLIC_PLAN
 
     plan = normalize_plan_name(
@@ -464,25 +531,25 @@ def user_dict(row):
 
     return {
 
-        "id": int(
-            row["id"]
-        ),
+        "id":
+            int(row["id"]),
 
-        "name": row["name"],
+        "name":
+            row["name"],
 
-        "email": row["email"],
+        "email":
+            row["email"],
 
-        "plan": normalize_plan_name(
-            row["plan"]
-        ),
+        "plan":
+            normalize_plan_name(
+                row["plan"]
+            ),
 
-        "is_admin": bool(
-            row["is_admin"]
-        ),
+        "is_admin":
+            bool(row["is_admin"]),
 
-        "scan_count": int(
-            row["scan_count"]
-        ),
+        "scan_count":
+            int(row["scan_count"]),
 
         "created_at":
             row["created_at"],
@@ -495,22 +562,23 @@ def user_dict(row):
 
 def create_token(user):
 
+    now = int(
+        time.time()
+    )
+
     payload = {
 
-        "sub": str(
-            user["id"]
-        ),
+        "sub":
+            str(user["id"]),
 
         "email":
             user["email"],
 
-        "iat": int(
-            time.time()
-        ),
+        "iat":
+            now,
 
-        "exp": int(
-            time.time()
-        ) + 60 * 60 * 24 * 30,
+        "exp":
+            now + 60 * 60 * 24 * 30,
     }
 
     return jwt.encode(
@@ -600,7 +668,6 @@ async def get_current_user(
 # ============================================================
 # ADMIN KONTROLÜ
 # ============================================================
-# Admin endpoint'leri halen korumalıdır.
 
 async def require_admin(
     user=Depends(get_current_user)
@@ -621,8 +688,6 @@ async def require_admin(
 # ============================================================
 # ESKİ PLAN KONTROLÜ
 # ============================================================
-# Normal API'lerde artık kullanılmıyor.
-# Admin/uyumluluk için bırakıldı.
 
 def require_plan(required_plan):
 
@@ -634,14 +699,19 @@ def require_plan(required_plan):
 
             return user
 
-        current = get_plan_config(user)
+        current = get_plan_config(
+            user
+        )
 
         required = PLANS.get(
-            normalize_plan_name(required_plan),
+            normalize_plan_name(
+                required_plan
+            ),
             PLANS["FREE"]
         )
 
         if bool(user["is_admin"]):
+
             return user
 
         if current["level"] < required["level"]:
@@ -660,12 +730,13 @@ def require_plan(required_plan):
 
 
 # ============================================================
-# CSV
+# CSV HELPERS
 # ============================================================
 
 def dataframe_to_records(df):
 
     if df is None or df.empty:
+
         return []
 
     result = df.copy()
@@ -710,9 +781,14 @@ def find_signal_file():
     for path in candidates:
 
         if not path.exists():
+
             continue
 
         try:
+
+            if path.stat().st_size <= 0:
+
+                continue
 
             df = pd.read_csv(
                 path,
@@ -720,9 +796,11 @@ def find_signal_file():
             )
 
             if not df.empty:
+
                 return path, df
 
         except Exception:
+
             continue
 
     return None, pd.DataFrame()
@@ -735,9 +813,11 @@ def find_signal_file():
 def normalize_signal_dataframe(df):
 
     if df is None:
+
         return pd.DataFrame()
 
     if df.empty:
+
         return df.copy()
 
     result = df.copy()
@@ -747,6 +827,7 @@ def normalize_signal_dataframe(df):
     for col in result.columns:
 
         key = str(col).strip()
+
         low = key.lower()
 
         if low in (
@@ -797,6 +878,7 @@ def normalize_signal_dataframe(df):
         ):
 
             if "Price" not in result.columns:
+
                 rename_map[col] = "Old_Price"
 
     if rename_map:
@@ -806,18 +888,23 @@ def normalize_signal_dataframe(df):
         )
 
     if "Ticker" not in result.columns:
+
         result["Ticker"] = "-"
 
     if "Signal" not in result.columns:
+
         result["Signal"] = "HOLD"
 
     if "AI_Probability" not in result.columns:
+
         result["AI_Probability"] = 0.0
 
     if "AI_Predicted_Return" not in result.columns:
+
         result["AI_Predicted_Return"] = 0.0
 
     if "Date" not in result.columns:
+
         result["Date"] = "-"
 
     result["Ticker"] = (
@@ -858,7 +945,7 @@ def normalize_signal_dataframe(df):
 
 
 # ============================================================
-# DISPLAY
+# DISPLAY DATAFRAME
 # ============================================================
 
 def prepare_display_dataframe(
@@ -867,6 +954,7 @@ def prepare_display_dataframe(
 ):
 
     if df is None or df.empty:
+
         return pd.DataFrame()
 
     work = df.copy()
@@ -898,6 +986,7 @@ def prepare_display_dataframe(
     ].copy()
 
     if strong.empty:
+
         strong = work.copy()
 
     strong = strong.sort_values(
@@ -908,28 +997,30 @@ def prepare_display_dataframe(
         ascending=[
             True,
             False
-        ]
+        ],
+        kind="stable"
     )
 
-    # ========================================================
-    # PUBLIC MODDA LİMİT YOK
-    # ========================================================
+    if not PUBLIC_ACCESS:
 
-    if PUBLIC_ACCESS:
-        limit = None
+        if limit is not None:
 
-    if limit is not None:
+            try:
 
-        try:
-            limit = int(limit)
-        except Exception:
-            limit = None
+                limit = int(limit)
 
-    if limit is not None and limit > 0:
+            except Exception:
 
-        strong = strong.head(
-            limit
-        )
+                limit = None
+
+        if (
+            limit is not None
+            and limit > 0
+        ):
+
+            strong = strong.head(
+                limit
+            )
 
     strong = strong.drop(
         columns=[
@@ -943,6 +1034,277 @@ def prepare_display_dataframe(
 
 
 # ============================================================
+# SIGNAL CACHE
+# ============================================================
+
+def invalidate_signal_cache():
+
+    with SIGNAL_CACHE_LOCK:
+
+        SIGNAL_CACHE["path"] = None
+        SIGNAL_CACHE["mtime_ns"] = None
+        SIGNAL_CACHE["df"] = None
+        SIGNAL_CACHE["strong"] = None
+        SIGNAL_CACHE["total"] = 0
+        SIGNAL_CACHE["buy"] = 0
+        SIGNAL_CACHE["sell"] = 0
+        SIGNAL_CACHE["hold"] = 0
+        SIGNAL_CACHE["loaded_at"] = 0.0
+
+
+def _get_file_mtime(path):
+
+    try:
+
+        return path.stat().st_mtime_ns
+
+    except Exception:
+
+        return None
+
+
+def get_cached_signal_data():
+
+    now = time.time()
+
+    with SIGNAL_CACHE_LOCK:
+
+        cached_df = SIGNAL_CACHE.get(
+            "df"
+        )
+
+        cached_path = SIGNAL_CACHE.get(
+            "path"
+        )
+
+        cached_mtime = SIGNAL_CACHE.get(
+            "mtime_ns"
+        )
+
+        if (
+            cached_df is not None
+            and cached_path is not None
+            and cached_path.exists()
+        ):
+
+            current_mtime = _get_file_mtime(
+                cached_path
+            )
+
+            if (
+                current_mtime == cached_mtime
+                and
+                now - SIGNAL_CACHE["loaded_at"]
+                < SIGNAL_CACHE_TTL
+            ):
+
+                return {
+                    "path": cached_path,
+                    "df": cached_df,
+                    "strong": SIGNAL_CACHE["strong"],
+                    "total": SIGNAL_CACHE["total"],
+                    "buy": SIGNAL_CACHE["buy"],
+                    "sell": SIGNAL_CACHE["sell"],
+                    "hold": SIGNAL_CACHE["hold"],
+                }
+
+            if current_mtime == cached_mtime:
+
+                SIGNAL_CACHE["loaded_at"] = now
+
+                return {
+                    "path": cached_path,
+                    "df": cached_df,
+                    "strong": SIGNAL_CACHE["strong"],
+                    "total": SIGNAL_CACHE["total"],
+                    "buy": SIGNAL_CACHE["buy"],
+                    "sell": SIGNAL_CACHE["sell"],
+                    "hold": SIGNAL_CACHE["hold"],
+                }
+
+    signal_file, raw_df = find_signal_file()
+
+    if signal_file is None or raw_df.empty:
+
+        with SIGNAL_CACHE_LOCK:
+
+            SIGNAL_CACHE["path"] = None
+            SIGNAL_CACHE["mtime_ns"] = None
+            SIGNAL_CACHE["df"] = pd.DataFrame()
+            SIGNAL_CACHE["strong"] = pd.DataFrame()
+            SIGNAL_CACHE["total"] = 0
+            SIGNAL_CACHE["buy"] = 0
+            SIGNAL_CACHE["sell"] = 0
+            SIGNAL_CACHE["hold"] = 0
+            SIGNAL_CACHE["loaded_at"] = now
+
+        return {
+            "path": None,
+            "df": pd.DataFrame(),
+            "strong": pd.DataFrame(),
+            "total": 0,
+            "buy": 0,
+            "sell": 0,
+            "hold": 0,
+        }
+
+    normalized = normalize_signal_dataframe(
+        raw_df
+    )
+
+    strong = prepare_display_dataframe(
+        normalized,
+        None
+    )
+
+    total = len(normalized)
+
+    buy = int(
+        (
+            normalized["Signal"] == "BUY"
+        ).sum()
+    )
+
+    sell = int(
+        (
+            normalized["Signal"] == "SELL"
+        ).sum()
+    )
+
+    hold = int(
+        (
+            normalized["Signal"] == "HOLD"
+        ).sum()
+    )
+
+    mtime_ns = _get_file_mtime(
+        signal_file
+    )
+
+    with SIGNAL_CACHE_LOCK:
+
+        SIGNAL_CACHE["path"] = signal_file
+        SIGNAL_CACHE["mtime_ns"] = mtime_ns
+        SIGNAL_CACHE["df"] = normalized
+        SIGNAL_CACHE["strong"] = strong
+        SIGNAL_CACHE["total"] = total
+        SIGNAL_CACHE["buy"] = buy
+        SIGNAL_CACHE["sell"] = sell
+        SIGNAL_CACHE["hold"] = hold
+        SIGNAL_CACHE["loaded_at"] = now
+
+    return {
+        "path": signal_file,
+        "df": normalized,
+        "strong": strong,
+        "total": total,
+        "buy": buy,
+        "sell": sell,
+        "hold": hold,
+    }
+
+
+# ============================================================
+# FILTER / PAGINATION
+# ============================================================
+
+def get_signal_page(
+    page=1,
+    limit=50,
+    search=""
+):
+
+    try:
+
+        page = int(page)
+
+    except Exception:
+
+        page = 1
+
+    try:
+
+        limit = int(limit)
+
+    except Exception:
+
+        limit = 50
+
+    page = max(
+        1,
+        page
+    )
+
+    limit = max(
+        1,
+        min(limit, 100)
+    )
+
+    data = get_cached_signal_data()
+
+    strong = data["strong"]
+
+    search = str(
+        search or ""
+    ).strip().upper()
+
+    if search:
+
+        mask = (
+            strong["Ticker"]
+            .astype(str)
+            .str.upper()
+            .str.contains(
+                search,
+                regex=False,
+                na=False
+            )
+        )
+
+        filtered = strong.loc[
+            mask
+        ]
+
+    else:
+
+        filtered = strong
+
+    filtered_total = len(
+        filtered
+    )
+
+    pages = max(
+        1,
+        math.ceil(
+            filtered_total / limit
+        )
+    )
+
+    if page > pages:
+
+        page = pages
+
+    start = (
+        page - 1
+    ) * limit
+
+    end = start + limit
+
+    page_df = filtered.iloc[
+        start:end
+    ].copy()
+
+    return (
+        data,
+        page_df,
+        page,
+        limit,
+        filtered_total,
+        pages
+    )
+
+
+# ============================================================
 # FLOAT
 # ============================================================
 
@@ -953,6 +1315,7 @@ def _clean_float(value):
         value = float(value)
 
         if not math.isfinite(value):
+
             return None
 
         return value
@@ -1006,6 +1369,7 @@ def _extract_ticker_from_download(
 ):
 
     if frame is None or frame.empty:
+
         return pd.DataFrame()
 
     result = frame
@@ -1030,6 +1394,7 @@ def _extract_ticker_from_download(
                 )
 
         except Exception:
+
             pass
 
     return result
@@ -1038,6 +1403,7 @@ def _extract_ticker_from_download(
 def _get_close_series(frame):
 
     if frame is None or frame.empty:
+
         return None
 
     if isinstance(
@@ -1050,15 +1416,18 @@ def _get_close_series(frame):
             frame = frame.copy()
 
             frame.columns = [
+
                 str(
                     c[-1]
                     if isinstance(c, tuple)
                     else c
                 )
+
                 for c in frame.columns
             ]
 
         except Exception:
+
             return None
 
     for name in (
@@ -1076,6 +1445,7 @@ def _get_close_series(frame):
             ).dropna()
 
             if not series.empty:
+
                 return series
 
     return None
@@ -1088,13 +1458,17 @@ def _get_last_price_from_frame(frame):
     )
 
     if series is None:
+
         return None
 
     try:
+
         return float(
             series.iloc[-1]
         )
+
     except Exception:
+
         return None
 
 
@@ -1114,16 +1488,26 @@ def _get_fast_info_price(symbol):
             "regularMarketPrice",
         ):
 
-            value = info.get(key)
+            try:
+
+                value = info.get(
+                    key
+                )
+
+            except Exception:
+
+                value = None
 
             value = _clean_float(
                 value
             )
 
             if value is not None:
+
                 return value
 
     except Exception:
+
         pass
 
     return None
@@ -1148,6 +1532,7 @@ def _download_live_prices(symbols):
     )
 
     if not symbols:
+
         return {}
 
     now = time.time()
@@ -1156,6 +1541,7 @@ def _download_live_prices(symbols):
         now - LIVE_LAST_DOWNLOAD_TIME
         < 2.0
     ):
+
         return {}
 
     with LIVE_DOWNLOAD_LOCK:
@@ -1166,6 +1552,7 @@ def _download_live_prices(symbols):
             now - LIVE_LAST_DOWNLOAD_TIME
             < 2.0
         ):
+
             return {}
 
         LIVE_LAST_DOWNLOAD_TIME = now
@@ -1212,15 +1599,20 @@ def _download_live_prices(symbols):
 
                             results[symbol] = {
 
-                                "price": price,
+                                "price":
+                                    price,
 
-                                "previous_close": None,
+                                "previous_close":
+                                    None,
 
-                                "change": None,
+                                "change":
+                                    None,
 
-                                "change_percent": None,
+                                "change_percent":
+                                    None,
 
-                                "status": "LIVE",
+                                "status":
+                                    "LIVE",
 
                                 "source":
                                     "Yahoo Finance / yfinance 1m",
@@ -1233,6 +1625,7 @@ def _download_live_prices(symbols):
                             }
 
                     except Exception:
+
                         continue
 
         except Exception as exc:
@@ -1243,8 +1636,11 @@ def _download_live_prices(symbols):
             )
 
         missing_previous = [
+
             symbol
+
             for symbol in results
+
             if results[symbol].get(
                 "previous_close"
             ) is None
@@ -1290,6 +1686,7 @@ def _download_live_prices(symbols):
                                 close_series is None
                                 or len(close_series) < 2
                             ):
+
                                 continue
 
                             previous_close = float(
@@ -1335,6 +1732,7 @@ def _download_live_prices(symbols):
                                 ] = change_percent
 
                         except Exception:
+
                             continue
 
             except Exception as exc:
@@ -1349,8 +1747,11 @@ def _download_live_prices(symbols):
         # ====================================================
 
         missing = [
+
             symbol
+
             for symbol in symbols
+
             if symbol not in results
         ]
 
@@ -1370,15 +1771,20 @@ def _download_live_prices(symbols):
 
                         results[symbol] = {
 
-                            "price": price,
+                            "price":
+                                price,
 
-                            "previous_close": None,
+                            "previous_close":
+                                None,
 
-                            "change": None,
+                            "change":
+                                None,
 
-                            "change_percent": None,
+                            "change_percent":
+                                None,
 
-                            "status": "DELAYED",
+                            "status":
+                                "DELAYED",
 
                             "source":
                                 "Yahoo Finance / yfinance fast_info",
@@ -1391,13 +1797,14 @@ def _download_live_prices(symbols):
                         }
 
                 except Exception:
+
                     continue
 
         return results
 
 
 # ============================================================
-# CACHE
+# LIVE PRICE CACHE
 # ============================================================
 
 def get_live_prices(symbols):
@@ -1413,6 +1820,7 @@ def get_live_prices(symbols):
     )
 
     if not symbols:
+
         return {}
 
     now = time.time()
@@ -1431,7 +1839,10 @@ def get_live_prices(symbols):
 
             if not item:
 
-                missing.append(symbol)
+                missing.append(
+                    symbol
+                )
+
                 continue
 
             cached_at = float(
@@ -1447,14 +1858,19 @@ def get_live_prices(symbols):
             ):
 
                 output[symbol] = {
+
                     k: v
+
                     for k, v in item.items()
+
                     if k != "_cached_at"
                 }
 
             else:
 
-                missing.append(symbol)
+                missing.append(
+                    symbol
+                )
 
     if missing:
 
@@ -1466,7 +1882,9 @@ def get_live_prices(symbols):
 
             for symbol, item in fresh.items():
 
-                item_copy = dict(item)
+                item_copy = dict(
+                    item
+                )
 
                 item_copy[
                     "_cached_at"
@@ -1486,22 +1904,29 @@ def get_live_prices(symbols):
 
             output[symbol] = {
 
-                "price": None,
+                "price":
+                    None,
 
-                "previous_close": None,
+                "previous_close":
+                    None,
 
-                "change": None,
+                "change":
+                    None,
 
-                "change_percent": None,
+                "change_percent":
+                    None,
 
-                "status": "UNAVAILABLE",
+                "status":
+                    "UNAVAILABLE",
 
                 "source":
                     "Yahoo Finance / yfinance",
 
-                "updated_at_utc": None,
+                "updated_at_utc":
+                    None,
 
-                "updated_at_tr": None,
+                "updated_at_tr":
+                    None,
             }
 
     return output
@@ -1519,6 +1944,7 @@ def apply_live_prices_to_dataframe(df):
             df.copy()
             if df is not None
             else pd.DataFrame(),
+
             {
                 "live_count": 0,
                 "unavailable_count": 0,
@@ -1530,12 +1956,14 @@ def apply_live_prices_to_dataframe(df):
 
     work = df.copy()
 
-    symbols = (
-        work["Ticker"]
-        .astype(str)
-        .str.strip()
-        .str.upper()
-        .tolist()
+    symbols = list(
+        dict.fromkeys(
+            work["Ticker"]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+            .tolist()
+        )
     )
 
     prices = get_live_prices(
@@ -1553,7 +1981,9 @@ def apply_live_prices_to_dataframe(df):
     status_values = []
     source_values = []
 
-    for symbol in symbols:
+    for symbol in work[
+        "Ticker"
+    ].astype(str).str.strip().str.upper():
 
         item = prices.get(
             symbol,
@@ -1565,7 +1995,9 @@ def apply_live_prices_to_dataframe(df):
         )
 
         change = _clean_float(
-            item.get("change_percent")
+            item.get(
+                "change_percent"
+            )
         )
 
         status = item.get(
@@ -1579,17 +2011,28 @@ def apply_live_prices_to_dataframe(df):
         )
 
         if price is not None:
+
             live_count += 1
+
         else:
+
             unavailable_count += 1
 
-        price_values.append(price)
+        price_values.append(
+            price
+        )
 
-        change_values.append(change)
+        change_values.append(
+            change
+        )
 
-        status_values.append(status)
+        status_values.append(
+            status
+        )
 
-        source_values.append(source)
+        source_values.append(
+            source
+        )
 
         updated_utc.append(
             item.get(
@@ -1645,13 +2088,14 @@ def apply_live_prices_to_dataframe(df):
 
     meta = {
 
-        "live_count": live_count,
+        "live_count":
+            live_count,
 
         "unavailable_count":
             unavailable_count,
 
         "total_count":
-            len(symbols),
+            len(work),
 
         "updated_at_utc":
             latest_utc,
@@ -1757,7 +2201,10 @@ def simple_page(
     )
 
 
-@app.get("/about", response_class=HTMLResponse)
+@app.get(
+    "/about",
+    response_class=HTMLResponse
+)
 async def about():
 
     return simple_page(
@@ -1766,7 +2213,10 @@ async def about():
     )
 
 
-@app.get("/guide", response_class=HTMLResponse)
+@app.get(
+    "/guide",
+    response_class=HTMLResponse
+)
 async def guide():
 
     return simple_page(
@@ -1775,7 +2225,10 @@ async def guide():
     )
 
 
-@app.get("/risk", response_class=HTMLResponse)
+@app.get(
+    "/risk",
+    response_class=HTMLResponse
+)
 async def risk():
 
     return simple_page(
@@ -1784,7 +2237,10 @@ async def risk():
     )
 
 
-@app.get("/privacy", response_class=HTMLResponse)
+@app.get(
+    "/privacy",
+    response_class=HTMLResponse
+)
 async def privacy():
 
     return simple_page(
@@ -1793,7 +2249,10 @@ async def privacy():
     )
 
 
-@app.get("/cookies", response_class=HTMLResponse)
+@app.get(
+    "/cookies",
+    response_class=HTMLResponse
+)
 async def cookies():
 
     return simple_page(
@@ -1802,7 +2261,10 @@ async def cookies():
     )
 
 
-@app.get("/terms", response_class=HTMLResponse)
+@app.get(
+    "/terms",
+    response_class=HTMLResponse
+)
 async def terms():
 
     return simple_page(
@@ -1811,7 +2273,10 @@ async def terms():
     )
 
 
-@app.get("/contact", response_class=HTMLResponse)
+@app.get(
+    "/contact",
+    response_class=HTMLResponse
+)
 async def contact():
 
     return simple_page(
@@ -1823,8 +2288,6 @@ async def contact():
 # ============================================================
 # REGISTER
 # ============================================================
-# Eski kullanıcı sistemi tamamen silinmedi.
-# Ancak normal site kullanımı için gerekli değildir.
 
 @app.post("/api/register")
 async def register(
@@ -1932,7 +2395,9 @@ async def register(
 
     conn.close()
 
-    user = user_dict(row)
+    user = user_dict(
+        row
+    )
 
     token = create_token(
         user
@@ -1940,7 +2405,8 @@ async def register(
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "message":
             "Kayıt başarılı.",
@@ -2094,7 +2560,9 @@ async def login(
             detail="E-posta veya şifre hatalı."
         )
 
-    user = user_dict(row)
+    user = user_dict(
+        row
+    )
 
     token = create_token(
         user
@@ -2102,7 +2570,8 @@ async def login(
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "message":
             "Giriş başarılı.",
@@ -2133,14 +2602,14 @@ async def me(
 # ============================================================
 # PLAN
 # ============================================================
-# Artık OPEN döner.
 
 @app.get("/api/plan")
 async def plan():
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "plan":
             PUBLIC_PLAN["name"],
@@ -2170,41 +2639,81 @@ async def plan():
 async def logout():
 
     return {
-        "ok": True,
-        "message": "Çıkış yapıldı."
+
+        "ok":
+            True,
+
+        "message":
+            "Çıkış yapıldı."
     }
 
 
 # ============================================================
 # SIGNALS
 # ============================================================
-# HERKESE AÇIK
-# ÜYELİK YOK
-# PLAN YOK
-# DISPLAY LIMIT YOK
+#
+# YENİ:
+#
+# /api/signals
+# /api/signals?page=1&limit=50
+# /api/signals?page=2&limit=50
+# /api/signals?page=1&limit=50&search=AAPL
+#
+# TARAYICIYA 166.200 KAYIT GİTMEZ.
+# ============================================================
 
-@app.get("/api/signals")
-async def signals():
+def build_signals_response(
+    page=1,
+    limit=50,
+    search=""
+):
 
-    signal_file, df = (
-        find_signal_file()
+    (
+        data,
+        display_df,
+        page,
+        limit,
+        filtered_total,
+        pages
+    ) = get_signal_page(
+        page=page,
+        limit=limit,
+        search=search
     )
 
-    if df.empty:
+    if data["df"].empty:
 
         return {
 
-            "ok": True,
+            "ok":
+                True,
 
-            "total": 0,
+            "total":
+                0,
 
-            "buy": 0,
+            "buy":
+                0,
 
-            "sell": 0,
+            "sell":
+                0,
 
-            "hold": 0,
+            "hold":
+                0,
 
-            "top": 0,
+            "top":
+                0,
+
+            "filtered_total":
+                0,
+
+            "page":
+                1,
+
+            "limit":
+                limit,
+
+            "pages":
+                1,
 
             "display_limit":
                 999999,
@@ -2221,58 +2730,40 @@ async def signals():
             "plan_features":
                 PUBLIC_PLAN,
 
-            "signals": [],
+            "signals":
+                [],
 
-            "live_prices": True,
+            "live_prices":
+                True,
 
-            "live_price_count": 0,
+            "live_price_count":
+                0,
 
-            "live_price_unavailable": 0,
+            "live_price_unavailable":
+                0,
 
-            "live_price_total": 0,
+            "live_price_total":
+                0,
 
-            "last_update_utc": None,
+            "last_update_utc":
+                None,
 
-            "last_update_tr": None,
+            "last_update_tr":
+                None,
 
             "price_source":
                 "Yahoo Finance / yfinance",
+
+            "cache_seconds":
+                LIVE_PRICE_CACHE_SECONDS,
+
+            "search":
+                str(search or ""),
         }
 
-    df = normalize_signal_dataframe(
-        df
-    )
-
-    total = len(df)
-
-    buy = int(
-        (
-            df["Signal"] == "BUY"
-        ).sum()
-    )
-
-    sell = int(
-        (
-            df["Signal"] == "SELL"
-        ).sum()
-    )
-
-    hold = int(
-        (
-            df["Signal"] == "HOLD"
-        ).sum()
-    )
-
     # ========================================================
-    # TÜM SİNYALLER
+    # SADECE BU SAYFADAKİ KAYITLARIN CANLI FİYATINI AL
     # ========================================================
-
-    display_df = (
-        prepare_display_dataframe(
-            df,
-            None
-        )
-    )
 
     display_df, live_meta = (
         apply_live_prices_to_dataframe(
@@ -2297,6 +2788,7 @@ async def signals():
         )
 
         if predicted is None:
+
             predicted = 0.0
 
         price = _clean_float(
@@ -2312,6 +2804,7 @@ async def signals():
         )
 
         if score is None:
+
             score = 0.0
 
         daily_change = _clean_float(
@@ -2417,22 +2910,35 @@ async def signals():
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "total":
-            total,
+            data["total"],
 
         "buy":
-            buy,
+            data["buy"],
 
         "sell":
-            sell,
+            data["sell"],
 
         "hold":
-            hold,
+            data["hold"],
 
         "top":
-            len(records),
+            len(data["strong"]),
+
+        "filtered_total":
+            filtered_total,
+
+        "page":
+            page,
+
+        "limit":
+            limit,
+
+        "pages":
+            pages,
 
         "display_limit":
             999999,
@@ -2451,8 +2957,8 @@ async def signals():
 
         "signal_file":
             (
-                signal_file.name
-                if signal_file
+                data["path"].name
+                if data["path"]
                 else None
             ),
 
@@ -2492,7 +2998,26 @@ async def signals():
 
         "cache_seconds":
             LIVE_PRICE_CACHE_SECONDS,
+
+        "search":
+            str(search or ""),
     }
+
+
+@app.get("/api/signals")
+async def signals(
+    page: int = 1,
+    limit: int = 50,
+    search: str = ""
+):
+
+    # Pandas + Yahoo işlemlerini event loop'tan ayır.
+    return await asyncio.to_thread(
+        build_signals_response,
+        page,
+        limit,
+        search
+    )
 
 
 # ============================================================
@@ -2517,7 +3042,8 @@ async def live_price(
             detail="Sembol gerekli."
         )
 
-    data = get_live_prices(
+    data = await asyncio.to_thread(
+        get_live_prices,
         [symbol]
     )
 
@@ -2529,17 +3055,23 @@ async def live_price(
 
         return {
 
-            "ok": False,
+            "ok":
+                False,
 
-            "symbol": symbol,
+            "symbol":
+                symbol,
 
-            "price": None,
+            "price":
+                None,
 
-            "previous_close": None,
+            "previous_close":
+                None,
 
-            "change": None,
+            "change":
+                None,
 
-            "change_percent": None,
+            "change_percent":
+                None,
 
             "status":
                 "UNAVAILABLE",
@@ -2547,16 +3079,20 @@ async def live_price(
             "source":
                 "Yahoo Finance / yfinance",
 
-            "updated_at_utc": None,
+            "updated_at_utc":
+                None,
 
-            "updated_at_tr": None,
+            "updated_at_tr":
+                None,
         }
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
-        "symbol": symbol,
+        "symbol":
+            symbol,
 
         "price":
             _clean_float(
@@ -2605,50 +3141,10 @@ async def live_price(
 # ============================================================
 # STATUS
 # ============================================================
-# HERKESE AÇIK
 
-@app.get("/api/status")
-async def status():
+def build_status_response():
 
-    signal_file, df = (
-        find_signal_file()
-    )
-
-    df = normalize_signal_dataframe(
-        df
-    )
-
-    historical_total = len(df)
-
-    historical_buy = (
-        int(
-            (
-                df["Signal"] == "BUY"
-            ).sum()
-        )
-        if not df.empty
-        else 0
-    )
-
-    historical_sell = (
-        int(
-            (
-                df["Signal"] == "SELL"
-            ).sum()
-        )
-        if not df.empty
-        else 0
-    )
-
-    historical_hold = (
-        int(
-            (
-                df["Signal"] == "HOLD"
-            ).sum()
-        )
-        if not df.empty
-        else 0
-    )
+    data = get_cached_signal_data()
 
     current_df = pd.DataFrame()
 
@@ -2656,12 +3152,35 @@ async def status():
 
         try:
 
-            current_df = normalize_signal_dataframe(
-                pd.read_csv(
-                    PAPER_SIGNALS,
-                    low_memory=False
-                )
+            mtime = _get_file_mtime(
+                PAPER_SIGNALS
             )
+
+            with PAPER_CACHE_LOCK:
+
+                if (
+                    PAPER_CACHE["df"] is not None
+                    and
+                    PAPER_CACHE["mtime_ns"] == mtime
+                ):
+
+                    current_df = PAPER_CACHE[
+                        "df"
+                    ]
+
+                else:
+
+                    current_df = normalize_signal_dataframe(
+                        pd.read_csv(
+                            PAPER_SIGNALS,
+                            low_memory=False
+                        )
+                    )
+
+                    PAPER_CACHE["path"] = PAPER_SIGNALS
+                    PAPER_CACHE["mtime_ns"] = mtime
+                    PAPER_CACHE["df"] = current_df
+                    PAPER_CACHE["loaded_at"] = time.time()
 
         except Exception:
 
@@ -2704,33 +3223,27 @@ async def status():
         else 0
     )
 
-    strong_df = (
-        prepare_display_dataframe(
-            df,
-            None
-        )
-    )
-
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "status":
             "READY"
-            if not df.empty
+            if not data["df"].empty
             else "NO_DATA",
 
         "historical_total":
-            historical_total,
+            data["total"],
 
         "historical_buy":
-            historical_buy,
+            data["buy"],
 
         "historical_sell":
-            historical_sell,
+            data["sell"],
 
         "historical_hold":
-            historical_hold,
+            data["hold"],
 
         "current_total":
             current_total,
@@ -2745,10 +3258,10 @@ async def status():
             current_hold,
 
         "strong_signals":
-            len(strong_df),
+            len(data["strong"]),
 
         "top":
-            len(strong_df),
+            len(data["strong"]),
 
         "min_score":
             MIN_SIGNAL_SCORE,
@@ -2767,8 +3280,8 @@ async def status():
 
         "signal_file":
             (
-                signal_file.name
-                if signal_file
+                data["path"].name
+                if data["path"]
                 else None
             ),
 
@@ -2798,24 +3311,39 @@ async def status():
     }
 
 
+@app.get("/api/status")
+async def status():
+
+    return await asyncio.to_thread(
+        build_status_response
+    )
+
+
 # ============================================================
 # PAPER
 # ============================================================
-# HERKESE AÇIK
 
-@app.get("/api/paper")
-async def paper():
+def get_cached_paper_dataframe():
 
     if not PAPER_SIGNALS.exists():
 
-        return {
-
-            "ok": True,
-
-            "paper": []
-        }
+        return pd.DataFrame()
 
     try:
+
+        mtime = _get_file_mtime(
+            PAPER_SIGNALS
+        )
+
+        with PAPER_CACHE_LOCK:
+
+            if (
+                PAPER_CACHE["df"] is not None
+                and
+                PAPER_CACHE["mtime_ns"] == mtime
+            ):
+
+                return PAPER_CACHE["df"]
 
         df = normalize_signal_dataframe(
             pd.read_csv(
@@ -2824,49 +3352,74 @@ async def paper():
             )
         )
 
-        df, live_meta = (
-            apply_live_prices_to_dataframe(
-                df
-            )
-        )
+        with PAPER_CACHE_LOCK:
+
+            PAPER_CACHE["path"] = PAPER_SIGNALS
+            PAPER_CACHE["mtime_ns"] = mtime
+            PAPER_CACHE["df"] = df
+            PAPER_CACHE["loaded_at"] = time.time()
+
+        return df
+
+    except Exception:
+
+        return pd.DataFrame()
+
+
+def build_paper_response():
+
+    df = get_cached_paper_dataframe()
+
+    if df.empty:
 
         return {
 
-            "ok": True,
+            "ok":
+                True,
 
             "paper":
-                dataframe_to_records(
-                    df
-                ),
-
-            "last_update_utc":
-                live_meta[
-                    "updated_at_utc"
-                ],
-
-            "last_update_tr":
-                live_meta[
-                    "updated_at_tr"
-                ],
+                []
         }
 
-    except Exception as exc:
+    df, live_meta = (
+        apply_live_prices_to_dataframe(
+            df
+        )
+    )
 
-        return {
+    return {
 
-            "ok": False,
+        "ok":
+            True,
 
-            "error":
-                str(exc),
+        "paper":
+            dataframe_to_records(
+                df
+            ),
 
-            "paper": []
-        }
+        "last_update_utc":
+            live_meta[
+                "updated_at_utc"
+            ],
+
+        "last_update_tr":
+            live_meta[
+                "updated_at_tr"
+            ],
+    }
+
+
+@app.get("/api/paper")
+async def paper():
+
+    return await asyncio.to_thread(
+        build_paper_response
+    )
 
 
 # ============================================================
 # METRICS
 # ============================================================
-# HERKESE AÇIK
 
 @app.get("/api/metrics")
 async def metrics():
@@ -2892,6 +3445,7 @@ async def metrics():
     for path in files:
 
         if not path.exists():
+
             continue
 
         try:
@@ -2909,7 +3463,8 @@ async def metrics():
 
             return {
 
-                "ok": True,
+                "ok":
+                    True,
 
                 "count":
                     len(records),
@@ -2922,24 +3477,28 @@ async def metrics():
             }
 
         except Exception:
+
             continue
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
-        "count": 0,
+        "count":
+            0,
 
-        "metrics": [],
+        "metrics":
+            [],
 
-        "data": [],
+        "data":
+            [],
     }
 
 
 # ============================================================
 # BACKTEST
 # ============================================================
-# HERKESE AÇIK
 
 @app.get("/api/backtest")
 async def backtest():
@@ -2965,6 +3524,7 @@ async def backtest():
     for path in files:
 
         if not path.exists():
+
             continue
 
         try:
@@ -2982,7 +3542,8 @@ async def backtest():
 
             return {
 
-                "ok": True,
+                "ok":
+                    True,
 
                 "count":
                     len(records),
@@ -2995,17 +3556,22 @@ async def backtest():
             }
 
         except Exception:
+
             continue
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
-        "count": 0,
+        "count":
+            0,
 
-        "data": [],
+        "data":
+            [],
 
-        "backtest": [],
+        "backtest":
+            [],
     }
 
 
@@ -3015,15 +3581,20 @@ async def backtest():
 
 run_state = {
 
-    "running": False,
+    "running":
+        False,
 
-    "started_at": None,
+    "started_at":
+        None,
 
-    "finished_at": None,
+    "finished_at":
+        None,
 
-    "error": None,
+    "error":
+        None,
 
-    "last_user": None,
+    "last_user":
+        None,
 }
 
 run_lock = threading.Lock()
@@ -3078,9 +3649,22 @@ def run_level1000_process():
 
     except Exception as exc:
 
-        run_state["error"] = str(exc)
+        run_state["error"] = str(
+            exc
+        )
 
     finally:
+
+        # Yeni CSV oluşturulduysa sonraki request
+        # yeni dosyayı okuyacak.
+        invalidate_signal_cache()
+
+        with PAPER_CACHE_LOCK:
+
+            PAPER_CACHE["path"] = None
+            PAPER_CACHE["mtime_ns"] = None
+            PAPER_CACHE["df"] = None
+            PAPER_CACHE["loaded_at"] = 0.0
 
         run_state["running"] = False
 
@@ -3094,8 +3678,6 @@ def run_level1000_process():
 # ============================================================
 # RUN
 # ============================================================
-# HERKESE AÇIK
-# TARAMA LİMİTİ YOK
 
 @app.post("/api/run")
 async def run_analysis():
@@ -3106,15 +3688,12 @@ async def run_analysis():
 
             return {
 
-                "ok": False,
+                "ok":
+                    False,
 
                 "error":
                     "Analiz zaten çalışıyor."
             }
-
-        # ====================================================
-        # ARTIK SCAN COUNT YOK
-        # ====================================================
 
         run_state["last_user"] = "PUBLIC"
 
@@ -3127,20 +3706,25 @@ async def run_analysis():
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "message":
             "Analiz başlatıldı.",
 
         "scan": {
 
-            "used": 0,
+            "used":
+                0,
 
-            "limit": 999999,
+            "limit":
+                999999,
 
-            "remaining": 999999,
+            "remaining":
+                999999,
 
-            "unlimited": True
+            "unlimited":
+                True
         }
     }
 
@@ -3148,14 +3732,14 @@ async def run_analysis():
 # ============================================================
 # RUN STATUS
 # ============================================================
-# HERKESE AÇIK
 
 @app.get("/api/run-status")
 async def run_status():
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "running":
             run_state["running"],
@@ -3220,7 +3804,8 @@ async def make_admin(
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "message":
             "Kullanıcı admin yapıldı."
@@ -3261,21 +3846,26 @@ async def admin_users(
 
     for row in users:
 
-        item = user_dict(row)
+        item = user_dict(
+            row
+        )
 
         item["scan_count"] = int(
             row["scan_count"]
         )
 
-        # Public sistemde limit yok.
         item["scan_limit"] = 999999
+
         item["scan_remaining"] = 999999
 
-        result.append(item)
+        result.append(
+            item
+        )
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "users":
             result,
@@ -3342,13 +3932,13 @@ async def set_plan(
 
         raise HTTPException(
             status_code=404,
-            detail=
-                "Kullanıcı bulunamadı."
+            detail="Kullanıcı bulunamadı."
         )
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "plan":
             plan,
@@ -3365,13 +3955,14 @@ async def set_plan(
 @app.get("/api/health")
 async def health():
 
-    signal_file, df = (
-        find_signal_file()
+    data = await asyncio.to_thread(
+        get_cached_signal_data
     )
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "service":
             "LEVEL 1000",
@@ -3389,17 +3980,17 @@ async def health():
             False,
 
         "signals_available":
-            not df.empty,
+            not data["df"].empty,
 
         "signal_file":
             (
-                signal_file.name
-                if signal_file
+                data["path"].name
+                if data["path"]
                 else None
             ),
 
         "signal_count":
-            len(df),
+            data["total"],
 
         "live_price_service":
             True,
@@ -3415,175 +4006,152 @@ async def health():
 # ============================================================
 # DEBUG
 # ============================================================
-# HERKESE AÇIK
 
 @app.get("/api/debug/data")
 async def debug_data():
 
-    signal_file, df = (
-        find_signal_file()
-    )
+    def build_debug():
 
-    if df.empty:
+        data = get_cached_signal_data()
+
+        if data["df"].empty:
+
+            return {
+
+                "ok":
+                    True,
+
+                "file":
+                    None,
+
+                "columns":
+                    [],
+
+                "count":
+                    0,
+
+                "sample":
+                    [],
+
+                "live_prices":
+                    True,
+
+                "last_update_utc":
+                    None,
+
+                "last_update_tr":
+                    None,
+            }
+
+        sample = data[
+            "strong"
+        ].head(10).copy()
+
+        sample, live_meta = (
+            apply_live_prices_to_dataframe(
+                sample
+            )
+        )
 
         return {
 
-            "ok": True,
+            "ok":
+                True,
 
-            "file": None,
+            "file":
+                (
+                    data["path"].name
+                    if data["path"]
+                    else None
+                ),
 
-            "columns": [],
+            "columns":
+                list(
+                    data["df"].columns
+                ),
 
-            "count": 0,
+            "count":
+                data["total"],
 
-            "sample": [],
+            "buy":
+                data["buy"],
 
-            "live_prices": True,
+            "sell":
+                data["sell"],
 
-            "last_update_utc": None,
+            "hold":
+                data["hold"],
 
-            "last_update_tr": None,
+            "strong_signals":
+                len(data["strong"]),
+
+            "plan":
+                "OPEN",
+
+            "plan_limit":
+                999999,
+
+            "min_score":
+                MIN_SIGNAL_SCORE,
+
+            "sample":
+                dataframe_to_records(
+                    sample
+                ),
+
+            "live_prices":
+                True,
+
+            "live_price_count":
+                live_meta[
+                    "live_count"
+                ],
+
+            "live_price_unavailable":
+                live_meta[
+                    "unavailable_count"
+                ],
+
+            "live_price_total":
+                live_meta[
+                    "total_count"
+                ],
+
+            "last_update_utc":
+                live_meta[
+                    "updated_at_utc"
+                ],
+
+            "last_update_tr":
+                live_meta[
+                    "updated_at_tr"
+                ],
+
+            "price_source":
+                "Yahoo Finance / yfinance",
         }
 
-    normalized = (
-        normalize_signal_dataframe(
-            df
-        )
+    return await asyncio.to_thread(
+        build_debug
     )
-
-    strong = (
-        prepare_display_dataframe(
-            normalized,
-            None
-        )
-    )
-
-    strong, live_meta = (
-        apply_live_prices_to_dataframe(
-            strong
-        )
-    )
-
-    return {
-
-        "ok": True,
-
-        "file":
-            (
-                signal_file.name
-                if signal_file
-                else None
-            ),
-
-        "columns":
-            list(
-                normalized.columns
-            ),
-
-        "count":
-            len(normalized),
-
-        "buy":
-            int(
-                (
-                    normalized[
-                        "Signal"
-                    ] == "BUY"
-                ).sum()
-            ),
-
-        "sell":
-            int(
-                (
-                    normalized[
-                        "Signal"
-                    ] == "SELL"
-                ).sum()
-            ),
-
-        "hold":
-            int(
-                (
-                    normalized[
-                        "Signal"
-                    ] == "HOLD"
-                ).sum()
-            ),
-
-        "strong_signals":
-            len(strong),
-
-        "plan":
-            "OPEN",
-
-        "plan_limit":
-            999999,
-
-        "min_score":
-            MIN_SIGNAL_SCORE,
-
-        "sample":
-            dataframe_to_records(
-                strong.head(10)
-            ),
-
-        "live_prices":
-            True,
-
-        "live_price_count":
-            live_meta[
-                "live_count"
-            ],
-
-        "live_price_unavailable":
-            live_meta[
-                "unavailable_count"
-            ],
-
-        "live_price_total":
-            live_meta[
-                "total_count"
-            ],
-
-        "last_update_utc":
-            live_meta[
-                "updated_at_utc"
-            ],
-
-        "last_update_tr":
-            live_meta[
-                "updated_at_tr"
-            ],
-
-        "price_source":
-            "Yahoo Finance / yfinance",
-    }
 
 
 # ============================================================
 # TEK SİNYAL
 # ============================================================
-# HERKESE AÇIK
 
-@app.get("/api/signal/{ticker}")
-async def single_signal(
-    ticker: str
+def build_single_signal(
+    ticker
 ):
 
-    signal_file, df = (
-        find_signal_file()
-    )
+    data = get_cached_signal_data()
 
-    if df.empty:
+    if data["df"].empty:
 
         raise HTTPException(
             status_code=404,
             detail="Henüz sinyal verisi yok."
         )
-
-    df = normalize_signal_dataframe(
-        df
-    )
 
     ticker = (
         str(ticker)
@@ -3591,8 +4159,8 @@ async def single_signal(
         .upper()
     )
 
-    result = df[
-        df["Ticker"]
+    result = data["df"][
+        data["df"]["Ticker"]
         .astype(str)
         .str.upper()
         == ticker
@@ -3619,7 +4187,8 @@ async def single_signal(
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
         "symbol":
             ticker,
@@ -3634,10 +4203,20 @@ async def single_signal(
     }
 
 
+@app.get("/api/signal/{ticker}")
+async def single_signal(
+    ticker: str
+):
+
+    return await asyncio.to_thread(
+        build_single_signal,
+        ticker
+    )
+
+
 # ============================================================
 # MONTE CARLO
 # ============================================================
-# HERKESE AÇIK
 
 @app.get("/api/montecarlo")
 async def montecarlo():
@@ -3654,6 +4233,7 @@ async def montecarlo():
     for path in files:
 
         if not path.exists():
+
             continue
 
         try:
@@ -3671,7 +4251,8 @@ async def montecarlo():
 
             return {
 
-                "ok": True,
+                "ok":
+                    True,
 
                 "simulations":
                     len(records),
@@ -3681,15 +4262,19 @@ async def montecarlo():
             }
 
         except Exception:
+
             continue
 
     return {
 
-        "ok": True,
+        "ok":
+            True,
 
-        "simulations": 0,
+        "simulations":
+            0,
 
-        "results": [],
+        "results":
+            [],
     }
 
 
@@ -3713,7 +4298,8 @@ async def not_found(
 
             content={
 
-                "ok": False,
+                "ok":
+                    False,
 
                 "error":
                     "Endpoint bulunamadı.",
@@ -3745,7 +4331,8 @@ async def server_error(
 
             content={
 
-                "ok": False,
+                "ok":
+                    False,
 
                 "error":
                     "Sunucu hatası.",
@@ -3777,46 +4364,49 @@ def get_public_tickers():
 
     try:
 
-        signal_file, df = find_signal_file()
+        data = get_cached_signal_data()
 
-        if df is not None and not df.empty:
+        df = data["df"]
 
-            df = normalize_signal_dataframe(
-                df
-            )
+        if (
+            df is not None
+            and not df.empty
+            and "Ticker" in df.columns
+        ):
 
-            if (
-                not df.empty
-                and "Ticker" in df.columns
-            ):
+            for value in df[
+                "Ticker"
+            ].tolist():
 
-                for value in df["Ticker"].tolist():
+                ticker = str(
+                    value
+                ).strip().upper()
 
-                    ticker = str(
-                        value
-                    ).strip().upper()
+                if not ticker:
+                    continue
 
-                    if not ticker:
-                        continue
+                if ticker in {
+                    "-",
+                    "NAN",
+                    "NONE",
+                    "NULL"
+                }:
+                    continue
 
-                    if ticker in {
-                        "-",
-                        "NAN",
-                        "NONE",
-                        "NULL"
-                    }:
-                        continue
+                if len(ticker) > 30:
+                    continue
 
-                    if len(ticker) > 30:
-                        continue
-
-                    result.add(ticker)
+                result.add(
+                    ticker
+                )
 
     except Exception:
+
         pass
 
     symbols_file = (
-        BASE_DIR / "symbols.txt"
+        BASE_DIR /
+        "symbols.txt"
     )
 
     if symbols_file.exists():
@@ -3860,9 +4450,12 @@ def get_public_tickers():
                 if len(ticker) > 30:
                     continue
 
-                result.add(ticker)
+                result.add(
+                    ticker
+                )
 
         except Exception:
+
             pass
 
     result.update({
@@ -3962,14 +4555,18 @@ def get_public_tickers():
 
     })
 
-    return sorted(result)
+    return sorted(
+        result
+    )
 
 
 # ============================================================
 # PUBLIC SIGNAL
 # ============================================================
 
-def get_public_signal(ticker):
+def get_public_signal(
+    ticker
+):
 
     ticker = str(
         ticker
@@ -3977,19 +4574,15 @@ def get_public_signal(ticker):
 
     try:
 
-        signal_file, df = find_signal_file()
+        data = get_cached_signal_data()
 
-        if df is None or df.empty:
-            return None
-
-        df = normalize_signal_dataframe(
-            df
-        )
+        df = data["df"]
 
         if (
-            df.empty
-            or "Ticker" not in df.columns
+            df is None
+            or df.empty
         ):
+
             return None
 
         result = df[
@@ -4001,6 +4594,7 @@ def get_public_signal(ticker):
         ].copy()
 
         if result.empty:
+
             return None
 
         row = result.iloc[0]
@@ -4031,6 +4625,7 @@ def get_public_signal(ticker):
         ).strip().upper()
 
         if not signal:
+
             signal = "VERİ YOK"
 
         date = str(
@@ -4042,19 +4637,26 @@ def get_public_signal(ticker):
 
         return {
 
-            "ticker": ticker,
+            "ticker":
+                ticker,
 
-            "signal": signal,
+            "signal":
+                signal,
 
-            "probability": probability,
+            "probability":
+                probability,
 
-            "predicted_return": predicted_return,
+            "predicted_return":
+                predicted_return,
 
-            "price": price,
+            "price":
+                price,
 
-            "date": date,
+            "date":
+                date,
 
-            "has_signal": True
+            "has_signal":
+                True
 
         }
 
@@ -4093,7 +4695,8 @@ async def public_stock_page(
             detail="Geçersiz sembol."
         )
 
-    data = get_public_signal(
+    data = await asyncio.to_thread(
+        get_public_signal,
         ticker
     )
 
@@ -4101,19 +4704,26 @@ async def public_stock_page(
 
         data = {
 
-            "ticker": ticker,
+            "ticker":
+                ticker,
 
-            "signal": "SİNYAL YOK",
+            "signal":
+                "SİNYAL YOK",
 
-            "probability": None,
+            "probability":
+                None,
 
-            "predicted_return": None,
+            "predicted_return":
+                None,
 
-            "price": None,
+            "price":
+                None,
 
-            "date": "-",
+            "date":
+                "-",
 
-            "has_signal": False
+            "has_signal":
+                False
         }
 
     safe_ticker = escape(
@@ -4124,13 +4734,17 @@ async def public_stock_page(
         data["signal"]
     )
 
-    probability = data["probability"]
+    probability = data[
+        "probability"
+    ]
 
     predicted_return = data[
         "predicted_return"
     ]
 
-    price = data["price"]
+    price = data[
+        "price"
+    ]
 
     date = escape(
         str(
@@ -4857,10 +5471,11 @@ if __name__ == "__main__":
     print(" TÜM NORMAL ÖZELLİKLER AÇIK")
     print(" ADMIN SİSTEMİ KORUMALI")
     print(" CANLI FİYAT + 429 KORUMASI AKTİF")
+    print(" SIGNAL CACHE + PAGINATION AKTİF")
     print("=" * 70)
 
     print(
-        "Public Access     :",
+        "Public Access      :",
         PUBLIC_ACCESS
     )
 
@@ -4893,13 +5508,19 @@ if __name__ == "__main__":
     )
 
     print(
-        "Kaynak             : Yahoo Finance / yfinance"
+        "Signal Cache       :",
+        SIGNAL_CACHE_TTL,
+        "saniye"
     )
 
     print(
-        "Cache              :",
+        "Live Price Cache   :",
         LIVE_PRICE_CACHE_SECONDS,
         "saniye"
+    )
+
+    print(
+        "Kaynak             : Yahoo Finance / yfinance"
     )
 
     print(
