@@ -5346,17 +5346,22 @@ async def sitemap():
 )
 async def robots():
 
-    return PlainTextResponse(
-
-        f"""User-agent: *
-Allow: /
-
-Sitemap: {SEO_BASE_URL}/sitemap.xml
-""",
-
-        media_type="text/plain"
+    robots_text = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "\n"
+        f"Sitemap: {SEO_BASE_URL}/sitemap.xml\n"
     )
 
+    return PlainTextResponse(
+        content=robots_text,
+        media_type="text/plain",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
 
 
 
