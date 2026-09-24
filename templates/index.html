@@ -1,93 +1,1926 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        LEVEL 1000 AI | AI Market Intelligence
+    </title>
+
+    <meta
+        name="description"
+        content="LEVEL 1000 AI - Yapay zeka destekli piyasa analiz, BUY SELL HOLD sinyalleri, backtest, paper trading ve gelişmiş AI analiz platformu."
+    >
+
+    <meta
+        name="robots"
+        content="index, follow"
+    >
+
+    <meta
+        name="googlebot"
+        content="index, follow"
+    >
+
+    <meta
+        name="google-site-verification"
+        content="v6Pkn_EJCKqnxuI8-4z0hhF-qjBw7oey4zhaGWPKtZU"
+    >
+
+    <link
+        rel="canonical"
+        href="https://level1000-2.onrender.com/"
+    >
+
+    <meta
+        property="og:type"
+        content="website"
+    >
+
+    <meta
+        property="og:title"
+        content="LEVEL 1000 AI"
+    >
+
+    <meta
+        property="og:description"
+        content="Yapay zeka destekli piyasa analiz platformu."
+    >
+
+    <meta
+        property="og:url"
+        content="https://level1000-2.onrender.com/"
+    >
+
+    <meta
+        property="og:site_name"
+        content="LEVEL 1000 AI"
+    >
+
+    <meta
+        name="twitter:card"
+        content="summary_large_image"
+    >
+
+    <meta
+        name="twitter:title"
+        content="LEVEL 1000 AI"
+    >
+
+    <meta
+        name="twitter:description"
+        content="AI destekli piyasa analiz ve istihbarat platformu."
+    >
+
+    <!-- Google AdSense -->
+    <script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-"
+        crossorigin="anonymous"
+    ></script>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=17"
+    >
+
+    <style>
+
+        /* =====================================================
+           LEVEL 1000 PUBLIC MODE
+           ÜYELİK / PLAN / ÖDEME KİLİTLERİ YOK
+           ===================================================== */
+
+        :root {
+            --bg-main: #070b14;
+            --bg-card: #0d1422;
+            --bg-card-2: #111a2b;
+            --border: #22304a;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --blue: #3b82f6;
+            --green: #22c55e;
+            --red: #ef4444;
+            --yellow: #eab308;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(
+                    circle at top,
+                    #101a30 0,
+                    #070b14 45%,
+                    #050810 100%
+                );
+            color: var(--text);
+            font-family: "Inter", Arial, sans-serif;
+        }
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        /* =====================================================
+           AUTH EKRANI TAMAMEN KALDIRILDI
+           ===================================================== */
+
+        #authScreen,
+        #loginBox,
+        #registerBox,
+        #planModal,
+        #planInfoBar,
+        .plans-section,
+        .user-plan,
+        .feature-lock {
+            display: none !important;
+        }
+
+        /* =====================================================
+           APP
+           ===================================================== */
+
+        #appScreen {
+            display: block !important;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: min(1500px, 96%);
+            margin: 0 auto;
+            padding: 18px 0 50px;
+        }
+
+        /* =====================================================
+           HEADER
+           ===================================================== */
+
+        .top-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 18px;
+            padding: 14px 18px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: rgba(7, 11, 20, 0.92);
+            backdrop-filter: blur(18px);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .brand-logo {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #7c3aed
+                );
+            font-weight: 900;
+            font-size: 17px;
+        }
+
+        .brand-text {
+            min-width: 0;
+        }
+
+        .brand-title {
+            font-size: 19px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-subtitle {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-button {
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text);
+            padding: 9px 13px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .header-button:hover {
+            border-color: var(--blue);
+        }
+
+        #logoutButton {
+            display: none !important;
+        }
+
+        /* =====================================================
+           TICKER
+           ===================================================== */
+
+        .ticker-bar {
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #09101d;
+            margin-bottom: 20px;
+        }
+
+        .ticker-track {
+            display: flex;
+            gap: 28px;
+            width: max-content;
+            padding: 10px 18px;
+            color: #cbd5e1;
+            font-size: 12px;
+        }
+
+        .ticker-item {
+            white-space: nowrap;
+        }
+
+        /* =====================================================
+           HERO
+           ===================================================== */
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: 40px 32px;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(37, 99, 235, 0.17),
+                    rgba(124, 58, 237, 0.10),
+                    rgba(13, 20, 34, 0.96)
+                );
+            margin-bottom: 20px;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            right: -90px;
+            top: -90px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.12);
+            filter: blur(5px);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 11px;
+            border: 1px solid #28436c;
+            border-radius: 999px;
+            color: #93c5fd;
+            background: rgba(37, 99, 235, 0.10);
+            font-size: 11px;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(30px, 5vw, 56px);
+            line-height: 1;
+            letter-spacing: -2px;
+        }
+
+        .hero h1 span {
+            color: #60a5fa;
+        }
+
+        .hero p {
+            max-width: 800px;
+            color: var(--muted);
+            line-height: 1.75;
+            margin: 18px 0 0;
+            font-size: 15px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .primary-button {
+            border: 0;
+            border-radius: 11px;
+            padding: 12px 18px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #4f46e5
+                );
+            color: white;
+            font-weight: 800;
+        }
+
+        .secondary-button {
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 12px 18px;
+            background: var(--bg-card);
+            color: white;
+            font-weight: 800;
+        }
+
+        /* =====================================================
+           INFO
+           ===================================================== */
+
+        .info-card {
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 24px;
+            background: var(--bg-card);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            margin: 0 0 9px;
+            font-size: 22px;
+            font-weight: 900;
+        }
+
+        .section-text {
+            color: var(--muted);
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        /* =====================================================
+           KPI
+           ===================================================== */
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    5,
+                    minmax(0, 1fr)
+                );
+            gap: 13px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            border: 1px solid var(--border);
+            border-radius: 17px;
+            padding: 19px;
+            background: var(--bg-card);
+            min-height: 125px;
+        }
+
+        .kpi-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 11px;
+        }
+
+        .kpi-value {
+            font-size: 29px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .kpi-buy .kpi-value {
+            color: var(--green);
+        }
+
+        .kpi-sell .kpi-value {
+            color: var(--red);
+        }
+
+        .kpi-hold .kpi-value {
+            color: var(--yellow);
+        }
+
+        /* =====================================================
+           DASHBOARD CARD
+           ===================================================== */
+
+        .dashboard-card {
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--bg-card);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header-left h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .card-header-left p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .refresh-button {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #101a2c;
+            color: white;
+            padding: 9px 13px;
+            font-weight: 800;
+        }
+
+        .refresh-button:hover {
+            border-color: var(--blue);
+        }
+
+        /* =====================================================
+           SEARCH
+           ===================================================== */
+
+        .search-wrapper {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        #signalSearch {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 11px;
+            border: 1px solid var(--border);
+            outline: none;
+            background: #09111f;
+            color: white;
+        }
+
+        #signalSearch:focus {
+            border-color: var(--blue);
+        }
+
+        /* =====================================================
+           TABLE
+           ===================================================== */
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .signals-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        .signals-table th {
+            padding: 13px 14px;
+            text-align: left;
+            color: #94a3b8;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #09111f;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .signals-table td {
+            padding: 14px;
+            border-bottom: 1px solid rgba(34, 48, 74, 0.65);
+            font-size: 13px;
+        }
+
+        .signals-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.045);
+        }
+
+        .signal-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 66px;
+            padding: 6px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .signal-buy {
+            color: #86efac;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .signal-sell {
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .signal-hold {
+            color: #fde047;
+            background: rgba(234, 179, 8, 0.12);
+            border: 1px solid rgba(234, 179, 8, 0.25);
+        }
+
+        .score-value {
+            font-weight: 900;
+        }
+
+        .positive {
+            color: #4ade80;
+        }
+
+        .negative {
+            color: #f87171;
+        }
+
+        .neutral {
+            color: #facc15;
+        }
+
+        /* =====================================================
+           ADVANCED AI
+           ===================================================== */
+
+        .advanced-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    4,
+                    minmax(0, 1fr)
+                );
+            gap: 14px;
+            padding: 20px;
+        }
+
+        .advanced-card {
+            min-height: 190px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            background:
+                linear-gradient(
+                    145deg,
+                    #101a2c,
+                    #0a101c
+                );
+            transition:
+                transform 0.18s ease,
+                border-color 0.18s ease;
+        }
+
+        .advanced-card:hover {
+            transform: translateY(-2px);
+            border-color: #31598f;
+        }
+
+        .advanced-icon {
+            font-size: 27px;
+            margin-bottom: 13px;
+        }
+
+        .advanced-card h3 {
+            margin: 0 0 8px;
+            font-size: 16px;
+        }
+
+        .advanced-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .advanced-card .feature-button {
+            margin-top: 15px;
+            border: 1px solid var(--border);
+            background: #101a2c;
+            color: white;
+            border-radius: 9px;
+            padding: 8px 11px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        /* =====================================================
+           RUN ANALYSIS
+           ===================================================== */
+
+        .run-section {
+            padding: 20px;
+        }
+
+        .run-button {
+            width: 100%;
+            border: 0;
+            border-radius: 13px;
+            padding: 15px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #7c3aed
+                );
+            color: white;
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .run-button:disabled {
+            opacity: 0.55;
+            cursor: wait;
+        }
+
+        .run-status {
+            margin-top: 12px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 12px;
+        }
+
+        /* =====================================================
+           SYSTEM STATUS
+           ===================================================== */
+
+        .status-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    4,
+                    minmax(0, 1fr)
+                );
+            gap: 12px;
+            padding: 20px;
+        }
+
+        .status-item {
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 15px;
+            background: #09111f;
+        }
+
+        .status-label {
+            color: var(--muted);
+            font-size: 11px;
+            margin-bottom: 7px;
+        }
+
+        .status-value {
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        .online {
+            color: #4ade80;
+        }
+
+        /* =====================================================
+           MESSAGE
+           ===================================================== */
+
+        #message {
+            display: none;
+            margin: 0 0 20px;
+            padding: 13px 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #0e1728;
+            color: #cbd5e1;
+            font-size: 13px;
+        }
+
+        /* =====================================================
+           RISK
+           ===================================================== */
+
+        .risk-card {
+            border: 1px solid #594818;
+            background: rgba(234, 179, 8, 0.055);
+            border-radius: 17px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .risk-card h3 {
+            margin: 0 0 8px;
+            color: #fde68a;
+            font-size: 15px;
+        }
+
+        .risk-card p {
+            margin: 0;
+            color: #cbd5e1;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        /* =====================================================
+           FOOTER
+           ===================================================== */
+
+        footer {
+            padding: 25px 10px 5px;
+            text-align: center;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: #60a5fa;
+        }
+
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+        @media (max-width: 1100px) {
+
+            .kpi-grid {
+                grid-template-columns:
+                    repeat(3, 1fr);
+            }
+
+            .advanced-grid {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .status-grid {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .app-container {
+                width: 94%;
+            }
+
+            .top-header {
+                position: relative;
+            }
+
+            .header-inner {
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                display: none;
+            }
+
+            .hero {
+                padding: 28px 20px;
+            }
+
+            .hero h1 {
+                letter-spacing: -1px;
+            }
+
+            .kpi-grid {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .advanced-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+        }
+
+        @media (max-width: 430px) {
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .brand-subtitle {
+                display: none;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     ANA UYGULAMA
+     ========================================================= -->
+
+<div id="appScreen">
+
+    <div class="app-container">
+
+
+        <!-- =================================================
+             HEADER
+             ================================================= -->
+
+        <header class="top-header">
+
+            <div class="header-inner">
+
+                <div class="brand">
+
+                    <div class="brand-logo">
+                        L1K
+                    </div>
+
+                    <div class="brand-text">
+
+                        <div class="brand-title">
+                            LEVEL 1000 AI
+                        </div>
+
+                        <div class="brand-subtitle">
+                            AI MARKET INTELLIGENCE
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="header-actions">
+
+                    <button
+                        type="button"
+                        class="header-button"
+                        onclick="refreshData()"
+                    >
+                        ↻ Yenile
+                    </button>
+
+                    <button
+                        type="button"
+                        id="adminButton"
+                        class="header-button"
+                        style="display:none;"
+                        onclick="openAdmin()"
+                    >
+                        Admin
+                    </button>
+
+                    <button
+                        type="button"
+                        id="logoutButton"
+                        class="header-button"
+                    >
+                        Çıkış
+                    </button>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             TICKER
+             ================================================= -->
+
+        <div class="ticker-bar">
+
+            <div class="ticker-track">
+
+                <div class="ticker-item">
+                    🟢 PİYASA SİSTEMİ AKTİF
+                </div>
+
+                <div class="ticker-item">
+                    ⚡ AI ANALİZ AKTİF
+                </div>
+
+                <div class="ticker-item">
+                    📊 TÜM SİNYALLER AÇIK
+                </div>
+
+                <div class="ticker-item">
+                    🔓 ÜYELİK GEREKMİYOR
+                </div>
+
+                <div class="ticker-item">
+                    💳 SATIN ALMA GEREKMİYOR
+                </div>
+
+                <div class="ticker-item">
+                    📡 YAHOO FINANCE VERİ
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             HERO
+             ================================================= -->
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <div class="hero-badge">
+                    ● PUBLIC AI MARKET INTELLIGENCE
+                </div>
+
+                <h1>
+                    LEVEL <span>1000</span> AI
+                </h1>
+
+                <p>
+                    Yapay zeka destekli piyasa analiz ve
+                    market intelligence platformu.
+                    BUY, SELL ve HOLD sinyallerini,
+                    AI olasılıklarını, tahmini getirileri,
+                    backtest, paper trading ve gelişmiş
+                    analizleri tek panelden inceleyin.
+                </p>
+
+                <div class="hero-buttons">
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        onclick="document.getElementById('signalsSection').scrollIntoView({behavior:'smooth'})"
+                    >
+                        📊 Sinyalleri Gör
+                    </button>
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="runAnalysis()"
+                    >
+                        ⚡ AI Analizi Başlat
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             INFO
+             ================================================= -->
+
+        <section class="info-card">
+
+            <h2 class="section-title">
+                LEVEL 1000 NEDİR?
+            </h2>
+
+            <p class="section-text">
+
+                LEVEL 1000 AI; hisse senetleri, ETF'ler,
+                ADR'ler, warrantlar, endeksler ve kripto
+                varlıklar için yapay zeka destekli piyasa
+                araştırması ve sinyal analizi sunar.
+
+                Sistem normal ziyaretçiler için
+                <strong>üyelik gerektirmez</strong>.
+                Özellikleri kullanmak için
+                <strong>satın alma yapılması gerekmez</strong>.
+
+                Tüm normal analiz özellikleri açıktır.
+
+            </p>
+
+        </section>
+
+
+        <!-- =================================================
+             KPI
+             ================================================= -->
+
+        <section class="kpi-grid">
+
+            <div class="kpi-card kpi-buy">
+
+                <div class="kpi-label">
+                    BUY
+                </div>
+
+                <div
+                    class="kpi-value"
+                    id="buyCount"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="kpi-card kpi-sell">
+
+                <div class="kpi-label">
+                    SELL
+                </div>
+
+                <div
+                    class="kpi-value"
+                    id="sellCount"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="kpi-card kpi-hold">
+
+                <div class="kpi-label">
+                    HOLD
+                </div>
+
+                <div
+                    class="kpi-value"
+                    id="holdCount"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-label">
+                    TOP SIGNALS
+                </div>
+
+                <div
+                    class="kpi-value"
+                    id="topCount"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="kpi-card">
+
+                <div class="kpi-label">
+                    TOTAL
+                </div>
+
+                <div
+                    class="kpi-value"
+                    id="totalCount"
+                >
+                    -
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             MESSAGE
+             ================================================= -->
+
+        <div id="message"></div>
+
+
+        <!-- =================================================
+             SIGNALS
+             ================================================= -->
+
+        <section
+            class="dashboard-card"
+            id="signalsSection"
+        >
+
+            <div class="card-header">
+
+                <div class="card-header-left">
+
+                    <h2>
+                        📊 AI PİYASA SİNYALLERİ
+                    </h2>
+
+                    <p>
+                        Tüm kullanılabilir sinyaller
+                        gösterilmektedir.
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="refresh-button"
+                    onclick="refreshData()"
+                >
+                    ↻ Verileri Yenile
+                </button>
+
+            </div>
+
+
+            <div class="search-wrapper">
+
+                <input
+                    id="signalSearch"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="Hisse / ETF / sembol ara..."
+                >
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table class="signals-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Sembol
+                            </th>
+
+                            <th>
+                                Sinyal
+                            </th>
+
+                            <th>
+                                AI Olasılık
+                            </th>
+
+                            <th>
+                                Fiyat
+                            </th>
+
+                            <th>
+                                Günlük Değişim
+                            </th>
+
+                            <th>
+                                Tahmini Getiri
+                            </th>
+
+                            <th>
+                                Tarih
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="signalsBody">
+
+                        <tr>
+
+                            <td colspan="7">
+
+                                Veriler yükleniyor...
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             SIGNAL EXPLANATION
+             ================================================= -->
+
+        <section class="info-card">
+
+            <h2 class="section-title">
+                SİNYALLER NASIL OKUNUR?
+            </h2>
+
+            <p class="section-text">
+
+                <strong>BUY</strong> sistemin yükseliş yönünde
+                analiz ürettiğini,
+
+                <strong>SELL</strong> düşüş yönünde analiz
+                ürettiğini,
+
+                <strong>HOLD</strong> ise mevcut verilerin
+                net bir yön oluşturmadığını ifade eder.
+
+                AI olasılığı ve tahmini getiri değerleri
+                model çıktılarıdır; kesin sonuç veya garanti
+                anlamına gelmez.
+
+            </p>
+
+        </section>
+
+
+        <!-- =================================================
+             RUN ANALYSIS
+             ================================================= -->
+
+        <section class="dashboard-card">
+
+            <div class="card-header">
+
+                <div class="card-header-left">
+
+                    <h2>
+                        ⚡ LEVEL 1000 ANALİZ
+                    </h2>
+
+                    <p>
+                        Yeni piyasa taramasını başlatın.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="run-section">
+
+                <button
+                    type="button"
+                    id="runAnalysisButton"
+                    class="run-button"
+                    onclick="runAnalysis()"
+                >
+                    ⚡ AI ANALİZİNİ BAŞLAT
+                </button>
+
+                <div
+                    id="runStatus"
+                    class="run-status"
+                >
+                    Sistem hazır.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             ADVANCED ANALYSIS
+             ================================================= -->
+
+        <section class="dashboard-card">
+
+            <div class="card-header">
+
+                <div class="card-header-left">
+
+                    <h2>
+                        🧠 GELİŞMİŞ ANALİZ
+                    </h2>
+
+                    <p>
+                        Tüm gelişmiş analiz özellikleri açıktır.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="advanced-grid">
+
+
+                <!-- Gelişmiş AI -->
+
+                <div class="advanced-card">
+
+                    <div class="advanced-icon">
+                        🧠
+                    </div>
+
+                    <h3>
+                        Gelişmiş AI
+                    </h3>
+
+                    <p>
+                        Yapay zeka destekli sinyal,
+                        olasılık ve tahmini getiri
+                        analizlerini inceleyin.
+                    </p>
+
+                    <button
+                        type="button"
+                        class="feature-button"
+                        onclick="loadSignals()"
+                    >
+                        Analizleri Gör
+                    </button>
+
+                </div>
+
+
+                <!-- Backtest -->
+
+                <div class="advanced-card">
+
+                    <div class="advanced-icon">
+                        📈
+                    </div>
+
+                    <h3>
+                        Backtest
+                    </h3>
+
+                    <p>
+                        Sistemin geçmiş performans
+                        sonuçlarını ve mevcut backtest
+                        verilerini inceleyin.
+                    </p>
+
+                    <button
+                        type="button"
+                        class="feature-button"
+                        onclick="loadBacktest()"
+                    >
+                        Backtest Aç
+                    </button>
+
+                </div>
+
+
+                <!-- Paper Trading -->
+
+                <div class="advanced-card">
+
+                    <div class="advanced-icon">
+                        📝
+                    </div>
+
+                    <h3>
+                        Paper Trading
+                    </h3>
+
+                    <p>
+                        Gerçek para kullanmadan,
+                        sistem tarafından oluşturulan
+                        paper trading sonuçlarını inceleyin.
+                    </p>
+
+                    <button
+                        type="button"
+                        class="feature-button"
+                        onclick="loadPaper()"
+                    >
+                        Paper Trading Aç
+                    </button>
+
+                </div>
+
+
+                <!-- Monte Carlo -->
+
+                <div class="advanced-card">
+
+                    <div class="advanced-icon">
+                        🎲
+                    </div>
+
+                    <h3>
+                        Monte Carlo
+                    </h3>
+
+                    <p>
+                        Mevcut Monte Carlo simülasyon
+                        sonuçlarını ve risk analizlerini
+                        görüntüleyin.
+                    </p>
+
+                    <button
+                        type="button"
+                        class="feature-button"
+                        onclick="loadMonteCarlo()"
+                    >
+                        Simülasyonu Aç
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             ADVANCED RESULTS
+             ================================================= -->
+
+        <section
+            class="dashboard-card"
+            id="advancedResults"
+            style="display:none;"
+        >
+
+            <div class="card-header">
+
+                <div class="card-header-left">
+
+                    <h2 id="advancedResultsTitle">
+                        Gelişmiş Analiz
+                    </h2>
+
+                    <p id="advancedResultsSubtitle">
+                        Sonuçlar
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div
+                id="advancedResultsBody"
+                style="
+                    padding:20px;
+                    overflow:auto;
+                "
+            ></div>
+
+        </section>
+
+
+        <!-- =================================================
+             SYSTEM STATUS
+             ================================================= -->
+
+        <section class="dashboard-card">
+
+            <div class="card-header">
+
+                <div class="card-header-left">
+
+                    <h2>
+                        🟢 SİSTEM DURUMU
+                    </h2>
+
+                    <p>
+                        LEVEL 1000 servislerinin mevcut durumu.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="status-grid">
+
+
+                <div class="status-item">
+
+                    <div class="status-label">
+                        API
+                    </div>
+
+                    <div
+                        class="status-value online"
+                        id="apiStatus"
+                    >
+                        ONLINE
+                    </div>
+
+                </div>
+
+
+                <div class="status-item">
+
+                    <div class="status-label">
+                        MARKET DATA
+                    </div>
+
+                    <div
+                        class="status-value"
+                        id="marketStatus"
+                    >
+                        Kontrol ediliyor...
+                    </div>
+
+                </div>
+
+
+                <div class="status-item">
+
+                    <div class="status-label">
+                        LIVE PRICE
+                    </div>
+
+                    <div
+                        class="status-value"
+                        id="liveStatus"
+                    >
+                        Aktif
+                    </div>
+
+                </div>
+
+
+                <div class="status-item">
+
+                    <div class="status-label">
+                        ACCESS
+                    </div>
+
+                    <div
+                        class="status-value online"
+                        id="accessStatus"
+                    >
+                        PUBLIC
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             RISK
+             ================================================= -->
+
+        <section class="risk-card">
+
+            <h3>
+                ⚠️ Risk Uyarısı
+            </h3>
+
+            <p>
+
+                LEVEL 1000 AI tarafından sunulan sinyaller,
+                AI olasılıkları, tahmini getiriler,
+                backtest sonuçları ve diğer veriler
+                yatırım tavsiyesi veya finansal danışmanlık
+                değildir.
+
+                Geçmiş performans gelecekteki sonuçların
+                garantisi değildir.
+
+                Gerçek para ile işlem yapmadan önce
+                bağımsız araştırma yapın ve kendi risk
+                değerlendirmenizi gerçekleştirin.
+
+            </p>
+
+        </section>
+
+
+        <!-- =================================================
+             FOOTER
+             ================================================= -->
+
+        <footer>
+
+            <div class="footer-links">
+
+                <a href="/about">
+                    Hakkında
+                </a>
+
+                <a href="/guide">
+                    Rehber
+                </a>
+
+                <a href="/risk">
+                    Risk
+                </a>
+
+                <a href="/privacy">
+                    Gizlilik
+                </a>
+
+                <a href="/cookies">
+                    Çerezler
+                </a>
+
+                <a href="/terms">
+                    Kullanım Şartları
+                </a>
+
+                <a href="/contact">
+                    İletişim
+                </a>
+
+            </div>
+
+            <div>
+                LEVEL 1000 AI © 2026
+            </div>
+
+            <div>
+                Gerçek para: HAYIR · Otomatik emir: HAYIR
+            </div>
+
+        </footer>
+
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     SCRIPT
+     ========================================================= -->
+
+<script src="/static/script.js?v=1002"></script>
+
+
+<script>
+
 "use strict";
 
-const API_BASE = "";
-const PAGE_SIZE = 50;
+
+/* ============================================================
+   PUBLIC MODE
+   ============================================================ */
+
+window.LEVEL1000_PUBLIC_MODE = true;
+
+
+/* ============================================================
+   GLOBAL DATA
+   ============================================================ */
 
 let allSignals = [];
-let filteredSignals = [];
-let currentPage = 1;
 
-let isLoadingSignals = false;
-let refreshTimer = null;
-let runPollTimer = null;
+let scanRunning = false;
 
 
-/* =========================================================
-   YARDIMCILAR
-========================================================= */
+/* ============================================================
+   HELPERS
+   ============================================================ */
 
 function byId(id) {
+
     return document.getElementById(id);
+
 }
 
 
-function setText(id, value) {
-    const el = byId(id);
+function showMessage(
+    message,
+    type = "info"
+) {
+
+    const el = byId("message");
+
+    if (!el) {
+        return;
+    }
+
+    el.textContent = message;
+
+    el.style.display = "block";
+
+    if (type === "error") {
+
+        el.style.borderColor =
+            "rgba(239,68,68,.45)";
+
+    } else {
+
+        el.style.borderColor =
+            "rgba(59,130,246,.35)";
+    }
+
+}
+
+
+function hideMessage() {
+
+    const el = byId("message");
 
     if (el) {
-        el.textContent = value ?? "";
+        el.style.display = "none";
     }
+
 }
 
 
 function escapeHtml(value) {
-    return String(value ?? "")
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+    return String(value)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+
 }
 
 
 function numberValue(value) {
+
     const n = Number(value);
 
-    return Number.isFinite(n) ? n : null;
+    return Number.isFinite(n)
+        ? n
+        : null;
+
 }
 
 
-function formatNumber(value, decimals = 2) {
+function formatNumber(
+    value,
+    decimals = 2
+) {
+
     const n = numberValue(value);
 
     if (n === null) {
         return "-";
     }
 
-    return n.toLocaleString("tr-TR", {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
-    });
+    return n.toLocaleString(
+        "tr-TR",
+        {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        }
+    );
+
 }
 
 
 function formatPercent(value) {
+
     const n = numberValue(value);
 
     if (n === null) {
         return "-";
     }
 
-    let percent = n;
+    return (
+        n.toLocaleString(
+            "tr-TR",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        )
+        + "%"
+    );
 
-    /*
-       API:
-       0.7467 = 74.67%
-       0.0336 = 3.36%
-    */
+}
 
-    if (Math.abs(percent) <= 1) {
-        percent *= 100;
+
+function signalClass(signal) {
+
+    const s = String(
+        signal || ""
+    ).toUpperCase();
+
+    if (s === "BUY") {
+        return "signal-buy";
     }
 
-    return percent.toLocaleString("tr-TR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }) + "%";
+    if (s === "SELL") {
+        return "signal-sell";
+    }
+
+    return "signal-hold";
+
 }
 
 
 function valueClass(value) {
+
     const n = numberValue(value);
 
     if (n === null) {
@@ -103,1122 +1936,580 @@ function valueClass(value) {
     }
 
     return "neutral";
+
 }
 
 
-function signalClass(signal) {
-    const s = String(signal || "").toUpperCase();
+/* ============================================================
+   API FETCH
+   ============================================================ */
 
-    if (s === "BUY" || s === "AL") {
-        return "signal-buy";
-    }
+async function publicFetch(
+    url,
+    options = {}
+) {
 
-    if (s === "SELL" || s === "SAT") {
-        return "signal-sell";
-    }
-
-    return "signal-hold";
-}
-
-
-/* =========================================================
-   API
-========================================================= */
-
-async function publicFetch(url, options = {}) {
-
-    return fetch(
-        API_BASE + url,
-        {
-            ...options,
-
-            headers: {
-                "Accept": "application/json",
-
-                ...(options.body
-                    ? {
-                        "Content-Type": "application/json"
-                    }
-                    : {}),
-
-                ...(options.headers || {})
-            }
+    const config = {
+        ...options,
+        headers: {
+            ...(options.headers || {})
         }
-    );
-}
-
-
-async function readJson(response) {
-
-    try {
-        return await response.json();
-    }
-
-    catch {
-        return {};
-    }
-}
-
-
-/* =========================================================
-   SİNYAL NORMALİZASYONU
-========================================================= */
-
-function normalizeSignal(row) {
-
-    let signal =
-        row.signal ??
-        row.Signal ??
-        row.action ??
-        row.Action ??
-        row.sinyal ??
-        row.Sinyal ??
-        "HOLD";
-
-
-    signal = String(signal).toUpperCase();
-
-
-    if (signal === "AL") {
-        signal = "BUY";
-    }
-
-    if (signal === "SAT") {
-        signal = "SELL";
-    }
-
-    if (signal === "BEKLE") {
-        signal = "HOLD";
-    }
-
-
-    return {
-
-        symbol:
-            row.symbol ??
-            row.Symbol ??
-            row.ticker ??
-            row.Ticker ??
-            "-",
-
-        signal: signal,
-
-        score:
-            row.score ??
-            row.Score ??
-            row.ai_probability ??
-            row.AI_Probability ??
-            0,
-
-        price:
-            row.price ??
-            row.Price ??
-            row.close ??
-            row.Close ??
-            null,
-
-        change:
-            row.change ??
-            row.Change ??
-            row.daily_change_percent ??
-            row.Daily_Change_Percent ??
-            null,
-
-        predictedReturn:
-            row.predicted_return ??
-            row.Predicted_Return ??
-            row.ai_predicted_return ??
-            row.AI_Predicted_Return ??
-            row.expected_return ??
-            row.Expected_Return ??
-            null,
-
-        priceStatus:
-            row.price_status ??
-            row.Price_Status ??
-            "",
-
-        priceSource:
-            row.price_source ??
-            row.Price_Source ??
-            "",
-
-        date:
-            row.date ??
-            row.Date ??
-            ""
     };
-}
-
-
-/* =========================================================
-   TABLO BODY
-========================================================= */
-
-function getTableBody() {
 
     /*
-       HTML'de:
-       <tbody id="signalsBody">
-    */
+     * TOKEN EKLENMİYOR.
+     * Normal site tamamen public.
+     */
 
-    return byId("signalsBody");
-}
+    const response = await fetch(
+        url,
+        config
+    );
 
+    let data = null;
 
-/* =========================================================
-   YÜKLENİYOR
-========================================================= */
+    try {
 
-function showTableLoading() {
+        data = await response.json();
 
-    const tbody = getTableBody();
+    } catch {
 
-    if (!tbody) {
+        data = null;
 
-        console.error(
-            "LEVEL 1000: signalsBody bulunamadı."
-        );
-
-        return;
     }
 
+    if (!response.ok) {
 
-    tbody.innerHTML = `
-        <tr>
-            <td
-                colspan="7"
-                style="
-                    text-align:center;
-                    padding:45px 20px;
-                    color:#94a3b8;
-                "
-            >
+        const errorMessage =
+            data?.detail ||
+            data?.error ||
+            `HTTP ${response.status}`;
 
-                <div
-                    style="
-                        font-size:30px;
-                        margin-bottom:10px;
-                    "
-                >
-                    ⏳
-                </div>
-
-                <strong>
-                    Veriler yükleniyor...
-                </strong>
-
-                <div
-                    style="
-                        margin-top:8px;
-                        font-size:12px;
-                    "
-                >
-                    Sinyal verileri alınıyor.
-                </div>
-
-            </td>
-        </tr>
-    `;
-}
-
-
-/* =========================================================
-   HATA
-========================================================= */
-
-function showTableError(message) {
-
-    const tbody = getTableBody();
-
-    if (!tbody) {
-        return;
-    }
-
-
-    tbody.innerHTML = `
-        <tr>
-            <td
-                colspan="7"
-                style="
-                    text-align:center;
-                    padding:40px;
-                    color:#f87171;
-                "
-            >
-
-                <strong>
-                    ${escapeHtml(message)}
-                </strong>
-
-                <div
-                    style="
-                        margin-top:8px;
-                        color:#94a3b8;
-                    "
-                >
-                    Sayfayı yenileyerek tekrar deneyin.
-                </div>
-
-            </td>
-        </tr>
-    `;
-}
-
-
-/* =========================================================
-   KPI
-========================================================= */
-
-function updateKPIs(data) {
-
-    const buy =
-        Number(data.buy || 0);
-
-    const sell =
-        Number(data.sell || 0);
-
-    const hold =
-        Number(data.hold || 0);
-
-    const total =
-        Number(
-            data.total ||
-            allSignals.length ||
-            0
+        throw new Error(
+            errorMessage
         );
 
+    }
 
-    setText(
-        "buyCount",
-        buy.toLocaleString("tr-TR")
-    );
+    return data;
 
-
-    setText(
-        "sellCount",
-        sell.toLocaleString("tr-TR")
-    );
-
-
-    setText(
-        "holdCount",
-        hold.toLocaleString("tr-TR")
-    );
-
-
-    setText(
-        "topCount",
-        Math.min(
-            20,
-            total
-        ).toLocaleString("tr-TR")
-    );
-
-
-    setText(
-        "totalCount",
-        total.toLocaleString("tr-TR")
-    );
 }
 
 
-/* =========================================================
-   SİNYALLERİ YÜKLE
-========================================================= */
+/* ============================================================
+   SIGNALS
+   ============================================================ */
 
 async function loadSignals() {
 
-    if (isLoadingSignals) {
-        return;
-    }
-
-
-    isLoadingSignals = true;
-
-
-    showTableLoading();
-
-
     try {
 
-        console.log(
-            "LEVEL 1000: API sinyalleri yükleniyor..."
-        );
-
-
-        const response =
+        const data =
             await publicFetch(
                 "/api/signals"
             );
 
-
-        if (!response.ok) {
-
-            throw new Error(
-                "HTTP " + response.status
-            );
+        if (!data) {
+            return;
         }
-
-
-        const data =
-            await readJson(response);
-
-
-        if (
-            !data ||
-            !Array.isArray(data.signals)
-        ) {
-
-            throw new Error(
-                "API sinyal verisi döndürmedi."
-            );
-        }
-
-
-        console.log(
-            "LEVEL 1000:",
-            data.signals.length,
-            "sinyal alındı."
-        );
-
 
         allSignals =
-            data.signals;
+            Array.isArray(
+                data.signals
+            )
+                ? data.signals
+                : [];
 
+        updateKpis(data);
 
-        filteredSignals =
-            allSignals;
-
-
-        currentPage = 1;
-
-
-        updateKPIs(data);
-
-
-        renderCurrentPage();
-
-
-        setText(
-            "apiStatus",
-            "ONLINE"
+        renderSignals(
+            allSignals
         );
 
-
-        setText(
-            "marketStatus",
-            "AKTİF"
+        updateSystemStatus(
+            data
         );
 
+        hideMessage();
 
-        setText(
-            "liveStatus",
-            "Aktif"
-        );
-
-
-        setText(
-            "accessStatus",
-            "PUBLIC"
-        );
-
-
-        return data;
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
-            "LEVEL 1000 API HATASI:",
+            "SIGNALS ERROR:",
             error
         );
 
-
-        showTableError(
-            "Sinyal verileri yüklenemedi."
+        showMessage(
+            "Sinyal verileri yüklenemedi: "
+            + error.message,
+            "error"
         );
-
-
-        setText(
-            "marketStatus",
-            "HATA"
-        );
-
-
-        return null;
 
     }
 
-    finally {
-
-        isLoadingSignals = false;
-    }
 }
 
 
-/* =========================================================
-   TABLOYU RENDER ET
-========================================================= */
+/* ============================================================
+   KPI
+   ============================================================ */
 
-function renderCurrentPage() {
+function updateKpis(data) {
 
-    const tbody =
-        getTableBody();
+    if (byId("buyCount")) {
+
+        byId("buyCount").textContent =
+            data.buy ?? 0;
+
+    }
+
+    if (byId("sellCount")) {
+
+        byId("sellCount").textContent =
+            data.sell ?? 0;
+
+    }
+
+    if (byId("holdCount")) {
+
+        byId("holdCount").textContent =
+            data.hold ?? 0;
+
+    }
+
+    if (byId("topCount")) {
+
+        byId("topCount").textContent =
+            data.top ??
+            data.signals?.length ??
+            0;
+
+    }
+
+    if (byId("totalCount")) {
+
+        byId("totalCount").textContent =
+            data.total ??
+            data.signals?.length ??
+            0;
+
+    }
+
+}
 
 
-    if (!tbody) {
+/* ============================================================
+   SIGNAL TABLE
+   ============================================================ */
 
-        console.error(
-            "LEVEL 1000: signalsBody bulunamadı!"
-        );
+function renderSignals(
+    signals
+) {
 
+    const body =
+        byId("signalsBody");
+
+    if (!body) {
         return;
     }
 
+    if (
+        !Array.isArray(signals) ||
+        signals.length === 0
+    ) {
 
-    const total =
-        filteredSignals.length;
-
-
-    const start =
-        (currentPage - 1) *
-        PAGE_SIZE;
-
-
-    const rows =
-        filteredSignals.slice(
-            start,
-            start + PAGE_SIZE
-        );
-
-
-    if (!rows.length) {
-
-        tbody.innerHTML = `
+        body.innerHTML = `
             <tr>
-                <td
-                    colspan="7"
-                    style="
-                        text-align:center;
-                        padding:40px;
-                        color:#94a3b8;
-                    "
-                >
-                    Sonuç bulunamadı.
+                <td colspan="7">
+                    Henüz sinyal verisi bulunamadı.
                 </td>
             </tr>
         `;
 
-
-        renderPagination();
-
         return;
     }
 
 
-    /*
-       SADECE 50 SATIR ÇİZİLİYOR.
-    */
+    body.innerHTML =
+        signals.map(
+            signal => {
 
-    tbody.innerHTML =
-        rows.map(
-            row => {
+                const symbol =
+                    escapeHtml(
+                        signal.symbol
+                    );
 
-                const s =
-                    normalizeSignal(row);
+                const action =
+                    String(
+                        signal.signal ||
+                        "HOLD"
+                    ).toUpperCase();
 
+                const probability =
+                    numberValue(
+                        signal.score
+                    );
+
+                const price =
+                    numberValue(
+                        signal.price
+                    );
+
+                const change =
+                    numberValue(
+                        signal.daily_change_percent ??
+                        signal.change
+                    );
+
+                const predicted =
+                    numberValue(
+                        signal.predicted_return
+                    );
+
+                const date =
+                    escapeHtml(
+                        signal.date || "-"
+                    );
 
                 return `
                     <tr>
 
                         <td>
                             <strong>
-                                ${escapeHtml(
-                                    s.symbol
-                                )}
+                                ${symbol}
                             </strong>
                         </td>
 
-
                         <td>
-
                             <span
-                                class="
-                                    signal-badge
-                                    ${signalClass(
-                                        s.signal
-                                    )}
-                                "
+                                class="signal-badge ${signalClass(action)}"
                             >
-                                ${escapeHtml(
-                                    s.signal
-                                )}
+                                ${escapeHtml(action)}
                             </span>
-
                         </td>
-
 
                         <td>
-                            <strong>
-                                ${formatPercent(
-                                    s.score
-                                )}
-                            </strong>
+                            <span class="score-value">
+                                ${
+                                    probability === null
+                                        ? "-"
+                                        : formatPercent(
+                                            probability
+                                        )
+                                }
+                            </span>
                         </td>
-
 
                         <td>
-                            ${formatNumber(
-                                s.price
-                            )}
+                            ${
+                                price === null
+                                    ? "-"
+                                    : formatNumber(
+                                        price,
+                                        4
+                                    )
+                            }
                         </td>
 
-
-                        <td
-                            class="${valueClass(
-                                s.change
-                            )}"
-                        >
-                            ${formatPercent(
-                                s.change
-                            )}
+                        <td class="${valueClass(change)}">
+                            ${
+                                change === null
+                                    ? "-"
+                                    : formatPercent(
+                                        change
+                                    )
+                            }
                         </td>
 
-
-                        <td
-                            class="${valueClass(
-                                s.predictedReturn
-                            )}"
-                        >
-                            ${formatPercent(
-                                s.predictedReturn
-                            )}
+                        <td class="${valueClass(predicted)}">
+                            ${
+                                predicted === null
+                                    ? "-"
+                                    : formatPercent(
+                                        predicted
+                                    )
+                            }
                         </td>
-
 
                         <td>
-                            ${escapeHtml(
-                                s.date
-                            )}
+                            ${date}
                         </td>
 
                     </tr>
                 `;
+
             }
         ).join("");
 
-
-    renderPagination();
 }
 
 
-/* =========================================================
-   ARAMA
-========================================================= */
+/* ============================================================
+   SEARCH
+   ============================================================ */
 
 function filterSignals() {
 
     const input =
         byId("signalSearch");
 
+    if (!input) {
+        return;
+    }
 
     const query =
-        input
-            ? input.value
-                .trim()
-                .toLowerCase()
-            : "";
+        input.value
+            .trim()
+            .toUpperCase();
 
+    if (!query) {
 
-    filteredSignals =
+        renderSignals(
+            allSignals
+        );
+
+        return;
+    }
+
+    const filtered =
         allSignals.filter(
-            row => {
+            item => {
 
-                const s =
-                    normalizeSignal(row);
+                const symbol =
+                    String(
+                        item.symbol || ""
+                    ).toUpperCase();
 
+                const signal =
+                    String(
+                        item.signal || ""
+                    ).toUpperCase();
 
-                return String(
-                    s.symbol
-                )
-                .toLowerCase()
-                .includes(query);
+                return (
+                    symbol.includes(query) ||
+                    signal.includes(query)
+                );
+
             }
         );
 
-
-    currentPage = 1;
-
-
-    renderCurrentPage();
-}
-
-
-function searchSignals() {
-    filterSignals();
-}
-
-
-/* =========================================================
-   SAYFALAMA
-========================================================= */
-
-function getPageCount() {
-
-    return Math.max(
-        1,
-        Math.ceil(
-            filteredSignals.length /
-            PAGE_SIZE
-        )
+    renderSignals(
+        filtered
     );
+
 }
 
 
-function changePage(page) {
+/* ============================================================
+   REFRESH
+   ============================================================ */
 
-    const maxPage =
-        getPageCount();
+async function refreshData() {
 
+    await loadSignals();
 
-    currentPage =
-        Math.max(
-            1,
-            Math.min(
-                maxPage,
-                Number(page)
-            )
-        );
+    await loadStatus();
 
-
-    renderCurrentPage();
-
-
-    const section =
-        byId("signalsSection");
-
-
-    if (section) {
-
-        section.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-    }
 }
 
 
-/* =========================================================
-   SAYFALAMA UI
-========================================================= */
-
-function renderPagination() {
-
-    const section =
-        byId("signalsSection");
-
-
-    if (!section) {
-        return;
-    }
-
-
-    let container =
-        byId("signalsPagination");
-
-
-    if (!container) {
-
-        container =
-            document.createElement(
-                "div"
-            );
-
-
-        container.id =
-            "signalsPagination";
-
-
-        container.style.cssText = `
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            flex-wrap:wrap;
-            gap:7px;
-            padding:18px;
-        `;
-
-
-        section.appendChild(
-            container
-        );
-    }
-
-
-    const pages =
-        getPageCount();
-
-
-    if (pages <= 1) {
-
-        container.innerHTML = `
-            <span
-                style="
-                    color:#94a3b8;
-                    font-size:12px;
-                "
-            >
-                ${filteredSignals.length.toLocaleString("tr-TR")}
-                sonuç
-            </span>
-        `;
-
-        return;
-    }
-
-
-    let html = "";
-
-
-    html += `
-        <button
-            type="button"
-            onclick="changePage(${currentPage - 1})"
-            ${currentPage <= 1 ? "disabled" : ""}
-            style="
-                padding:8px 12px;
-                border:1px solid #334155;
-                border-radius:8px;
-                background:#111827;
-                color:white;
-                cursor:pointer;
-            "
-        >
-            ‹
-        </button>
-    `;
-
-
-    const start =
-        Math.max(
-            1,
-            currentPage - 2
-        );
-
-
-    const end =
-        Math.min(
-            pages,
-            currentPage + 2
-        );
-
-
-    if (start > 1) {
-
-        html += `
-            <button
-                type="button"
-                onclick="changePage(1)"
-                style="
-                    padding:8px 12px;
-                    border:1px solid #334155;
-                    border-radius:8px;
-                    background:#111827;
-                    color:white;
-                "
-            >
-                1
-            </button>
-        `;
-
-        if (start > 2) {
-            html += `
-                <span style="color:#94a3b8;">
-                    …
-                </span>
-            `;
-        }
-    }
-
-
-    for (
-        let i = start;
-        i <= end;
-        i++
-    ) {
-
-        html += `
-            <button
-                type="button"
-                onclick="changePage(${i})"
-                style="
-                    padding:8px 12px;
-                    border:1px solid ${
-                        i === currentPage
-                            ? "#3b82f6"
-                            : "#334155"
-                    };
-                    border-radius:8px;
-                    background:${
-                        i === currentPage
-                            ? "#2563eb"
-                            : "#111827"
-                    };
-                    color:white;
-                    font-weight:700;
-                "
-            >
-                ${i}
-            </button>
-        `;
-    }
-
-
-    if (end < pages) {
-
-        if (end < pages - 1) {
-
-            html += `
-                <span style="color:#94a3b8;">
-                    …
-                </span>
-            `;
-        }
-
-
-        html += `
-            <button
-                type="button"
-                onclick="changePage(${pages})"
-                style="
-                    padding:8px 12px;
-                    border:1px solid #334155;
-                    border-radius:8px;
-                    background:#111827;
-                    color:white;
-                "
-            >
-                ${pages}
-            </button>
-        `;
-    }
-
-
-    html += `
-        <button
-            type="button"
-            onclick="changePage(${currentPage + 1})"
-            ${currentPage >= pages ? "disabled" : ""}
-            style="
-                padding:8px 12px;
-                border:1px solid #334155;
-                border-radius:8px;
-                background:#111827;
-                color:white;
-                cursor:pointer;
-            "
-        >
-            ›
-        </button>
-    `;
-
-
-    const startItem =
-        (currentPage - 1) *
-        PAGE_SIZE + 1;
-
-
-    const endItem =
-        Math.min(
-            currentPage * PAGE_SIZE,
-            filteredSignals.length
-        );
-
-
-    html += `
-        <div
-            style="
-                width:100%;
-                text-align:center;
-                color:#94a3b8;
-                font-size:12px;
-                margin-top:4px;
-            "
-        >
-            ${startItem.toLocaleString("tr-TR")}
-            -
-            ${endItem.toLocaleString("tr-TR")}
-            /
-            ${filteredSignals.length.toLocaleString("tr-TR")}
-        </div>
-    `;
-
-
-    container.innerHTML =
-        html;
-}
-
-
-/* =========================================================
+/* ============================================================
    STATUS
-========================================================= */
+   ============================================================ */
 
 async function loadStatus() {
 
     try {
 
-        const response =
+        const data =
             await publicFetch(
                 "/api/status"
             );
 
-
-        if (!response.ok) {
-            return null;
-        }
-
-
-        const data =
-            await readJson(response);
-
-
-        const running =
-            data.running === true ||
-            data.status === "running";
-
-
-        if (byId("systemStatus")) {
-
-            setText(
-                "systemStatus",
-                running
-                    ? "ANALİZ ÇALIŞIYOR"
-                    : "HAZIR"
-            );
-        }
-
-
-        setText(
-            "apiStatus",
-            "ONLINE"
+        updateSystemStatus(
+            data
         );
 
-
-        return data;
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
-            "Status:",
+            "STATUS ERROR:",
             error
         );
 
+        if (byId("apiStatus")) {
 
-        setText(
-            "apiStatus",
-            "HATA"
-        );
+            byId(
+                "apiStatus"
+            ).textContent =
+                "ERROR";
 
+        }
 
-        return null;
     }
+
 }
 
 
-/* =========================================================
-   REFRESH
-========================================================= */
+function updateSystemStatus(
+    data
+) {
 
-async function refreshData() {
+    if (byId("apiStatus")) {
 
-    await Promise.all([
-        loadSignals(),
-        loadStatus()
-    ]);
+        byId(
+            "apiStatus"
+        ).textContent =
+            "ONLINE";
+
+        byId(
+            "apiStatus"
+        ).className =
+            "status-value online";
+
+    }
+
+    if (byId("marketStatus")) {
+
+        const total =
+            data.total ??
+            data.historical_total ??
+            0;
+
+        byId(
+            "marketStatus"
+        ).textContent =
+            total > 0
+                ? `${total.toLocaleString("tr-TR")} sinyal`
+                : "Veri bekleniyor";
+
+    }
+
+    if (byId("liveStatus")) {
+
+        const liveCount =
+            data.live_price_count;
+
+        if (
+            liveCount !== undefined &&
+            liveCount !== null
+        ) {
+
+            byId(
+                "liveStatus"
+            ).textContent =
+                `Aktif (${liveCount})`;
+
+        } else {
+
+            byId(
+                "liveStatus"
+            ).textContent =
+                "Aktif";
+
+        }
+
+    }
+
+    if (byId("accessStatus")) {
+
+        byId(
+            "accessStatus"
+        ).textContent =
+            "PUBLIC / AÇIK";
+
+    }
+
 }
 
 
-/* =========================================================
-   ANALİZ
-========================================================= */
+/* ============================================================
+   RUN ANALYSIS
+   ============================================================ */
 
 async function runAnalysis() {
 
-    const button =
-        byId("runAnalysisButton");
+    if (scanRunning) {
+        return;
+    }
 
+    const button =
+        byId(
+            "runAnalysisButton"
+        );
+
+    const status =
+        byId(
+            "runStatus"
+        );
+
+    scanRunning = true;
 
     if (button) {
 
         button.disabled = true;
 
         button.textContent =
-            "Analiz Başlatılıyor...";
+            "⏳ ANALİZ ÇALIŞIYOR...";
+
     }
 
+    if (status) {
 
-    setText(
-        "runStatus",
-        "Analiz başlatılıyor..."
-    );
+        status.textContent =
+            "LEVEL 1000 analizi başlatılıyor...";
 
+    }
 
     try {
 
-        const response =
+        const data =
             await publicFetch(
                 "/api/run",
                 {
-                    method: "POST",
-
-                    body: JSON.stringify({})
+                    method: "POST"
                 }
             );
 
+        if (data.ok) {
 
-        const data =
-            await readJson(response);
+            showMessage(
+                "AI analizi başlatıldı. Sonuçlar hazır olduğunda otomatik olarak yenilenecek."
+            );
 
+            if (status) {
 
-        if (!response.ok) {
+                status.textContent =
+                    "Analiz çalışıyor...";
+
+            }
+
+            monitorRun();
+
+        } else {
 
             throw new Error(
-                data.detail ||
+                data.error ||
                 data.message ||
-                `HTTP ${response.status}`
+                "Analiz başlatılamadı."
             );
+
         }
 
-
-        setText(
-            "runStatus",
-            data.message ||
-            "Analiz çalışıyor..."
-        );
-
-
-        monitorRun();
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
-            "Run:",
+            "RUN ERROR:",
             error
         );
 
-
-        setText(
-            "runStatus",
-            error.message ||
-            "Analiz başlatılamadı."
+        showMessage(
+            "Analiz başlatılamadı: "
+            + error.message,
+            "error"
         );
 
+        scanRunning = false;
 
         if (button) {
 
@@ -1226,767 +2517,718 @@ async function runAnalysis() {
 
             button.textContent =
                 "⚡ AI ANALİZİNİ BAŞLAT";
+
         }
+
     }
+
 }
 
 
-/* =========================================================
+/* ============================================================
    RUN STATUS
-========================================================= */
+   ============================================================ */
 
 async function monitorRun() {
 
-    if (runPollTimer) {
+    let finished = false;
 
-        clearInterval(
-            runPollTimer
-        );
-    }
+    for (
+        let i = 0;
+        i < 120;
+        i++
+    ) {
 
+        try {
 
-    runPollTimer =
-        setInterval(
-            async () => {
+            const data =
+                await publicFetch(
+                    "/api/run-status"
+                );
 
-                try {
+            if (
+                data.running
+            ) {
 
-                    const response =
-                        await publicFetch(
-                            "/api/run-status"
-                        );
+                if (byId("runStatus")) {
 
+                    byId(
+                        "runStatus"
+                    ).textContent =
+                        "⏳ Analiz çalışıyor...";
 
-                    const data =
-                        await readJson(response);
+                }
 
+            } else {
 
-                    const running =
-                        data.running === true ||
-                        data.status === "running";
+                finished = true;
 
+                if (data.error) {
 
-                    if (running) {
-
-                        setText(
-                            "runStatus",
-                            data.message ||
-                            "Analiz çalışıyor..."
-                        );
-
-                        return;
-                    }
-
-
-                    clearInterval(
-                        runPollTimer
+                    showMessage(
+                        "Analiz hatası: "
+                        + data.error,
+                        "error"
                     );
 
+                    if (byId("runStatus")) {
 
-                    runPollTimer = null;
-
-
-                    setText(
-                        "runStatus",
-                        data.error ||
-                        "Analiz tamamlandı."
-                    );
-
-
-                    const button =
                         byId(
-                            "runAnalysisButton"
-                        );
+                            "runStatus"
+                        ).textContent =
+                            "Analiz hata ile tamamlandı.";
 
-
-                    if (button) {
-
-                        button.disabled =
-                            false;
-
-                        button.textContent =
-                            "⚡ AI ANALİZİNİ BAŞLAT";
                     }
 
+                } else {
+
+                    if (byId("runStatus")) {
+
+                        byId(
+                            "runStatus"
+                        ).textContent =
+                            "✅ Analiz tamamlandı.";
+
+                    }
+
+                    showMessage(
+                        "Analiz tamamlandı. Yeni sinyaller yükleniyor."
+                    );
 
                     await loadSignals();
 
                 }
 
-                catch (error) {
+                break;
+            }
 
-                    console.error(
-                        "Run status:",
-                        error
-                    );
-                }
+        } catch (error) {
 
-            },
-            3000
-        );
-}
-
-
-/* =========================================================
-   GELİŞMİŞ ANALİZ
-========================================================= */
-
-function renderAdvancedResult(
-    title,
-    data
-) {
-
-    const section =
-        byId("advancedResults");
-
-    const box =
-        byId("advancedResultsBody");
-
-
-    if (!section || !box) {
-        return;
-    }
-
-
-    section.style.display =
-        "block";
-
-
-    setText(
-        "advancedResultsTitle",
-        title
-    );
-
-
-    setText(
-        "advancedResultsSubtitle",
-        "LEVEL 1000 AI sonuçları"
-    );
-
-
-    if (!data) {
-
-        box.innerHTML =
-            "<p>Veri bulunamadı.</p>";
-
-        return;
-    }
-
-
-    if (data.error) {
-
-        box.innerHTML = `
-            <div style="color:#f87171;">
-                ${escapeHtml(
-                    data.error
-                )}
-            </div>
-        `;
-
-        return;
-    }
-
-
-    if (data.loading) {
-
-        box.innerHTML = `
-            <div style="color:#94a3b8;">
-                ⏳
-                ${escapeHtml(
-                    data.loading
-                )}
-            </div>
-        `;
-
-        return;
-    }
-
-
-    const entries = [];
-
-
-    function walk(object, prefix = "") {
-
-        if (
-            object === null ||
-            object === undefined
-        ) {
-            return;
-        }
-
-
-        if (
-            typeof object === "string" ||
-            typeof object === "number" ||
-            typeof object === "boolean"
-        ) {
-
-            entries.push([
-                prefix,
-                String(object)
-            ]);
-
-            return;
-        }
-
-
-        if (Array.isArray(object)) {
-
-            entries.push([
-                prefix || "Sonuç",
-                `${object.length} kayıt`
-            ]);
-
-            return;
-        }
-
-
-        if (
-            typeof object === "object"
-        ) {
-
-            Object.entries(
-                object
-            ).forEach(
-                ([key, value]) => {
-
-                    const label =
-                        prefix
-                            ? `${prefix} / ${key}`
-                            : key;
-
-
-                    if (
-                        value &&
-                        typeof value === "object" &&
-                        !Array.isArray(value)
-                    ) {
-
-                        walk(
-                            value,
-                            label
-                        );
-
-                    } else {
-
-                        entries.push([
-                            label,
-                            Array.isArray(value)
-                                ? `${value.length} kayıt`
-                                : value
-                        ]);
-                    }
-                }
+            console.error(
+                "RUN STATUS ERROR:",
+                error
             );
+
         }
+
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    5000
+                )
+        );
+
     }
 
+    scanRunning = false;
 
-    walk(data);
+    const button =
+        byId(
+            "runAnalysisButton"
+        );
 
+    if (button) {
 
-    box.innerHTML = `
-        <div
-            style="
-                display:grid;
-                grid-template-columns:
-                    repeat(
-                        auto-fit,
-                        minmax(220px, 1fr)
-                    );
-                gap:12px;
-            "
-        >
+        button.disabled = false;
 
-            ${entries
-                .slice(0, 100)
-                .map(
-                    ([key, value]) => `
-                        <div
-                            style="
-                                border:1px solid #22304a;
-                                border-radius:12px;
-                                padding:14px;
-                                background:#0d1422;
-                            "
-                        >
+        button.textContent =
+            "⚡ AI ANALİZİNİ BAŞLAT";
 
-                            <div
-                                style="
-                                    color:#94a3b8;
-                                    font-size:11px;
-                                    margin-bottom:6px;
-                                "
-                            >
-                                ${escapeHtml(key)}
-                            </div>
+    }
 
-                            <div>
-                                ${escapeHtml(value)}
-                            </div>
+    if (!finished) {
 
-                        </div>
-                    `
-                )
-                .join("")}
+        if (byId("runStatus")) {
 
-        </div>
-    `;
+            byId(
+                "runStatus"
+            ).textContent =
+                "Analiz arka planda devam ediyor.";
+
+        }
+
+    }
+
 }
 
+
+/* ============================================================
+   BACKTEST
+   ============================================================ */
 
 async function loadBacktest() {
 
-    renderAdvancedResult(
-        "Backtest",
-        {
-            loading:
-                "Backtest verileri yükleniyor..."
-        }
-    );
+    const result =
+        byId(
+            "advancedResults"
+        );
 
+    const title =
+        byId(
+            "advancedResultsTitle"
+        );
+
+    const subtitle =
+        byId(
+            "advancedResultsSubtitle"
+        );
+
+    const body =
+        byId(
+            "advancedResultsBody"
+        );
+
+    if (!result || !body) {
+        return;
+    }
+
+    result.style.display =
+        "block";
+
+    title.textContent =
+        "📈 Backtest";
+
+    subtitle.textContent =
+        "Mevcut backtest sonuçları";
+
+    body.innerHTML =
+        "Backtest verileri yükleniyor...";
+
+    result.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 
     try {
 
-        const response =
+        const data =
             await publicFetch(
                 "/api/backtest"
             );
 
-
-        const data =
-            await readJson(response);
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `HTTP ${response.status}`
-            );
-        }
-
-
         renderAdvancedResult(
-            "Backtest Sonucu",
-            data
+            data.data ||
+            data.backtest ||
+            [],
+            "Backtest"
         );
+
+    } catch (error) {
+
+        body.innerHTML =
+            `<div>
+                Backtest yüklenemedi:
+                ${escapeHtml(error.message)}
+            </div>`;
 
     }
 
-    catch (error) {
-
-        renderAdvancedResult(
-            "Backtest",
-            {
-                error:
-                    error.message
-            }
-        );
-    }
 }
 
 
+/* ============================================================
+   PAPER
+   ============================================================ */
+
 async function loadPaper() {
 
-    renderAdvancedResult(
-        "Paper Trading",
-        {
-            loading:
-                "Paper Trading verileri yükleniyor..."
-        }
-    );
+    const result =
+        byId(
+            "advancedResults"
+        );
 
+    const title =
+        byId(
+            "advancedResultsTitle"
+        );
+
+    const subtitle =
+        byId(
+            "advancedResultsSubtitle"
+        );
+
+    const body =
+        byId(
+            "advancedResultsBody"
+        );
+
+    if (!result || !body) {
+        return;
+    }
+
+    result.style.display =
+        "block";
+
+    title.textContent =
+        "📝 Paper Trading";
+
+    subtitle.textContent =
+        "Gerçek para kullanılmadan oluşturulan sonuçlar";
+
+    body.innerHTML =
+        "Paper Trading verileri yükleniyor...";
+
+    result.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 
     try {
 
-        const response =
+        const data =
             await publicFetch(
                 "/api/paper"
             );
 
-
-        const data =
-            await readJson(response);
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `HTTP ${response.status}`
-            );
-        }
-
-
         renderAdvancedResult(
-            "Paper Trading",
-            data
+            data.paper || [],
+            "Paper Trading"
         );
+
+    } catch (error) {
+
+        body.innerHTML =
+            `<div>
+                Paper Trading yüklenemedi:
+                ${escapeHtml(error.message)}
+            </div>`;
 
     }
 
-    catch (error) {
-
-        renderAdvancedResult(
-            "Paper Trading",
-            {
-                error:
-                    error.message
-            }
-        );
-    }
 }
 
 
+/* ============================================================
+   MONTE CARLO
+   ============================================================ */
+
 async function loadMonteCarlo() {
 
-    renderAdvancedResult(
-        "Monte Carlo",
-        {
-            loading:
-                "Monte Carlo analizi çalıştırılıyor..."
-        }
-    );
+    const result =
+        byId(
+            "advancedResults"
+        );
 
+    const title =
+        byId(
+            "advancedResultsTitle"
+        );
+
+    const subtitle =
+        byId(
+            "advancedResultsSubtitle"
+        );
+
+    const body =
+        byId(
+            "advancedResultsBody"
+        );
+
+    if (!result || !body) {
+        return;
+    }
+
+    result.style.display =
+        "block";
+
+    title.textContent =
+        "🎲 Monte Carlo";
+
+    subtitle.textContent =
+        "Monte Carlo simülasyon sonuçları";
+
+    body.innerHTML =
+        "Monte Carlo verileri yükleniyor...";
+
+    result.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 
     try {
 
-        const response =
+        const data =
             await publicFetch(
                 "/api/montecarlo"
             );
 
-
-        const data =
-            await readJson(response);
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `HTTP ${response.status}`
-            );
-        }
-
-
         renderAdvancedResult(
-            "Monte Carlo Sonucu",
-            data
+            data.results || [],
+            "Monte Carlo"
         );
+
+    } catch (error) {
+
+        body.innerHTML =
+            `<div>
+                Monte Carlo yüklenemedi:
+                ${escapeHtml(error.message)}
+            </div>`;
 
     }
 
-    catch (error) {
-
-        renderAdvancedResult(
-            "Monte Carlo",
-            {
-                error:
-                    error.message
-            }
-        );
-    }
 }
 
 
-async function loadAdvancedAI() {
+/* ============================================================
+   ADVANCED RESULT
+   ============================================================ */
 
-    renderAdvancedResult(
-        "Gelişmiş AI",
-        {
-            loading:
-                "AI verileri yükleniyor..."
-        }
-    );
+function renderAdvancedResult(
+    rows,
+    title
+) {
 
-
-    try {
-
-        const response =
-            await publicFetch(
-                "/api/metrics"
-            );
-
-
-        const data =
-            await readJson(response);
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `HTTP ${response.status}`
-            );
-        }
-
-
-        renderAdvancedResult(
-            "Gelişmiş AI",
-            data
+    const body =
+        byId(
+            "advancedResultsBody"
         );
 
+    if (!body) {
+        return;
     }
 
-    catch (error) {
+    if (
+        !Array.isArray(rows) ||
+        rows.length === 0
+    ) {
 
-        renderAdvancedResult(
-            "Gelişmiş AI",
-            {
-                error:
-                    error.message
-            }
-        );
-    }
-}
+        body.innerHTML = `
+            <div style="
+                padding:20px;
+                color:#94a3b8;
+                text-align:center;
+            ">
+                ${escapeHtml(title)}
+                için henüz kayıt bulunamadı.
+            </div>
+        `;
 
-
-/* =========================================================
-   SİNYAL DETAYI
-========================================================= */
-
-async function openSignal(ticker) {
-
-    if (!ticker) {
         return;
     }
 
 
-    try {
+    const keys = Object.keys(
+        rows[0] || {}
+    );
 
-        const response =
-            await publicFetch(
-                "/api/signal/" +
-                encodeURIComponent(ticker)
-            );
+    const header =
+        keys.map(
+            key =>
+                `<th>${escapeHtml(key)}</th>`
+        ).join("");
+
+    const bodyRows =
+        rows
+            .slice(0, 1000)
+            .map(
+                row => {
+
+                    return `
+                        <tr>
+                            ${
+                                keys.map(
+                                    key =>
+                                        `<td>
+                                            ${escapeHtml(
+                                                row[key] ?? "-"
+                                            )}
+                                        </td>`
+                                ).join("")
+                            }
+                        </tr>
+                    `;
+
+                }
+            )
+            .join("");
 
 
-        const data =
-            await readJson(response);
+    body.innerHTML = `
 
+        <div style="
+            overflow:auto;
+            border:1px solid #22304a;
+            border-radius:12px;
+        ">
 
-        if (!response.ok) {
+            <table
+                style="
+                    width:100%;
+                    border-collapse:collapse;
+                    min-width:700px;
+                "
+            >
 
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `HTTP ${response.status}`
-            );
-        }
+                <thead>
 
+                    <tr>
+                        ${header}
+                    </tr>
 
-        renderAdvancedResult(
-            `${ticker} Analizi`,
-            data
-        );
+                </thead>
 
-    }
+                <tbody>
 
-    catch (error) {
+                    ${bodyRows}
 
-        console.error(
-            "Signal detail:",
-            error
-        );
-    }
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div style="
+            color:#64748b;
+            font-size:11px;
+            margin-top:10px;
+        ">
+            Toplam kayıt: ${rows.length.toLocaleString("tr-TR")}
+        </div>
+
+    `;
+
 }
 
 
-/* =========================================================
-   PUBLIC MODE
-========================================================= */
+/* ============================================================
+   ADMIN
+   ============================================================ */
 
-function showAppScreen() {
+function openAdmin() {
 
-    const auth =
-        byId("authScreen");
+    /*
+     * Normal ziyaretçiler admin paneline erişemez.
+     * Admin sistemi backend'de token ile korunmaktadır.
+     */
 
-    const app =
-        byId("appScreen");
+    window.location.href =
+        "/admin";
 
-
-    if (auth) {
-        auth.style.display = "none";
-    }
-
-
-    if (app) {
-        app.style.display = "block";
-    }
 }
 
 
-async function checkSession() {
-
-    showAppScreen();
-
-    return true;
-}
-
-
-function showAuthScreen() {
-
-    showAppScreen();
-}
-
+/* ============================================================
+   PLAN FONKSİYONLARI
+   ============================================================
+   Eski script.js ile çakışma ihtimaline karşı
+   tüm plan kilitleri etkisiz bırakılıyor.
+   ============================================================ */
 
 function requirePlan() {
 
     return true;
+
 }
 
 
 function selectPlan() {
 
     return true;
+
 }
 
 
-async function loadPlan() {
-
-    setText(
-        "userPlan",
-        "OPEN"
-    );
-
-    setText(
-        "planName",
-        "OPEN"
-    );
-
+function loadPlan() {
 
     return {
-        ok: true,
+
         plan: "OPEN",
-        plan_level: 999999
+
+        features: {
+
+            backtest: true,
+
+            paper: true,
+
+            advanced_ai: true,
+
+            all_signals: true
+
+        },
+
+        unlimited: true
+
     };
+
 }
 
 
-async function loginUser(event) {
+/* ============================================================
+   ESKİ AUTH FONKSİYONLARI
+   ============================================================ */
 
-    if (event) {
-        event.preventDefault();
+function checkSession() {
+
+    /*
+     * Artık session kontrolü yok.
+     * Site direkt açılır.
+     */
+
+    showAppScreen();
+
+}
+
+
+function showAppScreen() {
+
+    const app =
+        byId(
+            "appScreen"
+        );
+
+    const auth =
+        byId(
+            "authScreen"
+        );
+
+    if (app) {
+        app.style.display = "block";
     }
 
-    showAppScreen();
-
-    return true;
-}
-
-
-async function registerUser(event) {
-
-    if (event) {
-        event.preventDefault();
+    if (auth) {
+        auth.style.display = "none";
     }
 
+}
+
+
+function showAuthScreen() {
+
+    /*
+     * Public sistemde auth ekranı açılmaz.
+     */
+
     showAppScreen();
 
-    return true;
 }
 
 
-async function logout() {
+/* ============================================================
+   KEYBOARD
+   ============================================================ */
 
-    showAppScreen();
+function setupKeyboard() {
 
-    return true;
+    const search =
+        byId(
+            "signalSearch"
+        );
+
+    if (search) {
+
+        search.addEventListener(
+            "input",
+            filterSignals
+        );
+
+    }
+
 }
 
 
-function openAdmin() {
+/* ============================================================
+   AUTO REFRESH
+   ============================================================ */
 
-    window.location.href =
-        "/admin";
+let autoRefreshTimer = null;
+
+
+function startAutoRefresh() {
+
+    if (autoRefreshTimer) {
+
+        clearInterval(
+            autoRefreshTimer
+        );
+
+    }
+
+    autoRefreshTimer =
+        setInterval(
+            async () => {
+
+                try {
+
+                    const status =
+                        await publicFetch(
+                            "/api/run-status"
+                        );
+
+                    if (!status.running) {
+
+                        await loadSignals();
+
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        "AUTO REFRESH:",
+                        error
+                    );
+
+                }
+
+            },
+            30000
+        );
+
 }
 
 
-/* =========================================================
-   BAŞLAT
-========================================================= */
+/* ============================================================
+   DOM READY
+   ============================================================ */
 
 document.addEventListener(
     "DOMContentLoaded",
     async () => {
 
-        console.log(
-            "LEVEL 1000 AI başlatılıyor..."
-        );
-
+        /*
+         * Direkt dashboard.
+         */
 
         showAppScreen();
 
+        setupKeyboard();
 
-        const search =
-            byId("signalSearch");
+        /*
+         * Eski local token varsa kullanmıyoruz.
+         */
 
+        try {
 
-        if (search) {
+            await refreshData();
 
-            search.addEventListener(
-                "input",
-                filterSignals
+        } catch (error) {
+
+            console.error(
+                "INITIAL LOAD:",
+                error
             );
+
         }
 
+        startAutoRefresh();
 
-        await refreshData();
-
-
-        if (refreshTimer) {
-
-            clearInterval(
-                refreshTimer
-            );
-        }
-
-
-        refreshTimer =
-            setInterval(
-                refreshData,
-                30000
-            );
     }
 );
 
 
-/* =========================================================
+/* ============================================================
    GLOBAL
-========================================================= */
-
-window.loadSignals =
-    loadSignals;
-
-window.renderSignals =
-    renderCurrentPage;
-
-window.filterSignals =
-    filterSignals;
-
-window.searchSignals =
-    searchSignals;
-
-window.changePage =
-    changePage;
+   ============================================================ */
 
 window.refreshData =
     refreshData;
 
-window.loadStatus =
-    loadStatus;
+window.loadSignals =
+    loadSignals;
 
 window.runAnalysis =
     runAnalysis;
-
-window.monitorRun =
-    monitorRun;
 
 window.loadBacktest =
     loadBacktest;
@@ -1997,26 +3239,14 @@ window.loadPaper =
 window.loadMonteCarlo =
     loadMonteCarlo;
 
-window.loadAdvancedAI =
-    loadAdvancedAI;
+window.requirePlan =
+    requirePlan;
 
-window.openSignal =
-    openSignal;
+window.selectPlan =
+    selectPlan;
 
-window.renderAdvancedResult =
-    renderAdvancedResult;
-
-window.openAdmin =
-    openAdmin;
-
-window.loginUser =
-    loginUser;
-
-window.registerUser =
-    registerUser;
-
-window.logout =
-    logout;
+window.loadPlan =
+    loadPlan;
 
 window.checkSession =
     checkSession;
@@ -2027,11 +3257,12 @@ window.showAppScreen =
 window.showAuthScreen =
     showAuthScreen;
 
-window.requirePlan =
-    requirePlan;
+window.openAdmin =
+    openAdmin;
 
-window.selectPlan =
-    selectPlan;
+</script>
 
-window.loadPlan =
-    loadPlan;
+
+</body>
+
+</html>
