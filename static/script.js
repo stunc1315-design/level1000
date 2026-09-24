@@ -1,7 +1,9 @@
+
 "use strict";
 
 /* =========================================================
    LEVEL 1000 AI - PUBLIC FRONTEND
+   index.html DEĞİŞTİRİLMEYECEK
    ========================================================= */
 
 const API_BASE = "";
@@ -13,6 +15,7 @@ let currentPage = 1;
 let isLoadingSignals = false;
 let refreshTimer = null;
 let runPollTimer = null;
+
 
 /* =========================================================
    YARDIMCILAR
@@ -65,12 +68,9 @@ function formatPercent(value) {
 
     let percent = n;
 
-    /*
-       API:
-       0.7467 = 74.67%
-       0.0336 = 3.36%
-       74.67  = 74.67%
-    */
+    // API:
+    // 0.7467 = 74.67%
+    // 0.0336 = 3.36%
     if (Math.abs(percent) <= 1) {
         percent *= 100;
     }
@@ -84,7 +84,7 @@ function formatPercent(value) {
 function valueClass(value) {
     const n = numberValue(value);
 
-    if (n === null) {
+    if (n === null || n === 0) {
         return "neutral";
     }
 
@@ -92,11 +92,7 @@ function valueClass(value) {
         return "positive";
     }
 
-    if (n < 0) {
-        return "negative";
-    }
-
-    return "neutral";
+    return "negative";
 }
 
 function signalClass(signal) {
@@ -113,13 +109,14 @@ function signalClass(signal) {
     return "signal-hold";
 }
 
+
 /* =========================================================
    API
    ========================================================= */
 
 async function publicFetch(url, options = {}) {
     const headers = {
-        "Accept": "application/json"
+        Accept: "application/json"
     };
 
     if (options.body) {
@@ -144,18 +141,19 @@ async function readJson(response) {
     }
 }
 
+
 /* =========================================================
    SİNYAL NORMALİZASYONU
    ========================================================= */
 
 function normalizeSignal(row) {
     let signal =
-        row.signal ??
-        row.Signal ??
-        row.action ??
-        row.Action ??
-        row.sinyal ??
-        row.Sinyal ??
+        row?.signal ??
+        row?.Signal ??
+        row?.action ??
+        row?.Action ??
+        row?.sinyal ??
+        row?.Sinyal ??
         "HOLD";
 
     signal = String(signal).toUpperCase();
@@ -174,66 +172,72 @@ function normalizeSignal(row) {
 
     return {
         symbol:
-            row.symbol ??
-            row.Symbol ??
-            row.ticker ??
-            row.Ticker ??
+            row?.symbol ??
+            row?.Symbol ??
+            row?.ticker ??
+            row?.Ticker ??
             "-",
 
-        signal: signal,
+        signal,
 
         score:
-            row.score ??
-            row.Score ??
-            row.ai_probability ??
-            row.AI_Probability ??
+            row?.score ??
+            row?.Score ??
+            row?.ai_probability ??
+            row?.AI_Probability ??
             0,
 
         price:
-            row.price ??
-            row.Price ??
-            row.close ??
-            row.Close ??
+            row?.price ??
+            row?.Price ??
+            row?.close ??
+            row?.Close ??
             null,
 
         change:
-            row.change ??
-            row.Change ??
-            row.daily_change_percent ??
-            row.Daily_Change_Percent ??
+            row?.change ??
+            row?.Change ??
+            row?.daily_change_percent ??
+            row?.Daily_Change_Percent ??
             null,
 
         predictedReturn:
-            row.predicted_return ??
-            row.Predicted_Return ??
-            row.ai_predicted_return ??
-            row.AI_Predicted_Return ??
-            row.expected_return ??
-            row.Expected_Return ??
+            row?.predicted_return ??
+            row?.Predicted_Return ??
+            row?.ai_predicted_return ??
+            row?.AI_Predicted_Return ??
+            row?.expected_return ??
+            row?.Expected_Return ??
             null,
 
         priceStatus:
-            row.price_status ??
-            row.Price_Status ??
+            row?.price_status ??
+            row?.Price_Status ??
             "",
 
         priceSource:
-            row.price_source ??
-            row.Price_Source ??
+            row?.price_source ??
+            row?.Price_Source ??
             "",
 
         date:
-            row.date ??
-            row.Date ??
+            row?.date ??
+            row?.Date ??
             ""
     };
 }
+
 
 /* =========================================================
    TABLO
    ========================================================= */
 
 function getTableBody() {
+    /*
+       Senin mevcut index.html dosyandaki ID:
+       <tbody id="signalsBody">
+    */
+
     return byId("signalsBody");
 }
 
@@ -247,10 +251,12 @@ function showTableLoading() {
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="7" style="text-align:center;padding:35px;">
-                <div style="font-size:28px;margin-bottom:8px;">⏳</div>
-                <strong>Veriler yükleniyor...</strong>
-                <div style="margin-top:6px;opacity:.7;">
+            <td colspan="7" style="text-align:center;padding:30px;">
+                <div style="font-size:28px;">⏳</div>
+                <div style="font-weight:700;margin-top:8px;">
+                    Veriler yükleniyor...
+                </div>
+                <div style="opacity:.7;margin-top:4px;">
                     Sinyal verisi alınıyor.
                 </div>
             </td>
@@ -267,42 +273,37 @@ function showTableError(message) {
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="7" style="text-align:center;padding:35px;">
-                <div style="font-size:28px;margin-bottom:8px;">⚠️</div>
-                <strong>Veriler yüklenemedi</strong>
-                <div style="margin-top:8px;opacity:.8;">
+            <td colspan="7" style="text-align:center;padding:30px;">
+                <div style="font-size:28px;">⚠️</div>
+                <div style="font-weight:700;margin-top:8px;">
                     ${escapeHtml(message)}
                 </div>
-                <button
-                    onclick="loadSignals()"
-                    style="
-                        margin-top:15px;
-                        padding:9px 15px;
-                        border:1px solid #475569;
-                        border-radius:8px;
-                        cursor:pointer;
-                    "
-                >
-                    Tekrar Dene
-                </button>
+                <div style="opacity:.7;margin-top:4px;">
+                    Sayfayı yenileyerek tekrar deneyin.
+                </div>
             </td>
         </tr>
     `;
 }
+
 
 /* =========================================================
    KPI
    ========================================================= */
 
 function updateKPIs(data) {
-    const buy = Number(data.buy || 0);
-    const sell = Number(data.sell || 0);
-    const hold = Number(data.hold || 0);
+    const buy = Number(data?.buy || 0);
+    const sell = Number(data?.sell || 0);
+    const hold = Number(data?.hold || 0);
     const total = Number(
-        data.total ||
+        data?.total ||
         allSignals.length ||
         0
     );
+
+    /*
+       HTML'deki mevcut ID'leri kullan.
+    */
 
     setText(
         "buyCount",
@@ -324,6 +325,7 @@ function updateKPIs(data) {
         total.toLocaleString("tr-TR")
     );
 }
+
 
 /* =========================================================
    SİNYALLERİ YÜKLE
@@ -350,9 +352,7 @@ async function loadSignals() {
         const data = await readJson(response);
 
         if (!data || !Array.isArray(data.signals)) {
-            throw new Error(
-                "API geçerli sinyal verisi döndürmedi."
-            );
+            throw new Error("API geçerli sinyal verisi döndürmedi.");
         }
 
         console.log(
@@ -362,10 +362,13 @@ async function loadSignals() {
         );
 
         allSignals = data.signals;
+
         filteredSignals = [...allSignals];
+
         currentPage = 1;
 
         updateKPIs(data);
+
         renderCurrentPage();
 
         setText("apiStatus", "ONLINE");
@@ -376,14 +379,13 @@ async function loadSignals() {
         return data;
 
     } catch (error) {
-
         console.error(
             "LEVEL 1000 API HATASI:",
             error
         );
 
         showTableError(
-            "Sinyal verileri yüklenemedi. API bağlantısını kontrol edin."
+            "Sinyal verileri yüklenemedi."
         );
 
         setText("apiStatus", "HATA");
@@ -396,8 +398,9 @@ async function loadSignals() {
     }
 }
 
+
 /* =========================================================
-   TABLOYU RENDER
+   TABLOYU RENDER ET
    ========================================================= */
 
 function renderCurrentPage() {
@@ -405,55 +408,68 @@ function renderCurrentPage() {
 
     if (!tbody) {
         console.error(
-            "LEVEL 1000: signalsBody bulunamadı."
+            "LEVEL 1000: signalsBody bulunamadı!"
         );
         return;
     }
 
     const total = filteredSignals.length;
 
-    if (total === 0) {
+    const start =
+        (currentPage - 1) * PAGE_SIZE;
+
+    const rows =
+        filteredSignals.slice(
+            start,
+            start + PAGE_SIZE
+        );
+
+    if (!rows.length) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align:center;padding:30px;">
+                <td colspan="7"
+                    style="text-align:center;padding:30px;">
                     Sonuç bulunamadı.
                 </td>
             </tr>
         `;
 
         renderPagination();
+
         return;
     }
 
-    const start = (currentPage - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-
     /*
-       ÖNEMLİ:
-       166.200 kaydın tamamını DOM'a basmıyoruz.
-       Sadece 50 kayıt gösteriyoruz.
+       SADECE 50 SATIR DOM'A ÇİZİLİR.
+       166.200 kaydın tamamı DOM'a basılmaz.
     */
-    const rows = filteredSignals.slice(start, end);
 
     tbody.innerHTML = rows.map(row => {
-
         const s = normalizeSignal(row);
 
-        const changeClass = valueClass(s.change);
-        const returnClass = valueClass(s.predictedReturn);
+        const changeClass =
+            valueClass(s.change);
+
+        const returnClass =
+            valueClass(s.predictedReturn);
 
         return `
-            <tr
-                class="signal-row"
-                data-symbol="${escapeHtml(s.symbol)}"
-                style="cursor:pointer;"
-                onclick="openSignal('${String(s.symbol).replaceAll("'", "\\'")}')"
-            >
-
+            <tr>
                 <td>
-                    <strong>
+                    <button
+                        type="button"
+                        onclick="openSignal('${escapeHtml(s.symbol)}')"
+                        style="
+                            background:none;
+                            border:0;
+                            padding:0;
+                            cursor:pointer;
+                            font-weight:700;
+                            color:inherit;
+                        "
+                    >
                         ${escapeHtml(s.symbol)}
-                    </strong>
+                    </button>
                 </td>
 
                 <td>
@@ -463,9 +479,7 @@ function renderCurrentPage() {
                 </td>
 
                 <td>
-                    <strong>
-                        ${formatPercent(s.score)}
-                    </strong>
+                    ${formatPercent(s.score)}
                 </td>
 
                 <td>
@@ -477,22 +491,19 @@ function renderCurrentPage() {
                 </td>
 
                 <td class="${returnClass}">
-                    <strong>
-                        ${formatPercent(s.predictedReturn)}
-                    </strong>
+                    ${formatPercent(s.predictedReturn)}
                 </td>
 
                 <td>
                     ${escapeHtml(s.date)}
                 </td>
-
             </tr>
         `;
-
     }).join("");
 
     renderPagination();
 }
+
 
 /* =========================================================
    ARAMA
@@ -502,17 +513,17 @@ function filterSignals() {
     const input = byId("signalSearch");
 
     const query = input
-        ? input.value.trim().toLowerCase()
+        ? String(input.value || "")
+            .trim()
+            .toLowerCase()
         : "";
 
     filteredSignals = allSignals.filter(row => {
-
         const s = normalizeSignal(row);
 
         return String(s.symbol)
             .toLowerCase()
             .includes(query);
-
     });
 
     currentPage = 1;
@@ -523,6 +534,7 @@ function filterSignals() {
 function searchSignals() {
     filterSignals();
 }
+
 
 /* =========================================================
    SAYFALAMA
@@ -538,7 +550,6 @@ function getPageCount() {
 }
 
 function changePage(page) {
-
     const maxPage = getPageCount();
 
     const requestedPage = Number(page);
@@ -551,7 +562,7 @@ function changePage(page) {
         1,
         Math.min(
             maxPage,
-            requestedPage
+            Math.floor(requestedPage)
         )
     );
 
@@ -568,20 +579,22 @@ function changePage(page) {
 }
 
 function renderPagination() {
-
     const section = byId("signalsSection");
 
     if (!section) {
         return;
     }
 
-    let container = byId("signalsPagination");
+    let container = byId(
+        "signalsPagination"
+    );
 
     if (!container) {
+        container =
+            document.createElement("div");
 
-        container = document.createElement("div");
-
-        container.id = "signalsPagination";
+        container.id =
+            "signalsPagination";
 
         container.style.cssText = `
             display:flex;
@@ -615,18 +628,29 @@ function renderPagination() {
 
     const activeStyle = `
         padding:8px 12px;
-        border:1px solid #2563eb;
+        border:1px solid #334155;
         border-radius:8px;
         background:#2563eb;
         color:white;
         cursor:pointer;
+        font-weight:700;
+    `;
+
+    const disabledStyle = `
+        padding:8px 12px;
+        border:1px solid #334155;
+        border-radius:8px;
+        background:#374151;
+        color:#9ca3af;
+        cursor:not-allowed;
     `;
 
     html += `
         <button
+            type="button"
             onclick="changePage(${currentPage - 1})"
-            ${currentPage === 1 ? "disabled" : ""}
-            style="${buttonStyle}"
+            ${currentPage <= 1 ? "disabled" : ""}
+            style="${currentPage <= 1 ? disabledStyle : buttonStyle}"
         >
             ‹
         </button>
@@ -643,9 +667,9 @@ function renderPagination() {
     );
 
     if (start > 1) {
-
         html += `
             <button
+                type="button"
                 onclick="changePage(1)"
                 style="${buttonStyle}"
             >
@@ -662,12 +686,20 @@ function renderPagination() {
         }
     }
 
-    for (let i = start; i <= end; i++) {
-
+    for (
+        let i = start;
+        i <= end;
+        i++
+    ) {
         html += `
             <button
+                type="button"
                 onclick="changePage(${i})"
-                style="${i === currentPage ? activeStyle : buttonStyle}"
+                style="${
+                    i === currentPage
+                        ? activeStyle
+                        : buttonStyle
+                }"
             >
                 ${i}
             </button>
@@ -675,7 +707,6 @@ function renderPagination() {
     }
 
     if (end < pages) {
-
         if (end < pages - 1) {
             html += `
                 <span style="padding:8px;">
@@ -686,6 +717,7 @@ function renderPagination() {
 
         html += `
             <button
+                type="button"
                 onclick="changePage(${pages})"
                 style="${buttonStyle}"
             >
@@ -696,16 +728,18 @@ function renderPagination() {
 
     html += `
         <button
+            type="button"
             onclick="changePage(${currentPage + 1})"
-            ${currentPage === pages ? "disabled" : ""}
-            style="${buttonStyle}"
+            ${currentPage >= pages ? "disabled" : ""}
+            style="${currentPage >= pages ? disabledStyle : buttonStyle}"
         >
             ›
         </button>
     `;
 
     const startItem =
-        (currentPage - 1) * PAGE_SIZE + 1;
+        (currentPage - 1) *
+        PAGE_SIZE + 1;
 
     const endItem =
         Math.min(
@@ -714,32 +748,31 @@ function renderPagination() {
         );
 
     html += `
-        <span
-            style="
-                margin-left:10px;
-                opacity:.75;
-                font-size:14px;
-            "
-        >
+        <div style="
+            width:100%;
+            text-align:center;
+            margin-top:8px;
+            opacity:.75;
+            font-size:13px;
+        ">
             ${startItem.toLocaleString("tr-TR")}
             -
             ${endItem.toLocaleString("tr-TR")}
             /
             ${filteredSignals.length.toLocaleString("tr-TR")}
-        </span>
+        </div>
     `;
 
     container.innerHTML = html;
 }
+
 
 /* =========================================================
    DURUM
    ========================================================= */
 
 async function loadStatus() {
-
     try {
-
         const response =
             await publicFetch("/api/status");
 
@@ -754,12 +787,14 @@ async function loadStatus() {
             data.running === true ||
             data.status === "running";
 
-        setText(
-            "systemStatus",
-            running
-                ? "ANALİZ ÇALIŞIYOR"
-                : "HAZIR"
-        );
+        if (byId("systemStatus")) {
+            setText(
+                "systemStatus",
+                running
+                    ? "ANALİZ ÇALIŞIYOR"
+                    : "HAZIR"
+            );
+        }
 
         setText(
             "apiStatus",
@@ -769,9 +804,8 @@ async function loadStatus() {
         return data;
 
     } catch (error) {
-
         console.error(
-            "Status:",
+            "LEVEL 1000 Status:",
             error
         );
 
@@ -784,24 +818,24 @@ async function loadStatus() {
     }
 }
 
+
 /* =========================================================
    YENİLE
    ========================================================= */
 
 async function refreshData() {
-
     await Promise.all([
         loadSignals(),
         loadStatus()
     ]);
 }
 
+
 /* =========================================================
    AI ANALİZİ BAŞLAT
    ========================================================= */
 
 async function runAnalysis() {
-
     const button =
         byId("runAnalysisButton");
 
@@ -817,7 +851,6 @@ async function runAnalysis() {
     );
 
     try {
-
         const response =
             await publicFetch(
                 "/api/run",
@@ -831,7 +864,6 @@ async function runAnalysis() {
             await readJson(response);
 
         if (!response.ok) {
-
             throw new Error(
                 data.detail ||
                 data.message ||
@@ -848,9 +880,8 @@ async function runAnalysis() {
         monitorRun();
 
     } catch (error) {
-
         console.error(
-            "Run:",
+            "LEVEL 1000 Run:",
             error
         );
 
@@ -868,89 +899,87 @@ async function runAnalysis() {
     }
 }
 
+
 /* =========================================================
-   ANALİZ DURUMU
+   ÇALIŞMA DURUMU
    ========================================================= */
 
 async function monitorRun() {
-
     if (runPollTimer) {
         clearInterval(runPollTimer);
     }
 
-    runPollTimer =
-        setInterval(
-            async () => {
-
-                try {
-
-                    const response =
-                        await publicFetch(
-                            "/api/run-status"
-                        );
-
-                    const data =
-                        await readJson(response);
-
-                    const running =
-                        data.running === true ||
-                        data.status === "running";
-
-                    if (running) {
-
-                        setText(
-                            "runStatus",
-                            data.message ||
-                            "Analiz çalışıyor..."
-                        );
-
-                        return;
-                    }
-
-                    clearInterval(
-                        runPollTimer
+    runPollTimer = setInterval(
+        async () => {
+            try {
+                const response =
+                    await publicFetch(
+                        "/api/run-status"
                     );
 
-                    runPollTimer = null;
+                const data =
+                    await readJson(response);
 
+                const running =
+                    data.running === true ||
+                    data.status === "running";
+
+                if (running) {
                     setText(
                         "runStatus",
-                        data.error ||
                         data.message ||
-                        "Analiz tamamlandı."
+                        "Analiz çalışıyor..."
                     );
 
-                    const button =
-                        byId("runAnalysisButton");
-
-                    if (button) {
-                        button.disabled = false;
-                        button.textContent =
-                            "⚡ AI ANALİZİNİ BAŞLAT";
-                    }
-
-                    await loadSignals();
-
-                } catch (error) {
-
-                    console.error(
-                        "Çalışma durumu:",
-                        error
-                    );
-
+                    return;
                 }
 
-            },
-            3000
-        );
+                clearInterval(
+                    runPollTimer
+                );
+
+                runPollTimer = null;
+
+                setText(
+                    "runStatus",
+                    data.error ||
+                    data.message ||
+                    "Analiz tamamlandı."
+                );
+
+                const button =
+                    byId(
+                        "runAnalysisButton"
+                    );
+
+                if (button) {
+                    button.disabled = false;
+                    button.textContent =
+                        "⚡ AI ANALİZİNİ BAŞLAT";
+                }
+
+                await loadSignals();
+
+            } catch (error) {
+                console.error(
+                    "LEVEL 1000 Çalışma durumu:",
+                    error
+                );
+            }
+        },
+        3000
+    );
 }
+
 
 /* =========================================================
    GELİŞMİŞ ANALİZ SONUÇLARI
    ========================================================= */
 
-function renderAdvancedResult(title, data) {
-
+function renderAdvancedResult(
+    title,
+    data
+) {
     const section =
         byId("advancedResults");
 
@@ -974,21 +1003,21 @@ function renderAdvancedResult(title, data) {
     );
 
     if (!data) {
-
         box.innerHTML = `
             <div style="padding:20px;">
                 Veri bulunamadı.
             </div>
         `;
-
         return;
     }
 
     if (data.error) {
-
         box.innerHTML = `
-            <div style="padding:20px;">
-                ⚠️ ${escapeHtml(data.error)}
+            <div style="
+                padding:20px;
+                color:#ef4444;
+            ">
+                ${escapeHtml(data.error)}
             </div>
         `;
 
@@ -996,7 +1025,6 @@ function renderAdvancedResult(title, data) {
     }
 
     if (data.loading) {
-
         box.innerHTML = `
             <div style="padding:20px;">
                 ⏳ ${escapeHtml(data.loading)}
@@ -1006,21 +1034,12 @@ function renderAdvancedResult(title, data) {
         return;
     }
 
-    if (data.yükleniyor) {
-
-        box.innerHTML = `
-            <div style="padding:20px;">
-                ⏳ ${escapeHtml(data.yükleniyor)}
-            </div>
-        `;
-
-        return;
-    }
-
     const entries = [];
 
-    function walk(object, prefix = "") {
-
+    function walk(
+        object,
+        prefix = ""
+    ) {
         if (
             object === null ||
             object === undefined
@@ -1033,7 +1052,6 @@ function renderAdvancedResult(title, data) {
             typeof object === "number" ||
             typeof object === "boolean"
         ) {
-
             entries.push([
                 prefix,
                 String(object)
@@ -1043,7 +1061,6 @@ function renderAdvancedResult(title, data) {
         }
 
         if (Array.isArray(object)) {
-
             entries.push([
                 prefix || "Sonuç",
                 `${object.length} kayıt`
@@ -1052,83 +1069,71 @@ function renderAdvancedResult(title, data) {
             return;
         }
 
-        if (typeof object === "object") {
-
+        if (
+            typeof object === "object"
+        ) {
             Object.entries(object)
-                .forEach(([key, value]) => {
+                .forEach(
+                    ([key, value]) => {
+                        const label =
+                            prefix
+                                ? `${prefix} / ${key}`
+                                : key;
 
-                    const label =
-                        prefix
-                            ? `${prefix} / ${key}`
-                            : key;
-
-                    if (
-                        value &&
-                        typeof value === "object" &&
-                        !Array.isArray(value)
-                    ) {
-
-                        walk(
-                            value,
-                            label
-                        );
-
-                    } else {
-
-                        entries.push([
-                            label,
-                            Array.isArray(value)
-                                ? `${value.length} kayıt`
-                                : value
-                        ]);
+                        if (
+                            value &&
+                            typeof value === "object" &&
+                            !Array.isArray(value)
+                        ) {
+                            walk(
+                                value,
+                                label
+                            );
+                        } else {
+                            entries.push([
+                                label,
+                                Array.isArray(value)
+                                    ? `${value.length} kayıt`
+                                    : value
+                            ]);
+                        }
                     }
-                });
+                );
         }
     }
 
     walk(data);
 
-    if (!entries.length) {
-
-        box.innerHTML = `
-            <div style="padding:20px;">
-                Sonuç bulunamadı.
-            </div>
-        `;
-
-        return;
-    }
-
     box.innerHTML = entries
         .slice(0, 100)
-        .map(([key, value]) => `
-            <div
-                style="
+        .map(
+            ([key, value]) => `
+                <div style="
                     display:flex;
                     justify-content:space-between;
                     gap:20px;
                     padding:10px 12px;
-                    border-bottom:1px solid rgba(255,255,255,.08);
-                "
-            >
-                <strong>
-                    ${escapeHtml(key)}
-                </strong>
+                    border-bottom:1px solid rgba(148,163,184,.15);
+                ">
+                    <strong>
+                        ${escapeHtml(key)}
+                    </strong>
 
-                <span>
-                    ${escapeHtml(value)}
-                </span>
-            </div>
-        `)
+                    <span>
+                        ${escapeHtml(value)}
+                    </span>
+                </div>
+            `
+        )
         .join("");
 }
+
 
 /* =========================================================
    BACKTEST
    ========================================================= */
 
 async function loadBacktest() {
-
     renderAdvancedResult(
         "Backtest",
         {
@@ -1138,7 +1143,6 @@ async function loadBacktest() {
     );
 
     try {
-
         const response =
             await publicFetch(
                 "/api/backtest"
@@ -1148,7 +1152,6 @@ async function loadBacktest() {
             await readJson(response);
 
         if (!response.ok) {
-
             throw new Error(
                 data.detail ||
                 data.message ||
@@ -1162,22 +1165,23 @@ async function loadBacktest() {
         );
 
     } catch (error) {
-
         renderAdvancedResult(
             "Backtest",
             {
-                error: error.message
+                error:
+                    error.message ||
+                    "Backtest yüklenemedi."
             }
         );
     }
 }
+
 
 /* =========================================================
    PAPER TRADING
    ========================================================= */
 
 async function loadPaper() {
-
     renderAdvancedResult(
         "Paper Trading",
         {
@@ -1187,7 +1191,6 @@ async function loadPaper() {
     );
 
     try {
-
         const response =
             await publicFetch(
                 "/api/paper"
@@ -1197,7 +1200,6 @@ async function loadPaper() {
             await readJson(response);
 
         if (!response.ok) {
-
             throw new Error(
                 data.detail ||
                 data.message ||
@@ -1211,22 +1213,23 @@ async function loadPaper() {
         );
 
     } catch (error) {
-
         renderAdvancedResult(
             "Paper Trading",
             {
-                error: error.message
+                error:
+                    error.message ||
+                    "Paper Trading verileri yüklenemedi."
             }
         );
     }
 }
+
 
 /* =========================================================
    MONTE CARLO
    ========================================================= */
 
 async function loadMonteCarlo() {
-
     renderAdvancedResult(
         "Monte Carlo",
         {
@@ -1236,7 +1239,6 @@ async function loadMonteCarlo() {
     );
 
     try {
-
         const response =
             await publicFetch(
                 "/api/montecarlo"
@@ -1246,7 +1248,6 @@ async function loadMonteCarlo() {
             await readJson(response);
 
         if (!response.ok) {
-
             throw new Error(
                 data.detail ||
                 data.message ||
@@ -1260,22 +1261,23 @@ async function loadMonteCarlo() {
         );
 
     } catch (error) {
-
         renderAdvancedResult(
             "Monte Carlo",
             {
-                error: error.message
+                error:
+                    error.message ||
+                    "Monte Carlo yüklenemedi."
             }
         );
     }
 }
 
+
 /* =========================================================
-   GELİŞMİŞ AI
+   GELİŞMİŞ AI / METRİKLER
    ========================================================= */
 
 async function loadAdvancedAI() {
-
     renderAdvancedResult(
         "Gelişmiş AI",
         {
@@ -1285,7 +1287,6 @@ async function loadAdvancedAI() {
     );
 
     try {
-
         const response =
             await publicFetch(
                 "/api/metrics"
@@ -1295,7 +1296,6 @@ async function loadAdvancedAI() {
             await readJson(response);
 
         if (!response.ok) {
-
             throw new Error(
                 data.detail ||
                 data.message ||
@@ -1309,28 +1309,28 @@ async function loadAdvancedAI() {
         );
 
     } catch (error) {
-
         renderAdvancedResult(
             "Gelişmiş AI",
             {
-                error: error.message
+                error:
+                    error.message ||
+                    "AI metrikleri yüklenemedi."
             }
         );
     }
 }
+
 
 /* =========================================================
    SİNYAL DETAYI
    ========================================================= */
 
 async function openSignal(ticker) {
-
     if (!ticker) {
         return;
     }
 
     try {
-
         const response =
             await publicFetch(
                 "/api/signal/" +
@@ -1341,7 +1341,6 @@ async function openSignal(ticker) {
             await readJson(response);
 
         if (!response.ok) {
-
             throw new Error(
                 data.detail ||
                 data.message ||
@@ -1355,27 +1354,19 @@ async function openSignal(ticker) {
         );
 
     } catch (error) {
-
         console.error(
             "Sinyal detayı:",
             error
         );
-
-        renderAdvancedResult(
-            `${ticker} Analizi`,
-            {
-                error: error.message
-            }
-        );
     }
 }
+
 
 /* =========================================================
    PUBLIC MOD
    ========================================================= */
 
 function showAppScreen() {
-
     const auth =
         byId("authScreen");
 
@@ -1409,7 +1400,6 @@ function selectPlan() {
 }
 
 async function loadPlan() {
-
     setText(
         "userPlan",
         "OPEN"
@@ -1428,7 +1418,6 @@ async function loadPlan() {
 }
 
 async function loginUser(event) {
-
     if (event) {
         event.preventDefault();
     }
@@ -1439,7 +1428,6 @@ async function loginUser(event) {
 }
 
 async function registerUser(event) {
-
     if (event) {
         event.preventDefault();
     }
@@ -1458,6 +1446,7 @@ function openAdmin() {
     window.location.href = "/admin";
 }
 
+
 /* =========================================================
    BAŞLAT
    ========================================================= */
@@ -1465,7 +1454,6 @@ function openAdmin() {
 document.addEventListener(
     "DOMContentLoaded",
     async () => {
-
         console.log(
             "LEVEL 1000 AI başlatılıyor..."
         );
@@ -1476,7 +1464,6 @@ document.addEventListener(
             byId("signalSearch");
 
         if (search) {
-
             search.addEventListener(
                 "input",
                 filterSignals
@@ -1486,12 +1473,15 @@ document.addEventListener(
         await refreshData();
 
         if (refreshTimer) {
-            clearInterval(refreshTimer);
+            clearInterval(
+                refreshTimer
+            );
         }
 
         /*
-           Her 30 saniyede fiyat/sinyal verisini yenile.
+           30 saniyede bir güncelle.
         */
+
         refreshTimer =
             setInterval(
                 refreshData,
@@ -1500,37 +1490,82 @@ document.addEventListener(
     }
 );
 
+
 /* =========================================================
    GLOBAL
    ========================================================= */
 
-window.loadSignals = loadSignals;
-window.renderSignals = renderCurrentPage;
-window.filterSignals = filterSignals;
-window.searchSignals = searchSignals;
-window.changePage = changePage;
-window.refreshData = refreshData;
-window.loadStatus = loadStatus;
-window.runAnalysis = runAnalysis;
-window.monitorRun = monitorRun;
-window.loadBacktest = loadBacktest;
-window.loadPaper = loadPaper;
-window.loadMonteCarlo = loadMonteCarlo;
-window.loadAdvancedAI = loadAdvancedAI;
-window.openSignal = openSignal;
-window.renderAdvancedResult = renderAdvancedResult;
-window.openAdmin = openAdmin;
+window.loadSignals =
+    loadSignals;
 
-window.loginUser = loginUser;
-window.registerUser = registerUser;
-window.logout = logout;
-window.checkSession = checkSession;
-window.showAppScreen = showAppScreen;
-window.showAuthScreen = showAuthScreen;
-window.requirePlan = requirePlan;
-window.selectPlan = selectPlan;
-window.loadPlan = loadPlan;
+window.renderSignals =
+    renderCurrentPage;
 
-console.log(
-    "LEVEL 1000 AI frontend hazır."
-);
+window.filterSignals =
+    filterSignals;
+
+window.searchSignals =
+    searchSignals;
+
+window.changePage =
+    changePage;
+
+window.refreshData =
+    refreshData;
+
+window.loadStatus =
+    loadStatus;
+
+window.runAnalysis =
+    runAnalysis;
+
+window.monitorRun =
+    monitorRun;
+
+window.loadBacktest =
+    loadBacktest;
+
+window.loadPaper =
+    loadPaper;
+
+window.loadMonteCarlo =
+    loadMonteCarlo;
+
+window.loadAdvancedAI =
+    loadAdvancedAI;
+
+window.openSignal =
+    openSignal;
+
+window.renderAdvancedResult =
+    renderAdvancedResult;
+
+window.openAdmin =
+    openAdmin;
+
+window.loginUser =
+    loginUser;
+
+window.registerUser =
+    registerUser;
+
+window.logout =
+    logout;
+
+window.checkSession =
+    checkSession;
+
+window.showAppScreen =
+    showAppScreen;
+
+window.showAuthScreen =
+    showAuthScreen;
+
+window.requirePlan =
+    requirePlan;
+
+window.selectPlan =
+    selectPlan;
+
+window.loadPlan =
+    loadPlan;
