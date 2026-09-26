@@ -1,9 +1,9 @@
-
+﻿
 "use strict";
 
 /* =========================================================
    LEVEL 1000 AI - PUBLIC FRONTEND
-   index.html DEÄÄ°ÅTÄ°RÄ°LMEYECEK
+   index.html DEÃ„ÂÃ„Â°Ã…ÂTÃ„Â°RÃ„Â°LMEYECEK
    ========================================================= */
 
 const API_BASE = "";
@@ -143,7 +143,7 @@ async function readJson(response) {
 
 
 /* =========================================================
-   SÄ°NYAL NORMALÄ°ZASYONU
+   SÃ„Â°NYAL NORMALÃ„Â°ZASYONU
    ========================================================= */
 
 function normalizeSignal(row) {
@@ -245,19 +245,19 @@ function showTableLoading() {
     const tbody = getTableBody();
 
     if (!tbody) {
-        console.error("LEVEL 1000: signalsBody bulunamadÄ±.");
+        console.error("LEVEL 1000: signalsBody bulunamadÃ„Â±.");
         return;
     }
 
     tbody.innerHTML = `
         <tr>
             <td colspan="7" style="text-align:center;padding:30px;">
-                <div style="font-size:28px;">â³</div>
+                <div style="font-size:28px;">Ã¢ÂÂ³</div>
                 <div style="font-weight:700;margin-top:8px;">
-                    Veriler yÃ¼kleniyor...
+                    Veriler yÃƒÂ¼kleniyor...
                 </div>
                 <div style="opacity:.7;margin-top:4px;">
-                    Sinyal verisi alÄ±nÄ±yor.
+                    Sinyal verisi alÃ„Â±nÃ„Â±yor.
                 </div>
             </td>
         </tr>
@@ -274,12 +274,12 @@ function showTableError(message) {
     tbody.innerHTML = `
         <tr>
             <td colspan="7" style="text-align:center;padding:30px;">
-                <div style="font-size:28px;">âš ï¸</div>
+                <div style="font-size:28px;">Ã¢Å¡Â Ã¯Â¸Â</div>
                 <div style="font-weight:700;margin-top:8px;">
                     ${escapeHtml(message)}
                 </div>
                 <div style="opacity:.7;margin-top:4px;">
-                    SayfayÄ± yenileyerek tekrar deneyin.
+                    SayfayÃ„Â± yenileyerek tekrar deneyin.
                 </div>
             </td>
         </tr>
@@ -307,7 +307,7 @@ function updateKPIs(data) {
 
 
 /* =========================================================
-   SÄ°NYALLERÄ° YÃœKLE
+   SÃ„Â°NYALLERÃ„Â° YÃƒÅ“KLE
    ========================================================= */
 
 async function loadSignals(page = currentPage, search = "") {
@@ -330,7 +330,7 @@ async function loadSignals(page = currentPage, search = "") {
         }
 
         console.log(
-            "LEVEL 1000: /api/signals yükleniyor...",
+            "LEVEL 1000: /api/signals yÃ¼kleniyor...",
             params.toString()
         );
 
@@ -338,14 +338,20 @@ async function loadSignals(page = currentPage, search = "") {
             "/api/signals?" + params.toString()
         );
 
+        console.log("LEVEL 1000: FETCH TAMAMLANDI", response.status, response.headers.get("content-type"));
+
         if (!response.ok) {
             throw new Error("HTTP " + response.status);
         }
 
+        console.log("LEVEL 1000: JSON OKUNUYOR...");
+
         const data = await readJson(response);
 
+        console.log("LEVEL 1000: JSON OKUNDU", data);
+
         if (!data || !Array.isArray(data.signals)) {
-            throw new Error("API geçerli sinyal verisi döndürmedi.");
+            throw new Error("API geÃ§erli sinyal verisi dÃ¶ndÃ¼rmedi.");
         }
 
         allSignals = data.signals;
@@ -365,7 +371,7 @@ async function loadSignals(page = currentPage, search = "") {
         renderCurrentPage();
 
         setText("apiStatus", "ONLINE");
-        setText("marketStatus", "AKTİF");
+        setText("marketStatus", "AKTÄ°F");
         setText("liveStatus", "Aktif");
         setText("accessStatus", "PUBLIC");
 
@@ -374,7 +380,7 @@ async function loadSignals(page = currentPage, search = "") {
     } catch (error) {
         console.error("LEVEL 1000 API HATASI:", error);
 
-        showTableError("Sinyal verileri yüklenemedi.");
+        showTableError("Sinyal verileri yÃ¼klenemedi.");
 
         setText("apiStatus", "HATA");
         setText("marketStatus", "HATA");
@@ -395,7 +401,7 @@ function renderCurrentPage() {
     const tbody = getTableBody();
 
     if (!tbody) {
-        console.error("LEVEL 1000: signalsBody bulunamadı!");
+        console.error("LEVEL 1000: signalsBody bulunamadÄ±!");
         return;
     }
 
@@ -405,7 +411,7 @@ function renderCurrentPage() {
         tbody.innerHTML = `
             <tr>
                 <td colspan="7" style="text-align:center;padding:30px;">
-                    Sonuç bulunamadı.
+                    SonuÃ§ bulunamadÄ±.
                 </td>
             </tr>
         `;
@@ -593,7 +599,7 @@ function renderPagination() {
             style="${buttonStyle}"
             ${page <= 1 ? "disabled" : ""}
             onclick="changePage(${page - 1})"
-        >‹</button>
+        >â€¹</button>
     `;
 
     const start = Math.max(1, page - 2);
@@ -615,12 +621,12 @@ function renderPagination() {
             style="${buttonStyle}"
             ${page >= pages ? "disabled" : ""}
             onclick="changePage(${page + 1})"
-        >›</button>
+        >â€º</button>
 
         <span style="margin-left:10px;opacity:.75;">
             Sayfa ${page.toLocaleString("tr-TR")} /
             ${pages.toLocaleString("tr-TR")}
-            · ${total.toLocaleString("tr-TR")} kayıt
+            Â· ${total.toLocaleString("tr-TR")} kayÄ±t
         </span>
     `;
 
@@ -652,7 +658,7 @@ async function loadStatus() {
             setText(
                 "systemStatus",
                 running
-                    ? "ANALÄ°Z Ã‡ALIÅIYOR"
+                    ? "ANALÃ„Â°Z Ãƒâ€¡ALIÃ…ÂIYOR"
                     : "HAZIR"
             );
         }
@@ -681,7 +687,7 @@ async function loadStatus() {
 
 
 /* =========================================================
-   YENÄ°LE
+   YENÃ„Â°LE
    ========================================================= */
 
 async function refreshData() {
@@ -693,7 +699,7 @@ async function refreshData() {
 
 
 /* =========================================================
-   AI ANALÄ°ZÄ° BAÅLAT
+   AI ANALÃ„Â°ZÃ„Â° BAÃ…ÂLAT
    ========================================================= */
 
 async function runAnalysis() {
@@ -703,12 +709,12 @@ async function runAnalysis() {
     if (button) {
         button.disabled = true;
         button.textContent =
-            "Analiz baÅŸlatÄ±lÄ±yor...";
+            "Analiz baÃ…Å¸latÃ„Â±lÃ„Â±yor...";
     }
 
     setText(
         "runStatus",
-        "Analiz baÅŸlatÄ±lÄ±yor..."
+        "Analiz baÃ…Å¸latÃ„Â±lÃ„Â±yor..."
     );
 
     try {
@@ -735,7 +741,7 @@ async function runAnalysis() {
         setText(
             "runStatus",
             data.message ||
-            "Analiz Ã§alÄ±ÅŸÄ±yor..."
+            "Analiz ÃƒÂ§alÃ„Â±Ã…Å¸Ã„Â±yor..."
         );
 
         monitorRun();
@@ -749,20 +755,20 @@ async function runAnalysis() {
         setText(
             "runStatus",
             error.message ||
-            "Analiz baÅŸlatÄ±lamadÄ±."
+            "Analiz baÃ…Å¸latÃ„Â±lamadÃ„Â±."
         );
 
         if (button) {
             button.disabled = false;
             button.textContent =
-                "âš¡ AI ANALÄ°ZÄ°NÄ° BAÅLAT";
+                "Ã¢Å¡Â¡ AI ANALÃ„Â°ZÃ„Â°NÃ„Â° BAÃ…ÂLAT";
         }
     }
 }
 
 
 /* =========================================================
-   Ã‡ALIÅMA DURUMU
+   Ãƒâ€¡ALIÃ…ÂMA DURUMU
    ========================================================= */
 
 async function monitorRun() {
@@ -789,7 +795,7 @@ async function monitorRun() {
                     setText(
                         "runStatus",
                         data.message ||
-                        "Analiz Ã§alÄ±ÅŸÄ±yor..."
+                        "Analiz ÃƒÂ§alÃ„Â±Ã…Å¸Ã„Â±yor..."
                     );
 
                     return;
@@ -805,7 +811,7 @@ async function monitorRun() {
                     "runStatus",
                     data.error ||
                     data.message ||
-                    "Analiz tamamlandÄ±."
+                    "Analiz tamamlandÃ„Â±."
                 );
 
                 const button =
@@ -816,14 +822,14 @@ async function monitorRun() {
                 if (button) {
                     button.disabled = false;
                     button.textContent =
-                        "âš¡ AI ANALÄ°ZÄ°NÄ° BAÅLAT";
+                        "Ã¢Å¡Â¡ AI ANALÃ„Â°ZÃ„Â°NÃ„Â° BAÃ…ÂLAT";
                 }
 
                 await loadSignals();
 
             } catch (error) {
                 console.error(
-                    "LEVEL 1000 Ã‡alÄ±ÅŸma durumu:",
+                    "LEVEL 1000 Ãƒâ€¡alÃ„Â±Ã…Å¸ma durumu:",
                     error
                 );
             }
@@ -834,7 +840,7 @@ async function monitorRun() {
 
 
 /* =========================================================
-   GELÄ°ÅMÄ°Å ANALÄ°Z SONUÃ‡LARI
+   GELÃ„Â°Ã…ÂMÃ„Â°Ã…Â ANALÃ„Â°Z SONUÃƒâ€¡LARI
    ========================================================= */
 
 function renderAdvancedResult(
@@ -860,13 +866,13 @@ function renderAdvancedResult(
 
     setText(
         "advancedResultsSubtitle",
-        "LEVEL 1000 AI sonuÃ§larÄ±"
+        "LEVEL 1000 AI sonuÃƒÂ§larÃ„Â±"
     );
 
     if (!data) {
         box.innerHTML = `
             <div style="padding:20px;">
-                Veri bulunamadÄ±.
+                Veri bulunamadÃ„Â±.
             </div>
         `;
         return;
@@ -888,7 +894,7 @@ function renderAdvancedResult(
     if (data.loading) {
         box.innerHTML = `
             <div style="padding:20px;">
-                â³ ${escapeHtml(data.loading)}
+                Ã¢ÂÂ³ ${escapeHtml(data.loading)}
             </div>
         `;
 
@@ -923,8 +929,8 @@ function renderAdvancedResult(
 
         if (Array.isArray(object)) {
             entries.push([
-                prefix || "SonuÃ§",
-                `${object.length} kayÄ±t`
+                prefix || "SonuÃƒÂ§",
+                `${object.length} kayÃ„Â±t`
             ]);
 
             return;
@@ -954,7 +960,7 @@ function renderAdvancedResult(
                             entries.push([
                                 label,
                                 Array.isArray(value)
-                                    ? `${value.length} kayÄ±t`
+                                    ? `${value.length} kayÃ„Â±t`
                                     : value
                             ]);
                         }
@@ -999,7 +1005,7 @@ async function loadBacktest() {
         "Backtest",
         {
             loading:
-                "Backtest verileri yÃ¼kleniyor..."
+                "Backtest verileri yÃƒÂ¼kleniyor..."
         }
     );
 
@@ -1031,7 +1037,7 @@ async function loadBacktest() {
             {
                 error:
                     error.message ||
-                    "Backtest yÃ¼klenemedi."
+                    "Backtest yÃƒÂ¼klenemedi."
             }
         );
     }
@@ -1047,7 +1053,7 @@ async function loadPaper() {
         "Paper Trading",
         {
             loading:
-                "Paper Trading verileri yÃ¼kleniyor..."
+                "Paper Trading verileri yÃƒÂ¼kleniyor..."
         }
     );
 
@@ -1079,7 +1085,7 @@ async function loadPaper() {
             {
                 error:
                     error.message ||
-                    "Paper Trading verileri yÃ¼klenemedi."
+                    "Paper Trading verileri yÃƒÂ¼klenemedi."
             }
         );
     }
@@ -1095,7 +1101,7 @@ async function loadMonteCarlo() {
         "Monte Carlo",
         {
             loading:
-                "Monte Carlo analizi Ã§alÄ±ÅŸtÄ±rÄ±lÄ±yor..."
+                "Monte Carlo analizi ÃƒÂ§alÃ„Â±Ã…Å¸tÃ„Â±rÃ„Â±lÃ„Â±yor..."
         }
     );
 
@@ -1127,7 +1133,7 @@ async function loadMonteCarlo() {
             {
                 error:
                     error.message ||
-                    "Monte Carlo yÃ¼klenemedi."
+                    "Monte Carlo yÃƒÂ¼klenemedi."
             }
         );
     }
@@ -1135,15 +1141,15 @@ async function loadMonteCarlo() {
 
 
 /* =========================================================
-   GELÄ°ÅMÄ°Å AI / METRÄ°KLER
+   GELÃ„Â°Ã…ÂMÃ„Â°Ã…Â AI / METRÃ„Â°KLER
    ========================================================= */
 
 async function loadAdvancedAI() {
     renderAdvancedResult(
-        "GeliÅŸmiÅŸ AI",
+        "GeliÃ…Å¸miÃ…Å¸ AI",
         {
             loading:
-                "AI verileri yÃ¼kleniyor..."
+                "AI verileri yÃƒÂ¼kleniyor..."
         }
     );
 
@@ -1165,17 +1171,17 @@ async function loadAdvancedAI() {
         }
 
         renderAdvancedResult(
-            "GeliÅŸmiÅŸ AI",
+            "GeliÃ…Å¸miÃ…Å¸ AI",
             data
         );
 
     } catch (error) {
         renderAdvancedResult(
-            "GeliÅŸmiÅŸ AI",
+            "GeliÃ…Å¸miÃ…Å¸ AI",
             {
                 error:
                     error.message ||
-                    "AI metrikleri yÃ¼klenemedi."
+                    "AI metrikleri yÃƒÂ¼klenemedi."
             }
         );
     }
@@ -1183,7 +1189,7 @@ async function loadAdvancedAI() {
 
 
 /* =========================================================
-   SÄ°NYAL DETAYI
+   SÃ„Â°NYAL DETAYI
    ========================================================= */
 
 async function openSignal(ticker) {
@@ -1216,7 +1222,7 @@ async function openSignal(ticker) {
 
     } catch (error) {
         console.error(
-            "Sinyal detayÄ±:",
+            "Sinyal detayÃ„Â±:",
             error
         );
     }
@@ -1309,14 +1315,14 @@ function openAdmin() {
 
 
 /* =========================================================
-   BAÅLAT
+   BAÃ…ÂLAT
    ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
     async () => {
         console.log(
-            "LEVEL 1000 AI baÅŸlatÄ±lÄ±yor..."
+            "LEVEL 1000 AI baÃ…Å¸latÃ„Â±lÃ„Â±yor..."
         );
 
         showAppScreen();
@@ -1340,7 +1346,7 @@ document.addEventListener(
         }
 
         /*
-           30 saniyede bir gÃ¼ncelle.
+           30 saniyede bir gÃƒÂ¼ncelle.
         */
 
         refreshTimer =
