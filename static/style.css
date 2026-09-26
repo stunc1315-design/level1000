@@ -3162,29 +3162,38 @@ a {
     .system-panel {
         box-shadow: none;
     }
-    }
-    .brand-mark img {
-    width: 512px;
-    height: 512px;
-    object-fit: contain;
-    display: block;
-    }
+}
+
+
+/* ============================================================
+   HEADER LOGO
+============================================================ */
+
 .brand-mark {
     width: 42px !important;
     height: 42px !important;
     min-width: 42px !important;
     min-height: 42px !important;
+    max-width: 42px !important;
+    max-height: 42px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    overflow: hidden !important;
 }
 
 .brand-mark img {
     width: 42px !important;
     height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
     max-width: 42px !important;
     max-height: 42px !important;
+    padding: 0 !important;
+    margin: 0 !important;
     object-fit: contain !important;
     display: block !important;
 }
