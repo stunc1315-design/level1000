@@ -1,9 +1,7 @@
-﻿
 "use strict";
 
 /* =========================================================
    LEVEL 1000 AI - PUBLIC FRONTEND
-   index.html DEÃ„ÂÃ„Â°Ã…ÂTÃ„Â°RÃ„Â°LMEYECEK
    ========================================================= */
 
 const API_BASE = "";
@@ -15,6 +13,7 @@ let currentPage = 1;
 let isLoadingSignals = false;
 let refreshTimer = null;
 let runPollTimer = null;
+let searchTimer = null;
 
 
 /* =========================================================
@@ -27,6 +26,7 @@ function byId(id) {
 
 function setText(id, value) {
     const el = byId(id);
+
     if (el) {
         el.textContent = value ?? "";
     }
@@ -68,9 +68,6 @@ function formatPercent(value) {
 
     let percent = n;
 
-    // API:
-    // 0.7467 = 74.67%
-    // 0.0336 = 3.36%
     if (Math.abs(percent) <= 1) {
         percent *= 100;
     }
@@ -143,7 +140,7 @@ async function readJson(response) {
 
 
 /* =========================================================
-   SÃ„Â°NYAL NORMALÃ„Â°ZASYONU
+   SİNYAL NORMALİZASYONU
    ========================================================= */
 
 function normalizeSignal(row) {
@@ -233,11 +230,6 @@ function normalizeSignal(row) {
    ========================================================= */
 
 function getTableBody() {
-    /*
-       Senin mevcut index.html dosyandaki ID:
-       <tbody id="signalsBody">
-    */
-
     return byId("signalsBody");
 }
 
@@ -245,23 +237,27 @@ function showTableLoading() {
     const tbody = getTableBody();
 
     if (!tbody) {
-        console.error("LEVEL 1000: signalsBody bulunamadÃ„Â±.");
+        console.error("LEVEL 1000: signalsBody bulunamadı.");
         return;
     }
 
-   tbody.innerHTML = `
-    <tr>
-        <td colspan="7" style="text-align:center;padding:30px;">
-            <div style="font-size:28px;">⏳</div>
-            <div style="font-weight:700;margin-top:8px;">
-                SİNYALLER YÜKLENİYOR...
-            </div>
-            <div style="opacity:.7;margin-top:4px;">
-                Piyasa verileri hazırlanıyor.
-            </div>
-        </td>
-    </tr>
-`;
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" style="text-align:center;padding:30px;">
+                <div style="font-size:28px;">⏳</div>
+
+                <div style="font-weight:700;margin-top:8px;">
+                    SİNYALLER YÜKLENİYOR...
+                </div>
+
+                <div style="opacity:.7;margin-top:4px;">
+                    Piyasa verileri hazırlanıyor.
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
 function showTableError(message) {
     const tbody = getTableBody();
 
@@ -272,12 +268,14 @@ function showTableError(message) {
     tbody.innerHTML = `
         <tr>
             <td colspan="7" style="text-align:center;padding:30px;">
-                <div style="font-size:28px;">Ã¢Å¡Â Ã¯Â¸Â</div>
+                <div style="font-size:28px;">⚠️</div>
+
                 <div style="font-weight:700;margin-top:8px;">
                     ${escapeHtml(message)}
                 </div>
+
                 <div style="opacity:.7;margin-top:4px;">
-                    SayfayÃ„Â± yenileyerek tekrar deneyin.
+                    Sayfayı yenileyerek tekrar deneyin.
                 </div>
             </td>
         </tr>
@@ -290,98 +288,224 @@ function showTableError(message) {
    ========================================================= */
 
 function updateKPIs(data) {
-    const buy = Number(data?.buy ?? data?.historical_buy ?? 0);
-    const sell = Number(data?.sell ?? data?.historical_sell ?? 0);
-    const hold = Number(data?.hold ?? data?.historical_hold ?? 0);
-    const top = Number(data?.top ?? data?.strong_signals ?? 0);
-    const total = Number(data?.total ?? data?.historical_total ?? 0);
+    const buy = Number(
+        data?.buy ??
+        data?.historical_buy ??
+        0
+    );
 
-    setText("buyCount", buy.toLocaleString("tr-TR"));
-    setText("sellCount", sell.toLocaleString("tr-TR"));
-    setText("holdCount", hold.toLocaleString("tr-TR"));
-    setText("topCount", top.toLocaleString("tr-TR"));
-    setText("totalCount", total.toLocaleString("tr-TR"));
+    const sell = Number(
+        data?.sell ??
+        data?.historical_sell ??
+        0
+    );
+
+    const hold = Number(
+        data?.hold ??
+        data?.historical_hold ??
+        0
+    );
+
+    const top = Number(
+        data?.top ??
+        data?.strong_signals ??
+        0
+    );
+
+    const total = Number(
+        data?.total ??
+        data?.historical_total ??
+        0
+    );
+
+    setText(
+        "buyCount",
+        buy.toLocaleString("tr-TR")
+    );
+
+    setText(
+        "sellCount",
+        sell.toLocaleString("tr-TR")
+    );
+
+    setText(
+        "holdCount",
+        hold.toLocaleString("tr-TR")
+    );
+
+    setText(
+        "topCount",
+        top.toLocaleString("tr-TR")
+    );
+
+    setText(
+        "totalCount",
+        total.toLocaleString("tr-TR")
+    );
 }
 
 
 /* =========================================================
-   SÃ„Â°NYALLERÃ„Â° YÃƒÅ“KLE
+   SİNYALLERİ YÜKLE
    ========================================================= */
 
-async function loadSignals(page = currentPage, search = "") {
+async function loadSignals(
+    page = currentPage,
+    search = ""
+) {
     if (isLoadingSignals) {
         return null;
     }
 
     isLoadingSignals = true;
+
     showTableLoading();
 
     try {
-        const safePage = Math.max(1, Number(page) || 1);
+        const safePage = Math.max(
+            1,
+            Number(page) || 1
+        );
+
         const params = new URLSearchParams();
 
-        params.set("page", String(safePage));
-        params.set("limit", String(PAGE_SIZE));
+        params.set(
+            "page",
+            String(safePage)
+        );
 
-        if (search && String(search).trim()) {
-            params.set("search", String(search).trim());
+        params.set(
+            "limit",
+            String(PAGE_SIZE)
+        );
+
+        if (
+            search &&
+            String(search).trim()
+        ) {
+            params.set(
+                "search",
+                String(search).trim()
+            );
         }
 
         console.log(
-            "LEVEL 1000: /api/signals yÃ¼kleniyor...",
+            "LEVEL 1000: /api/signals yükleniyor...",
             params.toString()
         );
 
         const response = await publicFetch(
-            "/api/signals?" + params.toString()
+            "/api/signals?" +
+            params.toString()
         );
 
-        console.log("LEVEL 1000: FETCH TAMAMLANDI", response.status, response.headers.get("content-type"));
+        console.log(
+            "LEVEL 1000: FETCH TAMAMLANDI",
+            response.status,
+            response.headers.get("content-type")
+        );
 
         if (!response.ok) {
-            throw new Error("HTTP " + response.status);
+            throw new Error(
+                "HTTP " + response.status
+            );
         }
 
-        console.log("LEVEL 1000: JSON OKUNUYOR...");
+        console.log(
+            "LEVEL 1000: JSON OKUNUYOR..."
+        );
 
-        const data = await readJson(response);
+        const data = await readJson(
+            response
+        );
 
-        console.log("LEVEL 1000: JSON OKUNDU", data);
+        console.log(
+            "LEVEL 1000: JSON OKUNDU",
+            data
+        );
 
-        if (!data || !Array.isArray(data.signals)) {
-            throw new Error("API geÃ§erli sinyal verisi dÃ¶ndÃ¼rmedi.");
+        if (
+            !data ||
+            !Array.isArray(data.signals)
+        ) {
+            throw new Error(
+                "API geçerli sinyal verisi döndürmedi."
+            );
         }
 
         allSignals = data.signals;
-        filteredSignals = [...data.signals];
 
-        currentPage = Number(data.page) || safePage;
+        filteredSignals = [
+            ...data.signals
+        ];
+
+        currentPage =
+            Number(data.page) ||
+            safePage;
 
         window.signalPagination = {
-            total: Number(data.total) || 0,
-            pages: Number(data.pages) || 1,
-            page: currentPage,
-            limit: Number(data.limit) || PAGE_SIZE,
-            search: search || ""
+            total:
+                Number(data.total) || 0,
+
+            pages:
+                Number(data.pages) || 1,
+
+            page:
+                currentPage,
+
+            limit:
+                Number(data.limit) ||
+                PAGE_SIZE,
+
+            search:
+                search || ""
         };
 
         updateKPIs(data);
+
         renderCurrentPage();
 
-        setText("apiStatus", "ONLINE");
-        setText("marketStatus", "AKTÄ°F");
-        setText("liveStatus", "Aktif");
-        setText("accessStatus", "PUBLIC");
+        setText(
+            "apiStatus",
+            "ONLINE"
+        );
+
+        setText(
+            "marketStatus",
+            "AKTİF"
+        );
+
+        setText(
+            "liveStatus",
+            "Aktif"
+        );
+
+        setText(
+            "accessStatus",
+            "PUBLIC"
+        );
 
         return data;
 
     } catch (error) {
-        console.error("LEVEL 1000 API HATASI:", error);
+        console.error(
+            "LEVEL 1000 API HATASI:",
+            error
+        );
 
-        showTableError("Sinyal verileri yÃ¼klenemedi.");
+        showTableError(
+            "Sinyal verileri yüklenemedi."
+        );
 
-        setText("apiStatus", "HATA");
-        setText("marketStatus", "HATA");
+        setText(
+            "apiStatus",
+            "HATA"
+        );
+
+        setText(
+            "marketStatus",
+            "HATA"
+        );
 
         return null;
 
@@ -399,7 +523,9 @@ function renderCurrentPage() {
     const tbody = getTableBody();
 
     if (!tbody) {
-        console.error("LEVEL 1000: signalsBody bulunamadÄ±!");
+        console.error(
+            "LEVEL 1000: signalsBody bulunamadı!"
+        );
         return;
     }
 
@@ -408,59 +534,82 @@ function renderCurrentPage() {
     if (!rows.length) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align:center;padding:30px;">
-                    SonuÃ§ bulunamadÄ±.
+                <td
+                    colspan="7"
+                    style="text-align:center;padding:30px;"
+                >
+                    Sonuç bulunamadı.
                 </td>
             </tr>
         `;
 
         renderPagination();
+
         return;
     }
 
-    tbody.innerHTML = rows.map(row => {
-        const s = normalizeSignal(row);
+    tbody.innerHTML = rows
+        .map(row => {
+            const s = normalizeSignal(row);
 
-        const changeClass = valueClass(s.change);
-        const returnClass = valueClass(s.predictedReturn);
+            const changeClass =
+                valueClass(s.change);
 
-        return `
-            <tr>
-                <td>
-                    <button
-                        type="button"
-                        onclick="openSignal('${escapeHtml(s.symbol)}')"
-                        style="
-                            background:none;
-                            border:0;
-                            padding:0;
-                            cursor:pointer;
-                            font-weight:700;
-                            color:inherit;
-                        "
-                    >
-                        ${escapeHtml(s.symbol)}
-                    </button>
-                </td>
+            const returnClass =
+                valueClass(
+                    s.predictedReturn
+                );
 
-                <td>
-                    <span class="${signalClass(s.signal)}">
-                        ${escapeHtml(s.signal)}
-                    </span>
-                </td>
+            return `
+                <tr>
+                    <td>
+                        <button
+                            type="button"
+                            onclick="openSignal('${escapeHtml(s.symbol)}')"
+                            style="
+                                background:none;
+                                border:0;
+                                padding:0;
+                                cursor:pointer;
+                                font-weight:700;
+                                color:inherit;
+                            "
+                        >
+                            ${escapeHtml(s.symbol)}
+                        </button>
+                    </td>
 
-                <td>${formatPercent(s.score)}</td>
-                <td>${formatNumber(s.price)}</td>
-                <td class="${changeClass}">
-                    ${formatPercent(s.change)}
-                </td>
-                <td class="${returnClass}">
-                    ${formatPercent(s.predictedReturn)}
-                </td>
-                <td>${escapeHtml(s.date)}</td>
-            </tr>
-        `;
-    }).join("");
+                    <td>
+                        <span class="${signalClass(s.signal)}">
+                            ${escapeHtml(s.signal)}
+                        </span>
+                    </td>
+
+                    <td>
+                        ${formatPercent(s.score)}
+                    </td>
+
+                    <td>
+                        ${formatNumber(s.price)}
+                    </td>
+
+                    <td class="${changeClass}">
+                        ${formatPercent(s.change)}
+                    </td>
+
+                    <td class="${returnClass}">
+                        ${formatPercent(
+                            s.predictedReturn
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(s.date)}
+                    </td>
+                </tr>
+            `;
+        })
+        .join("");
 
     renderPagination();
 }
@@ -470,25 +619,31 @@ function renderCurrentPage() {
    ARAMA
    ========================================================= */
 
-let searchTimer = null;
-
 function filterSignals() {
-    const input = byId("signalSearch");
+    const input =
+        byId("signalSearch");
+
     const query = input
-        ? String(input.value || "").trim()
+        ? String(
+            input.value || ""
+        ).trim()
         : "";
 
     currentPage = 1;
 
-    clearTimeout(searchTimer);
+    clearTimeout(
+        searchTimer
+    );
 
-    searchTimer = setTimeout(() => {
-        loadSignals(1, query);
-    }, 350);
-}
-
-function searchSignals() {
-    filterSignals();
+    searchTimer = setTimeout(
+        () => {
+            loadSignals(
+                1,
+                query
+            );
+        },
+        350
+    );
 }
 
 function searchSignals() {
@@ -503,30 +658,52 @@ function searchSignals() {
 function getPageCount() {
     return Math.max(
         1,
-        Number(window.signalPagination?.pages) || 1
+        Number(
+            window.signalPagination?.pages
+        ) || 1
     );
 }
 
 function changePage(page) {
-    const maxPage = getPageCount();
-    const requestedPage = Number(page);
+    const maxPage =
+        getPageCount();
 
-    if (!Number.isFinite(requestedPage)) {
+    const requestedPage =
+        Number(page);
+
+    if (
+        !Number.isFinite(
+            requestedPage
+        )
+    ) {
         return;
     }
 
     currentPage = Math.max(
         1,
-        Math.min(maxPage, Math.floor(requestedPage))
+        Math.min(
+            maxPage,
+            Math.floor(
+                requestedPage
+            )
+        )
     );
 
-    const input = byId("signalSearch");
+    const input =
+        byId("signalSearch");
+
     const search = input
-        ? String(input.value || "").trim()
+        ? String(
+            input.value || ""
+        ).trim()
         : "";
 
-    loadSignals(currentPage, search).then(() => {
-        const section = byId("signalsSection");
+    loadSignals(
+        currentPage,
+        search
+    ).then(() => {
+        const section =
+            byId("signalsSection");
 
         if (section) {
             section.scrollIntoView({
@@ -538,17 +715,24 @@ function changePage(page) {
 }
 
 function renderPagination() {
-    const section = byId("signalsSection");
+    const section =
+        byId("signalsSection");
 
     if (!section) {
         return;
     }
 
-    let container = byId("signalsPagination");
+    let container =
+        byId("signalsPagination");
 
     if (!container) {
-        container = document.createElement("div");
-        container.id = "signalsPagination";
+        container =
+            document.createElement(
+                "div"
+            );
+
+        container.id =
+            "signalsPagination";
 
         container.style.cssText = `
             display:flex;
@@ -559,13 +743,33 @@ function renderPagination() {
             padding:18px;
         `;
 
-        section.appendChild(container);
+        section.appendChild(
+            container
+        );
     }
 
-    const pagination = window.signalPagination || {};
-    const pages = Math.max(1, Number(pagination.pages) || 1);
-    const page = Math.max(1, Number(pagination.page) || 1);
-    const total = Number(pagination.total) || 0;
+    const pagination =
+        window.signalPagination ||
+        {};
+
+    const pages = Math.max(
+        1,
+        Number(
+            pagination.pages
+        ) || 1
+    );
+
+    const page = Math.max(
+        1,
+        Number(
+            pagination.page
+        ) || 1
+    );
+
+    const total =
+        Number(
+            pagination.total
+        ) || 0;
 
     if (!total) {
         container.innerHTML = "";
@@ -597,19 +801,38 @@ function renderPagination() {
             style="${buttonStyle}"
             ${page <= 1 ? "disabled" : ""}
             onclick="changePage(${page - 1})"
-        >â€¹</button>
+        >‹</button>
     `;
 
-    const start = Math.max(1, page - 2);
-    const end = Math.min(pages, page + 2);
+    const start =
+        Math.max(
+            1,
+            page - 2
+        );
 
-    for (let i = start; i <= end; i++) {
+    const end =
+        Math.min(
+            pages,
+            page + 2
+        );
+
+    for (
+        let i = start;
+        i <= end;
+        i++
+    ) {
         html += `
             <button
                 type="button"
-                style="${i === page ? activeStyle : buttonStyle}"
+                style="${
+                    i === page
+                        ? activeStyle
+                        : buttonStyle
+                }"
                 onclick="changePage(${i})"
-            >${i}</button>
+            >
+                ${i}
+            </button>
         `;
     }
 
@@ -619,16 +842,26 @@ function renderPagination() {
             style="${buttonStyle}"
             ${page >= pages ? "disabled" : ""}
             onclick="changePage(${page + 1})"
-        >â€º</button>
+        >›</button>
 
-        <span style="margin-left:10px;opacity:.75;">
-            Sayfa ${page.toLocaleString("tr-TR")} /
+        <span
+            style="
+                margin-left:10px;
+                opacity:.75;
+            "
+        >
+            Sayfa
+            ${page.toLocaleString("tr-TR")}
+            /
             ${pages.toLocaleString("tr-TR")}
-            Â· ${total.toLocaleString("tr-TR")} kayÄ±t
+            ·
+            ${total.toLocaleString("tr-TR")}
+            kayıt
         </span>
     `;
 
-    container.innerHTML = html;
+    container.innerHTML =
+        html;
 }
 
 
@@ -639,24 +872,30 @@ function renderPagination() {
 async function loadStatus() {
     try {
         const response =
-            await publicFetch("/api/status");
+            await publicFetch(
+                "/api/status"
+            );
 
         if (!response.ok) {
             return null;
         }
 
         const data =
-            await readJson(response);
+            await readJson(
+                response
+            );
 
         const running =
             data.running === true ||
             data.status === "running";
 
-        if (byId("systemStatus")) {
+        if (
+            byId("systemStatus")
+        ) {
             setText(
                 "systemStatus",
                 running
-                    ? "ANALÃ„Â°Z Ãƒâ€¡ALIÃ…ÂIYOR"
+                    ? "ANALİZ ÇALIŞIYOR"
                     : "HAZIR"
             );
         }
@@ -685,7 +924,7 @@ async function loadStatus() {
 
 
 /* =========================================================
-   YENÃ„Â°LE
+   YENİLE
    ========================================================= */
 
 async function refreshData() {
@@ -697,7 +936,7 @@ async function refreshData() {
 
 
 /* =========================================================
-   AI ANALÃ„Â°ZÃ„Â° BAÃ…ÂLAT
+   AI ANALİZİ BAŞLAT
    ========================================================= */
 
 async function runAnalysis() {
@@ -706,13 +945,14 @@ async function runAnalysis() {
 
     if (button) {
         button.disabled = true;
+
         button.textContent =
-            "Analiz baÃ…Å¸latÃ„Â±lÃ„Â±yor...";
+            "Analiz başlatılıyor...";
     }
 
     setText(
         "runStatus",
-        "Analiz baÃ…Å¸latÃ„Â±lÃ„Â±yor..."
+        "Analiz başlatılıyor..."
     );
 
     try {
@@ -726,7 +966,9 @@ async function runAnalysis() {
             );
 
         const data =
-            await readJson(response);
+            await readJson(
+                response
+            );
 
         if (!response.ok) {
             throw new Error(
@@ -739,7 +981,7 @@ async function runAnalysis() {
         setText(
             "runStatus",
             data.message ||
-            "Analiz ÃƒÂ§alÃ„Â±Ã…Å¸Ã„Â±yor..."
+            "Analiz çalışıyor..."
         );
 
         monitorRun();
@@ -753,92 +995,99 @@ async function runAnalysis() {
         setText(
             "runStatus",
             error.message ||
-            "Analiz baÃ…Å¸latÃ„Â±lamadÃ„Â±."
+            "Analiz başlatılamadı."
         );
 
         if (button) {
             button.disabled = false;
+
             button.textContent =
-                "Ã¢Å¡Â¡ AI ANALÃ„Â°ZÃ„Â°NÃ„Â° BAÃ…ÂLAT";
+                "⚡ AI ANALİZİNİ BAŞLAT";
         }
     }
 }
 
 
 /* =========================================================
-   Ãƒâ€¡ALIÃ…ÂMA DURUMU
+   ÇALIŞMA DURUMU
    ========================================================= */
 
 async function monitorRun() {
     if (runPollTimer) {
-        clearInterval(runPollTimer);
+        clearInterval(
+            runPollTimer
+        );
     }
 
-    runPollTimer = setInterval(
-        async () => {
-            try {
-                const response =
-                    await publicFetch(
-                        "/api/run-status"
+    runPollTimer =
+        setInterval(
+            async () => {
+                try {
+                    const response =
+                        await publicFetch(
+                            "/api/run-status"
+                        );
+
+                    const data =
+                        await readJson(
+                            response
+                        );
+
+                    const running =
+                        data.running === true ||
+                        data.status === "running";
+
+                    if (running) {
+                        setText(
+                            "runStatus",
+                            data.message ||
+                            "Analiz çalışıyor..."
+                        );
+
+                        return;
+                    }
+
+                    clearInterval(
+                        runPollTimer
                     );
 
-                const data =
-                    await readJson(response);
+                    runPollTimer = null;
 
-                const running =
-                    data.running === true ||
-                    data.status === "running";
-
-                if (running) {
                     setText(
                         "runStatus",
+                        data.error ||
                         data.message ||
-                        "Analiz ÃƒÂ§alÃ„Â±Ã…Å¸Ã„Â±yor..."
+                        "Analiz tamamlandı."
                     );
 
-                    return;
-                }
+                    const button =
+                        byId(
+                            "runAnalysisButton"
+                        );
 
-                clearInterval(
-                    runPollTimer
-                );
+                    if (button) {
+                        button.disabled = false;
 
-                runPollTimer = null;
+                        button.textContent =
+                            "⚡ AI ANALİZİNİ BAŞLAT";
+                    }
 
-                setText(
-                    "runStatus",
-                    data.error ||
-                    data.message ||
-                    "Analiz tamamlandÃ„Â±."
-                );
+                    await loadSignals();
 
-                const button =
-                    byId(
-                        "runAnalysisButton"
+                } catch (error) {
+                    console.error(
+                        "LEVEL 1000 Çalışma durumu:",
+                        error
                     );
-
-                if (button) {
-                    button.disabled = false;
-                    button.textContent =
-                        "Ã¢Å¡Â¡ AI ANALÃ„Â°ZÃ„Â°NÃ„Â° BAÃ…ÂLAT";
                 }
-
-                await loadSignals();
-
-            } catch (error) {
-                console.error(
-                    "LEVEL 1000 Ãƒâ€¡alÃ„Â±Ã…Å¸ma durumu:",
-                    error
-                );
-            }
-        },
-        3000
-    );
+            },
+            3000
+        );
 }
 
 
 /* =========================================================
-   GELÃ„Â°Ã…ÂMÃ„Â°Ã…Â ANALÃ„Â°Z SONUÃƒâ€¡LARI
+   GELİŞMİŞ ANALİZ SONUÇLARI
    ========================================================= */
 
 function renderAdvancedResult(
@@ -855,7 +1104,8 @@ function renderAdvancedResult(
         return;
     }
 
-    section.style.display = "block";
+    section.style.display =
+        "block";
 
     setText(
         "advancedResultsTitle",
@@ -864,25 +1114,30 @@ function renderAdvancedResult(
 
     setText(
         "advancedResultsSubtitle",
-        "LEVEL 1000 AI sonuÃƒÂ§larÃ„Â±"
+        "LEVEL 1000 AI sonuçları"
     );
 
     if (!data) {
         box.innerHTML = `
             <div style="padding:20px;">
-                Veri bulunamadÃ„Â±.
+                Veri bulunamadı.
             </div>
         `;
+
         return;
     }
 
     if (data.error) {
         box.innerHTML = `
-            <div style="
-                padding:20px;
-                color:#ef4444;
-            ">
-                ${escapeHtml(data.error)}
+            <div
+                style="
+                    padding:20px;
+                    color:#ef4444;
+                "
+            >
+                ${escapeHtml(
+                    data.error
+                )}
             </div>
         `;
 
@@ -892,7 +1147,10 @@ function renderAdvancedResult(
     if (data.loading) {
         box.innerHTML = `
             <div style="padding:20px;">
-                Ã¢ÂÂ³ ${escapeHtml(data.loading)}
+                ⏳
+                ${escapeHtml(
+                    data.loading
+                )}
             </div>
         `;
 
@@ -927,8 +1185,8 @@ function renderAdvancedResult(
 
         if (Array.isArray(object)) {
             entries.push([
-                prefix || "SonuÃƒÂ§",
-                `${object.length} kayÃ„Â±t`
+                prefix || "Sonuç",
+                `${object.length} kayıt`
             ]);
 
             return;
@@ -937,60 +1195,66 @@ function renderAdvancedResult(
         if (
             typeof object === "object"
         ) {
-            Object.entries(object)
-                .forEach(
-                    ([key, value]) => {
-                        const label =
-                            prefix
-                                ? `${prefix} / ${key}`
-                                : key;
+            Object.entries(
+                object
+            ).forEach(
+                ([key, value]) => {
+                    const label =
+                        prefix
+                            ? `${prefix} / ${key}`
+                            : key;
 
-                        if (
-                            value &&
-                            typeof value === "object" &&
-                            !Array.isArray(value)
-                        ) {
-                            walk(
-                                value,
-                                label
-                            );
-                        } else {
-                            entries.push([
-                                label,
-                                Array.isArray(value)
-                                    ? `${value.length} kayÃ„Â±t`
-                                    : value
-                            ]);
-                        }
+                    if (
+                        value &&
+                        typeof value === "object" &&
+                        !Array.isArray(value)
+                    ) {
+                        walk(
+                            value,
+                            label
+                        );
+                    } else {
+                        entries.push([
+                            label,
+                            Array.isArray(value)
+                                ? `${value.length} kayıt`
+                                : value
+                        ]);
                     }
-                );
+                }
+            );
         }
     }
 
     walk(data);
 
-    box.innerHTML = entries
-        .slice(0, 100)
-        .map(
-            ([key, value]) => `
-                <div style="
-                    display:flex;
-                    justify-content:space-between;
-                    gap:20px;
-                    padding:10px 12px;
-                    border-bottom:1px solid rgba(148,163,184,.15);
-                ">
-                    <strong>
-                        ${escapeHtml(key)}
-                    </strong>
+    box.innerHTML =
+        entries
+            .slice(0, 100)
+            .map(
+                ([key, value]) => `
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            gap:20px;
+                            padding:10px 12px;
+                            border-bottom:
+                                1px solid
+                                rgba(148,163,184,.15);
+                        "
+                    >
+                        <strong>
+                            ${escapeHtml(key)}
+                        </strong>
 
-                    <span>
-                        ${escapeHtml(value)}
-                    </span>
-                </div>
-            `
-        )
-        .join("");
+                        <span>
+                            ${escapeHtml(value)}
+                        </span>
+                    </div>
+                `
+            )
+            .join("");
 }
 
 
@@ -1003,7 +1267,7 @@ async function loadBacktest() {
         "Backtest",
         {
             loading:
-                "Backtest verileri yÃƒÂ¼kleniyor..."
+                "Backtest verileri yükleniyor..."
         }
     );
 
@@ -1014,7 +1278,9 @@ async function loadBacktest() {
             );
 
         const data =
-            await readJson(response);
+            await readJson(
+                response
+            );
 
         if (!response.ok) {
             throw new Error(
@@ -1035,7 +1301,7 @@ async function loadBacktest() {
             {
                 error:
                     error.message ||
-                    "Backtest yÃƒÂ¼klenemedi."
+                    "Backtest yüklenemedi."
             }
         );
     }
@@ -1051,7 +1317,7 @@ async function loadPaper() {
         "Paper Trading",
         {
             loading:
-                "Paper Trading verileri yÃƒÂ¼kleniyor..."
+                "Paper Trading verileri yükleniyor..."
         }
     );
 
@@ -1062,7 +1328,9 @@ async function loadPaper() {
             );
 
         const data =
-            await readJson(response);
+            await readJson(
+                response
+            );
 
         if (!response.ok) {
             throw new Error(
@@ -1083,7 +1351,7 @@ async function loadPaper() {
             {
                 error:
                     error.message ||
-                    "Paper Trading verileri yÃƒÂ¼klenemedi."
+                    "Paper Trading verileri yüklenemedi."
             }
         );
     }
@@ -1099,7 +1367,7 @@ async function loadMonteCarlo() {
         "Monte Carlo",
         {
             loading:
-                "Monte Carlo analizi ÃƒÂ§alÃ„Â±Ã…Å¸tÃ„Â±rÃ„Â±lÃ„Â±yor..."
+                "Monte Carlo analizi çalıştırılıyor..."
         }
     );
 
@@ -1110,7 +1378,9 @@ async function loadMonteCarlo() {
             );
 
         const data =
-            await readJson(response);
+            await readJson(
+                response
+            );
 
         if (!response.ok) {
             throw new Error(
@@ -1131,7 +1401,7 @@ async function loadMonteCarlo() {
             {
                 error:
                     error.message ||
-                    "Monte Carlo yÃƒÂ¼klenemedi."
+                    "Monte Carlo yüklenemedi."
             }
         );
     }
@@ -1139,15 +1409,15 @@ async function loadMonteCarlo() {
 
 
 /* =========================================================
-   GELÃ„Â°Ã…ÂMÃ„Â°Ã…Â AI / METRÃ„Â°KLER
+   GELİŞMİŞ AI / METRİKLER
    ========================================================= */
 
 async function loadAdvancedAI() {
     renderAdvancedResult(
-        "GeliÃ…Å¸miÃ…Å¸ AI",
+        "Gelişmiş AI",
         {
             loading:
-                "AI verileri yÃƒÂ¼kleniyor..."
+                "AI verileri yükleniyor..."
         }
     );
 
@@ -1158,7 +1428,9 @@ async function loadAdvancedAI() {
             );
 
         const data =
-            await readJson(response);
+            await readJson(
+                response
+            );
 
         if (!response.ok) {
             throw new Error(
@@ -1169,17 +1441,17 @@ async function loadAdvancedAI() {
         }
 
         renderAdvancedResult(
-            "GeliÃ…Å¸miÃ…Å¸ AI",
+            "Gelişmiş AI",
             data
         );
 
     } catch (error) {
         renderAdvancedResult(
-            "GeliÃ…Å¸miÃ…Å¸ AI",
+            "Gelişmiş AI",
             {
                 error:
                     error.message ||
-                    "AI metrikleri yÃƒÂ¼klenemedi."
+                    "AI metrikleri yüklenemedi."
             }
         );
     }
@@ -1187,7 +1459,7 @@ async function loadAdvancedAI() {
 
 
 /* =========================================================
-   SÃ„Â°NYAL DETAYI
+   SİNYAL DETAYI
    ========================================================= */
 
 async function openSignal(ticker) {
@@ -1199,11 +1471,15 @@ async function openSignal(ticker) {
         const response =
             await publicFetch(
                 "/api/signal/" +
-                encodeURIComponent(ticker)
+                encodeURIComponent(
+                    ticker
+                )
             );
 
         const data =
-            await readJson(response);
+            await readJson(
+                response
+            );
 
         if (!response.ok) {
             throw new Error(
@@ -1220,7 +1496,7 @@ async function openSignal(ticker) {
 
     } catch (error) {
         console.error(
-            "Sinyal detayÃ„Â±:",
+            "Sinyal detayı:",
             error
         );
     }
@@ -1239,11 +1515,13 @@ function showAppScreen() {
         byId("appScreen");
 
     if (auth) {
-        auth.style.display = "none";
+        auth.style.display =
+            "none";
     }
 
     if (app) {
-        app.style.display = "block";
+        app.style.display =
+            "block";
     }
 }
 
@@ -1308,19 +1586,20 @@ async function logout() {
 }
 
 function openAdmin() {
-    window.location.href = "/admin";
+    window.location.href =
+        "/admin";
 }
 
 
 /* =========================================================
-   BAÃ…ÂLAT
+   BAŞLAT
    ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
     async () => {
         console.log(
-            "LEVEL 1000 AI baÃ…Å¸latÃ„Â±lÃ„Â±yor..."
+            "LEVEL 1000 AI başlatılıyor..."
         );
 
         showAppScreen();
@@ -1342,10 +1621,6 @@ document.addEventListener(
                 refreshTimer
             );
         }
-
-        /*
-           30 saniyede bir gÃƒÂ¼ncelle.
-        */
 
         refreshTimer =
             setInterval(
