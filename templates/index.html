@@ -1,16 +1,24 @@
+```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+
     <link rel="icon" type="image/jpeg" href="/static/favicon.jpg?v=3">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>LEVEL 1000 AI — AI Market Intelligence</title>
-    <meta name="description" content="LEVEL 1000 AI — Yapay zeka destekli piyasa istihbarat ve sinyal platformu.">
+
+    <meta
+        name="description"
+        content="LEVEL 1000 AI — Yapay zeka destekli piyasa istihbarat ve sinyal platformu."
+    >
 
     <meta name="theme-color" content="#070b12">
 
     <style>
+
         :root {
             --bg: #060910;
             --bg2: #0a0f18;
@@ -49,11 +57,27 @@
                 BlinkMacSystemFont,
                 "Segoe UI",
                 sans-serif;
+
             color: var(--text);
+
             background:
-                radial-gradient(circle at 15% 0%, rgba(39,233,139,.09), transparent 30%),
-                radial-gradient(circle at 90% 10%, rgba(98,168,255,.09), transparent 28%),
-                linear-gradient(180deg, #060910 0%, #080d15 45%, #05080e 100%);
+                radial-gradient(
+                    circle at 15% 0%,
+                    rgba(39,233,139,.09),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 90% 10%,
+                    rgba(98,168,255,.09),
+                    transparent 28%
+                ),
+                linear-gradient(
+                    180deg,
+                    #060910 0%,
+                    #080d15 45%,
+                    #05080e 100%
+                );
+
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -64,11 +88,26 @@
             inset: 0;
             pointer-events: none;
             opacity: .25;
+
             background-image:
-                linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+                linear-gradient(
+                    rgba(255,255,255,.018) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,.018) 1px,
+                    transparent 1px
+                );
+
             background-size: 48px 48px;
-            mask-image: linear-gradient(to bottom, black, transparent 80%);
+
+            mask-image:
+                linear-gradient(
+                    to bottom,
+                    black,
+                    transparent 80%
+                );
         }
 
         button,
@@ -90,7 +129,10 @@
             margin: auto;
         }
 
-        /* HEADER */
+
+        /* ============================================================
+           HEADER
+        ============================================================ */
 
         header {
             position: sticky;
@@ -116,17 +158,48 @@
             gap: 13px;
         }
 
+        /* LOGO — KESİN 42x42 */
+
         .brand-mark {
-            width: 42px;
-            height: 42px;
+            width: 42px !important;
+            height: 42px !important;
+
+            min-width: 42px !important;
+            min-height: 42px !important;
+
+            max-width: 42px !important;
+            max-height: 42px !important;
+
+            padding: 0 !important;
+            margin: 0 !important;
+
             border-radius: 13px;
-            display: grid;
-            place-items: center;
-            font-weight: 950;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, #ffffff, #aeb9c9);
-            color: #05080d;
-            box-shadow: 0 0 30px rgba(255,255,255,.08);
+
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+
+            overflow: hidden !important;
+
+            background: none !important;
+            box-shadow: none !important;
+        }
+
+        .brand-mark img {
+            width: 42px !important;
+            height: 42px !important;
+
+            min-width: 42px !important;
+            min-height: 42px !important;
+
+            max-width: 42px !important;
+            max-height: 42px !important;
+
+            padding: 0 !important;
+            margin: 0 !important;
+
+            object-fit: contain !important;
+            display: block !important;
         }
 
         .brand-name {
@@ -180,7 +253,10 @@
             border-color: rgba(255,255,255,.2);
         }
 
-        /* TICKER */
+
+        /* ============================================================
+           TICKER
+        ============================================================ */
 
         .ticker {
             border-bottom: 1px solid var(--border);
@@ -214,7 +290,10 @@
             color: var(--green);
         }
 
-        /* HERO */
+
+        /* ============================================================
+           HERO
+        ============================================================ */
 
         .hero {
             padding: 76px 0 55px;
@@ -222,7 +301,9 @@
 
         .hero-grid {
             display: grid;
-            grid-template-columns: minmax(0,1.5fr) minmax(340px,.75fr);
+            grid-template-columns:
+                minmax(0,1.5fr)
+                minmax(340px,.75fr);
             gap: 25px;
             align-items: stretch;
         }
@@ -231,12 +312,27 @@
             position: relative;
             overflow: hidden;
             padding: 52px;
+
             border: 1px solid var(--border);
             border-radius: 28px;
+
             background:
-                radial-gradient(circle at 80% 10%, rgba(69,228,255,.08), transparent 28%),
-                radial-gradient(circle at 20% 90%, rgba(40,233,139,.08), transparent 30%),
-                linear-gradient(145deg, rgba(18,25,39,.96), rgba(8,12,20,.96));
+                radial-gradient(
+                    circle at 80% 10%,
+                    rgba(69,228,255,.08),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 20% 90%,
+                    rgba(40,233,139,.08),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    145deg,
+                    rgba(18,25,39,.96),
+                    rgba(8,12,20,.96)
+                );
+
             box-shadow: var(--shadow);
         }
 
@@ -256,10 +352,14 @@
             display: inline-flex;
             align-items: center;
             gap: 9px;
+
             padding: 8px 11px;
+
             border: 1px solid rgba(40,233,139,.2);
             border-radius: 999px;
+
             background: rgba(40,233,139,.055);
+
             color: var(--green);
             font-size: 9px;
             font-weight: 900;
@@ -277,6 +377,7 @@
         .hero h1 {
             max-width: 800px;
             margin-top: 24px;
+
             font-size: clamp(43px, 6vw, 82px);
             line-height: .93;
             letter-spacing: -4px;
@@ -286,7 +387,15 @@
         .hero h1 span {
             display: block;
             color: transparent;
-            background: linear-gradient(100deg, #fff 5%, #9eaabd 50%, #fff 95%);
+
+            background:
+                linear-gradient(
+                    100deg,
+                    #fff 5%,
+                    #9eaabd 50%,
+                    #fff 95%
+                );
+
             -webkit-background-clip: text;
             background-clip: text;
         }
@@ -294,6 +403,7 @@
         .hero-description {
             max-width: 750px;
             margin-top: 25px;
+
             color: #9faabc;
             font-size: 15px;
             line-height: 1.75;
@@ -319,9 +429,18 @@
 
         .primary-btn {
             color: #04110b;
-            background: linear-gradient(135deg, #35f19a, #18c979);
+            background:
+                linear-gradient(
+                    135deg,
+                    #35f19a,
+                    #18c979
+                );
+
             border-color: transparent;
-            box-shadow: 0 12px 35px rgba(40,233,139,.15);
+
+            box-shadow:
+                0 12px 35px
+                rgba(40,233,139,.15);
         }
 
         .primary-btn:hover {
@@ -338,14 +457,25 @@
             background: rgba(255,255,255,.08);
         }
 
-        /* ENGINE PANEL */
+
+        /* ============================================================
+           ENGINE PANEL
+        ============================================================ */
 
         .engine-panel {
             border: 1px solid var(--border);
             border-radius: 28px;
             padding: 27px;
-            background: linear-gradient(160deg, rgba(16,23,36,.95), rgba(8,12,20,.98));
+
+            background:
+                linear-gradient(
+                    160deg,
+                    rgba(16,23,36,.95),
+                    rgba(8,12,20,.98)
+                );
+
             box-shadow: var(--shadow);
+
             display: flex;
             flex-direction: column;
         }
@@ -354,7 +484,9 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+
             padding-bottom: 19px;
+
             border-bottom: 1px solid var(--border);
         }
 
@@ -379,14 +511,19 @@
 
         .core-ring {
             position: relative;
+
             width: 165px;
             height: 165px;
+
             border-radius: 50%;
+
             border: 1px solid rgba(40,233,139,.22);
+
             box-shadow:
                 0 0 0 14px rgba(40,233,139,.025),
                 0 0 0 29px rgba(40,233,139,.018),
                 0 0 55px rgba(40,233,139,.12);
+
             display: grid;
             place-items: center;
         }
@@ -395,20 +532,33 @@
             content: "";
             position: absolute;
             inset: 21px;
+
             border: 1px dashed rgba(98,168,255,.3);
             border-radius: 50%;
+
             animation: spin 14s linear infinite;
         }
 
         .core-center {
             width: 86px;
             height: 86px;
+
             border-radius: 50%;
+
             display: grid;
             place-items: center;
-            background: radial-gradient(circle, rgba(40,233,139,.18), rgba(8,13,20,.95));
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(40,233,139,.18),
+                    rgba(8,13,20,.95)
+                );
+
             border: 1px solid rgba(40,233,139,.3);
+
             color: var(--green);
+
             font-size: 13px;
             font-weight: 950;
             letter-spacing: 1px;
@@ -428,17 +578,22 @@
 
         .engine-metric {
             padding: 13px;
+
             border-radius: 12px;
             border: 1px solid var(--border);
+
             background: rgba(255,255,255,.025);
         }
 
         .engine-metric label {
             display: block;
+
             color: var(--muted);
+
             font-size: 8px;
             font-weight: 800;
             letter-spacing: 1px;
+
             margin-bottom: 6px;
         }
 
@@ -446,7 +601,10 @@
             font-size: 11px;
         }
 
-        /* SECTION */
+
+        /* ============================================================
+           SECTION
+        ============================================================ */
 
         .section {
             padding: 35px 0;
@@ -456,15 +614,18 @@
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
+
             gap: 20px;
             margin-bottom: 19px;
         }
 
         .section-kicker {
             color: var(--green);
+
             font-size: 9px;
             letter-spacing: 1.8px;
             font-weight: 950;
+
             margin-bottom: 7px;
         }
 
@@ -476,11 +637,16 @@
 
         .section-subtitle {
             color: var(--muted);
+
             font-size: 12px;
+
             margin-top: 6px;
         }
 
-        /* KPI */
+
+        /* ============================================================
+           KPI
+        ============================================================ */
 
         .kpi-grid {
             display: grid;
@@ -491,26 +657,40 @@
         .kpi {
             min-height: 150px;
             padding: 20px;
+
             position: relative;
             overflow: hidden;
+
             border: 1px solid var(--border);
             border-radius: 18px;
-            background: linear-gradient(150deg, rgba(16,23,36,.94), rgba(9,13,21,.96));
+
+            background:
+                linear-gradient(
+                    150deg,
+                    rgba(16,23,36,.94),
+                    rgba(9,13,21,.96)
+                );
         }
 
         .kpi::after {
             content: "";
+
             position: absolute;
+
             width: 80px;
             height: 80px;
+
             right: -35px;
             bottom: -35px;
+
             border-radius: 50%;
+
             background: rgba(255,255,255,.025);
         }
 
         .kpi-label {
             color: var(--muted);
+
             font-size: 9px;
             font-weight: 850;
             letter-spacing: 1.1px;
@@ -518,6 +698,7 @@
 
         .kpi-value {
             margin-top: 22px;
+
             font-size: 29px;
             font-weight: 950;
             letter-spacing: -1px;
@@ -525,7 +706,9 @@
 
         .kpi-note {
             margin-top: 7px;
+
             color: #687487;
+
             font-size: 9px;
         }
 
@@ -545,13 +728,19 @@
             color: var(--blue);
         }
 
-        /* SIGNALS */
+
+        /* ============================================================
+           SIGNALS
+        ============================================================ */
 
         .signals-card {
             border: 1px solid var(--border);
             border-radius: 22px;
+
             overflow: hidden;
+
             background: rgba(10,15,24,.9);
+
             box-shadow: var(--shadow);
         }
 
@@ -559,9 +748,12 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+
             gap: 15px;
             padding: 17px;
+
             border-bottom: 1px solid var(--border);
+
             background: rgba(255,255,255,.018);
         }
 
@@ -569,6 +761,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+
             font-size: 12px;
             font-weight: 950;
             letter-spacing: .7px;
@@ -577,8 +770,11 @@
         .signals-title i {
             width: 8px;
             height: 8px;
+
             border-radius: 50%;
+
             background: var(--green);
+
             box-shadow: 0 0 13px var(--green);
         }
 
@@ -590,18 +786,26 @@
         #signalSearch {
             width: 100%;
             height: 40px;
+
             padding: 0 13px;
+
             color: var(--text);
             background: rgba(255,255,255,.04);
+
             border: 1px solid var(--border2);
             border-radius: 10px;
+
             outline: none;
+
             font-size: 11px;
         }
 
         #signalSearch:focus {
             border-color: rgba(98,168,255,.55);
-            box-shadow: 0 0 0 3px rgba(98,168,255,.08);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(98,168,255,.08);
         }
 
         .table-wrap {
@@ -621,25 +825,36 @@
 
         th {
             padding: 13px 16px;
+
             text-align: left;
+
             color: #6f7b8e;
+
             font-size: 8px;
             font-weight: 950;
             letter-spacing: 1.1px;
+
             border-bottom: 1px solid var(--border);
         }
 
         td {
             padding: 14px 16px;
+
             color: #dce3ed;
+
             font-size: 11px;
             font-weight: 650;
-            border-bottom: 1px solid rgba(255,255,255,.045);
+
+            border-bottom:
+                1px solid
+                rgba(255,255,255,.045);
+
             white-space: nowrap;
         }
 
         tbody tr {
-            transition: background .15s ease;
+            transition:
+                background .15s ease;
         }
 
         tbody tr:hover {
@@ -652,29 +867,43 @@
 
         .pagination {
             padding: 14px 17px;
+
             display: flex;
+
             justify-content: space-between;
             align-items: center;
+
             gap: 15px;
+
             border-top: 1px solid var(--border);
+
             color: var(--muted);
+
             font-size: 10px;
+
             flex-wrap: wrap;
         }
 
         #paginationControls {
             display: flex;
+
             align-items: center;
             justify-content: center;
+
             gap: 6px;
         }
 
         #paginationControls button {
             border: 1px solid var(--border2);
+
             background: rgba(255,255,255,.035);
+
             color: #dce4ef;
+
             border-radius: 8px;
+
             padding: 7px 10px;
+
             font-size: 10px;
             font-weight: 800;
         }
@@ -690,27 +919,38 @@
 
         #paginationControls .page-current {
             color: #04110b;
+
             background: var(--green);
+
             border-color: var(--green);
         }
 
-        /* HOW */
+
+        /* ============================================================
+           HOW
+        ============================================================ */
 
         .how-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
             gap: 12px;
         }
 
         .how-card {
             padding: 22px;
+
             border: 1px solid var(--border);
             border-radius: 18px;
+
             background: rgba(13,19,29,.75);
         }
 
         .how-number {
             color: var(--green);
+
             font-size: 10px;
             font-weight: 950;
             letter-spacing: 1px;
@@ -723,22 +963,41 @@
 
         .how-card p {
             margin-top: 9px;
+
             color: var(--muted);
+
             line-height: 1.6;
             font-size: 10px;
         }
 
-        /* AI */
+
+        /* ============================================================
+           AI
+        ============================================================ */
 
         .analysis-panel {
             position: relative;
             overflow: hidden;
+
             padding: 28px;
-            border: 1px solid rgba(40,233,139,.16);
+
+            border:
+                1px solid
+                rgba(40,233,139,.16);
+
             border-radius: 22px;
+
             background:
-                radial-gradient(circle at 100% 0%, rgba(40,233,139,.08), transparent 30%),
-                linear-gradient(145deg, rgba(15,27,29,.94), rgba(9,15,21,.96));
+                radial-gradient(
+                    circle at 100% 0%,
+                    rgba(40,233,139,.08),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    145deg,
+                    rgba(15,27,29,.94),
+                    rgba(9,15,21,.96)
+                );
         }
 
         .analysis-panel h2 {
@@ -748,7 +1007,9 @@
 
         .analysis-panel p {
             color: var(--muted);
+
             margin-top: 7px;
+
             font-size: 11px;
         }
 
@@ -758,26 +1019,46 @@
 
         #runStatus {
             display: inline-block;
+
             margin-left: 12px;
+
             color: var(--muted);
+
             font-size: 10px;
         }
 
-        /* ADVANCED */
+
+        /* ============================================================
+           ADVANCED
+        ============================================================ */
 
         .advanced-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
             gap: 12px;
         }
 
         .advanced-card {
             padding: 22px;
+
             min-height: 210px;
+
             border: 1px solid var(--border);
             border-radius: 18px;
-            background: linear-gradient(145deg, rgba(16,23,36,.88), rgba(8,12,20,.96));
-            transition: transform .18s ease, border-color .18s ease;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(16,23,36,.88),
+                    rgba(8,12,20,.96)
+                );
+
+            transition:
+                transform .18s ease,
+                border-color .18s ease;
         }
 
         .advanced-card:hover {
@@ -788,44 +1069,62 @@
         .advanced-icon {
             width: 38px;
             height: 38px;
+
             border-radius: 11px;
+
             display: grid;
             place-items: center;
+
             border: 1px solid var(--border2);
+
             background: rgba(255,255,255,.04);
+
             font-size: 16px;
         }
 
         .advanced-card h3 {
             margin-top: 20px;
+
             font-size: 13px;
             font-weight: 950;
         }
 
         .advanced-card p {
             margin-top: 8px;
+
             color: var(--muted);
+
             line-height: 1.6;
             font-size: 10px;
         }
 
         .advanced-card button {
             margin-top: 18px;
+
             border: 0;
+
             background: transparent;
+
             color: var(--green);
+
             font-size: 9px;
             font-weight: 950;
             letter-spacing: 1px;
         }
 
-        /* RESULTS */
+
+        /* ============================================================
+           RESULTS
+        ============================================================ */
 
         #advancedResults {
             margin-top: 18px;
+
             padding: 24px;
+
             border: 1px solid var(--border);
             border-radius: 18px;
+
             background: rgba(10,15,24,.8);
         }
 
@@ -836,42 +1135,58 @@
 
         #advancedResultsSubtitle {
             margin-top: 5px;
+
             color: var(--muted);
+
             font-size: 10px;
         }
 
         #advancedResultsBody {
             margin-top: 17px;
+
             color: #aeb8c8;
+
             font-size: 11px;
             line-height: 1.7;
         }
 
-        /* SYSTEM */
+
+        /* ============================================================
+           SYSTEM
+        ============================================================ */
 
         .system-card {
             padding: 23px;
+
             border: 1px solid var(--border);
             border-radius: 20px;
+
             background: rgba(12,18,28,.86);
         }
 
         .system-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
             gap: 10px;
         }
 
         .system-item {
             padding: 16px;
+
             border-radius: 13px;
             border: 1px solid var(--border);
+
             background: rgba(255,255,255,.025);
         }
 
         .system-item label {
             display: block;
+
             color: var(--muted);
+
             font-size: 8px;
             font-weight: 850;
             letter-spacing: 1px;
@@ -879,30 +1194,52 @@
 
         .system-item strong {
             display: block;
+
             margin-top: 8px;
+
             font-size: 11px;
+
             color: var(--green);
         }
 
-        /* WARNING */
+
+        /* ============================================================
+           WARNING
+        ============================================================ */
 
         .warning {
             display: flex;
+
             gap: 15px;
+
             padding: 19px;
-            border: 1px solid rgba(247,201,92,.15);
+
+            border:
+                1px solid
+                rgba(247,201,92,.15);
+
             border-radius: 17px;
-            background: rgba(247,201,92,.035);
+
+            background:
+                rgba(247,201,92,.035);
         }
 
         .warning-icon {
-            flex: 0 0 34px;
+            flex:
+                0 0 34px;
+
             height: 34px;
+
             display: grid;
             place-items: center;
+
             border-radius: 10px;
-            background: rgba(247,201,92,.08);
+
+            background:
+                rgba(247,201,92,.08);
+
             color: var(--yellow);
+
             font-weight: 950;
         }
 
@@ -913,23 +1250,33 @@
 
         .warning p {
             margin-top: 6px;
+
             color: #858fa0;
+
             font-size: 10px;
             line-height: 1.65;
         }
 
-        /* FOOTER */
+
+        /* ============================================================
+           FOOTER
+        ============================================================ */
 
         footer {
             margin-top: 45px;
+
             padding: 35px 0 45px;
+
             border-top: 1px solid var(--border);
         }
 
         .footer-inner {
             display: flex;
+
             justify-content: space-between;
+
             gap: 30px;
+
             align-items: center;
         }
 
@@ -940,16 +1287,22 @@
 
         .footer-sub {
             color: var(--muted);
+
             margin-top: 5px;
+
             font-size: 9px;
             letter-spacing: 1px;
         }
 
         .footer-links {
             display: flex;
+
             flex-wrap: wrap;
+
             gap: 17px;
+
             color: #798496;
+
             font-size: 9px;
             font-weight: 800;
         }
@@ -960,11 +1313,16 @@
 
         .copyright {
             margin-top: 28px;
+
             color: #4d5868;
+
             font-size: 9px;
         }
 
-        /* SCREENS */
+
+        /* ============================================================
+           SCREENS
+        ============================================================ */
 
         #authScreen {
             min-height: 100vh;
@@ -976,33 +1334,50 @@
 
         #message {
             margin: 10px auto;
-            width: min(1440px, calc(100% - 40px));
+
+            width:
+                min(
+                    1440px,
+                    calc(100% - 40px)
+                );
         }
 
-        /* RESPONSIVE */
+
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
 
         @media (max-width: 1100px) {
+
             .hero-grid {
                 grid-template-columns: 1fr;
             }
 
             .kpi-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns:
+                    repeat(3, 1fr);
             }
 
             .how-grid,
             .advanced-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns:
+                    repeat(2, 1fr);
             }
 
             .system-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns:
+                    repeat(2, 1fr);
             }
         }
 
         @media (max-width: 700px) {
+
             .container {
-                width: min(100% - 24px, 1440px);
+                width:
+                    min(
+                        100% - 24px,
+                        1440px
+                    );
             }
 
             header {
@@ -1037,7 +1412,8 @@
             }
 
             .kpi-grid {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns:
+                    1fr 1fr;
             }
 
             .kpi:last-child {
@@ -1085,6 +1461,7 @@
         }
 
         @media (max-width: 450px) {
+
             .kpi-grid {
                 grid-template-columns: 1fr;
             }
@@ -1102,24 +1479,96 @@
                 width: 100%;
             }
         }
+
+
+        /* ============================================================
+           PRINT
+        ============================================================ */
+
+        @media print {
+
+            .top-header {
+                position: static;
+            }
+
+            .terminal-ticker,
+            .plan-info-bar,
+            .signals-toolbar,
+            .upgrade-button,
+            .logout-button,
+            .admin-button {
+                display: none !important;
+            }
+
+            .main-container,
+            .terminal-footer {
+                width: 100%;
+            }
+
+            .plans-section,
+            .signals-section,
+            .advanced-section,
+            .system-panel {
+                box-shadow: none;
+            }
+        }
+
     </style>
 </head>
+
 
 <body>
 
 <div id="appScreen">
 
-    <!-- HEADER -->
+
+    <!-- ============================================================
+         HEADER
+    ============================================================ -->
+
     <header>
+
         <div class="container header-inner">
 
             <div class="brand">
 
-                <div class="brand-mark">
-                <img src="/static/logo.jpg?v=1" alt="LEVEL 1000 AI">
+                <div
+                    class="brand-mark"
+                    style="
+                        width:42px !important;
+                        height:42px !important;
+                        min-width:42px !important;
+                        min-height:42px !important;
+                        max-width:42px !important;
+                        max-height:42px !important;
+                        overflow:hidden !important;
+                    "
+                >
+
+                    <img
+                        src="/static/logo.jpg?v=2"
+                        alt="LEVEL 1000 AI"
+
+                        width="42"
+                        height="42"
+
+                        style="
+                            width:42px !important;
+                            height:42px !important;
+                            min-width:42px !important;
+                            min-height:42px !important;
+                            max-width:42px !important;
+                            max-height:42px !important;
+                            object-fit:contain !important;
+                            display:block !important;
+                        "
+                    >
+
                 </div>
-                     
+
+
                 <div>
+
                     <div class="brand-name">
                         LEVEL 1000 AI
                     </div>
@@ -1127,16 +1576,22 @@
                     <div class="brand-sub">
                         AI MARKET INTELLIGENCE
                     </div>
+
                 </div>
 
             </div>
 
+
             <div class="header-actions">
 
                 <div class="status-pill">
+
                     <span class="status-dot"></span>
+
                     SYSTEM ONLINE
+
                 </div>
+
 
                 <button
                     class="header-btn"
@@ -1145,6 +1600,7 @@
                 >
                     ↻ YENİLE
                 </button>
+
 
                 <button
                     id="adminButton"
@@ -1158,10 +1614,14 @@
             </div>
 
         </div>
+
     </header>
 
 
-    <!-- TICKER -->
+    <!-- ============================================================
+         TICKER
+    ============================================================ -->
+
     <div class="ticker">
 
         <div class="container ticker-inner">
@@ -1202,41 +1662,65 @@
 
     <main>
 
-        <!-- HERO -->
+
+        <!-- ========================================================
+             HERO
+        ======================================================== -->
+
         <section class="hero">
 
             <div class="container hero-grid">
 
+
                 <div class="hero-main">
 
                     <div class="eyebrow">
+
                         <span></span>
+
                         MARKET INTELLIGENCE SYSTEM
+
                     </div>
 
+
                     <h1>
+
                         PUBLIC AI
-                        <span>MARKET INTELLIGENCE.</span>
+
+                        <span>
+                            MARKET INTELLIGENCE.
+                        </span>
+
                     </h1>
 
+
                     <p class="hero-description">
+
                         Yapay zeka destekli piyasa istihbarat platformu.
                         Binlerce finansal varlığı analiz ederek BUY, SELL ve HOLD
                         sinyalleri, AI olasılıkları ve tahmini getirileri tek bir
                         profesyonel terminal üzerinden inceleyin.
+
                     </p>
+
 
                     <div class="hero-buttons">
 
                         <button
                             class="primary-btn"
                             type="button"
-                            onclick="document.getElementById('signalsSection').scrollIntoView({behavior:'smooth'})"
+                            onclick="
+                                document
+                                    .getElementById('signalsSection')
+                                    .scrollIntoView({
+                                        behavior:'smooth'
+                                    })
+                            "
                         >
                             ◈ PİYASA SİNYALLERİNİ GÖR
                         </button>
 
-                        <!-- TEK runAnalysisButton -->
+
                         <button
                             id="runAnalysisButton"
                             class="secondary-btn"
@@ -1248,7 +1732,7 @@
 
                     </div>
 
-                    <!-- TEK runStatus -->
+
                     <span id="runStatus">
                         Sistem hazır.
                     </span>
@@ -1256,8 +1740,12 @@
                 </div>
 
 
-                <!-- ENGINE -->
+                <!-- ====================================================
+                     ENGINE
+                ==================================================== -->
+
                 <aside class="engine-panel">
+
 
                     <div class="engine-top">
 
@@ -1267,17 +1755,21 @@
                                 LEVEL 1000 ENGINE
                             </div>
 
-                            <div style="
-                                margin-top:5px;
-                                color:#697587;
-                                font-size:8px;
-                                letter-spacing:1px;
-                                font-weight:800;
-                            ">
+
+                            <div
+                                style="
+                                    margin-top:5px;
+                                    color:#697587;
+                                    font-size:8px;
+                                    letter-spacing:1px;
+                                    font-weight:800;
+                                "
+                            >
                                 AI SIGNAL PROCESSING CORE
                             </div>
 
                         </div>
+
 
                         <div class="engine-live">
                             ● LIVE
@@ -1301,24 +1793,56 @@
 
                     <div class="engine-metrics">
 
-                        <div class="engine-metric">
-                            <label>SIGNALS</label>
-                            <strong>LIVE</strong>
-                        </div>
 
                         <div class="engine-metric">
-                            <label>MARKET</label>
-                            <strong>AI</strong>
+
+                            <label>
+                                SIGNALS
+                            </label>
+
+                            <strong>
+                                LIVE
+                            </strong>
+
                         </div>
 
-                        <div class="engine-metric">
-                            <label>ENGINE</label>
-                            <strong>ACTIVE</strong>
-                        </div>
 
                         <div class="engine-metric">
-                            <label>EXECUTION</label>
-                            <strong>DISABLED</strong>
+
+                            <label>
+                                MARKET
+                            </label>
+
+                            <strong>
+                                AI
+                            </strong>
+
+                        </div>
+
+
+                        <div class="engine-metric">
+
+                            <label>
+                                ENGINE
+                            </label>
+
+                            <strong>
+                                ACTIVE
+                            </strong>
+
+                        </div>
+
+
+                        <div class="engine-metric">
+
+                            <label>
+                                EXECUTION
+                            </label>
+
+                            <strong>
+                                DISABLED
+                            </strong>
+
                         </div>
 
                     </div>
@@ -1330,10 +1854,14 @@
         </section>
 
 
-        <!-- MARKET OVERVIEW -->
+        <!-- ========================================================
+             MARKET OVERVIEW
+        ======================================================== -->
+
         <section class="section">
 
             <div class="container">
+
 
                 <div class="section-heading">
 
@@ -1357,6 +1885,7 @@
 
 
                 <div class="kpi-grid">
+
 
                     <div class="kpi buy">
 
@@ -1464,7 +1993,10 @@
         </section>
 
 
-        <!-- SIGNAL TABLE -->
+        <!-- ========================================================
+             SIGNAL TABLE
+        ======================================================== -->
+
         <section
             id="signalsSection"
             class="section"
@@ -1473,6 +2005,7 @@
             <div class="container">
 
                 <div class="signals-card">
+
 
                     <div class="signals-toolbar">
 
@@ -1485,6 +2018,7 @@
                             </span>
 
                         </div>
+
 
                         <div class="search-box">
 
@@ -1540,6 +2074,7 @@
 
                             </thead>
 
+
                             <tbody id="signalsBody">
 
                                 <tr>
@@ -1553,7 +2088,6 @@
                                         "
                                     >
                                         Sinyaller yükleniyor...
-
                                     </td>
 
                                 </tr>
@@ -1565,17 +2099,19 @@
                     </div>
 
 
-                    <!-- DİNAMİK PAGINATION -->
                     <div class="pagination">
+
 
                         <div>
 
                             LEVEL 1000 SIGNAL ENGINE
 
-                            <span style="
-                                margin-left:8px;
-                                color:#28e98b;
-                            ">
+                            <span
+                                style="
+                                    margin-left:8px;
+                                    color:#28e98b;
+                                "
+                            >
                                 LIVE PRICE DATA
                             </span>
 
@@ -1591,6 +2127,7 @@
                                 ‹ Önceki
                             </button>
 
+
                             <button
                                 type="button"
                                 class="page-current"
@@ -1598,6 +2135,7 @@
                             >
                                 1
                             </button>
+
 
                             <button
                                 type="button"
@@ -1610,9 +2148,7 @@
 
 
                         <div id="paginationInfo">
-
                             1 - 50 / —
-
                         </div>
 
                     </div>
@@ -1624,10 +2160,14 @@
         </section>
 
 
-        <!-- HOW IT WORKS -->
+        <!-- ========================================================
+             HOW IT WORKS
+        ======================================================== -->
+
         <section class="section">
 
             <div class="container">
+
 
                 <div class="section-heading">
 
@@ -1651,6 +2191,7 @@
 
 
                 <div class="how-grid">
+
 
                     <div class="how-card">
 
@@ -1730,7 +2271,10 @@
         </section>
 
 
-        <!-- AI ANALYSIS -->
+        <!-- ========================================================
+             AI ANALYSIS
+        ======================================================== -->
+
         <section class="section">
 
             <div class="container">
@@ -1750,7 +2294,7 @@
                         üzerinde yeni bir analiz süreci başlatın.
                     </p>
 
-                    <!-- ID YOK: duplicate ID problemi çözüldü -->
+
                     <button
                         class="primary-btn"
                         type="button"
@@ -1758,6 +2302,7 @@
                     >
                         ⚡ LEVEL 1000 AI ANALİZİNİ BAŞLAT
                     </button>
+
 
                     <span
                         style="
@@ -1776,10 +2321,14 @@
         </section>
 
 
-        <!-- ADVANCED -->
+        <!-- ========================================================
+             ADVANCED
+        ======================================================== -->
+
         <section class="section">
 
             <div class="container">
+
 
                 <div class="section-heading">
 
@@ -1803,6 +2352,7 @@
 
 
                 <div class="advanced-grid">
+
 
                     <div class="advanced-card">
 
@@ -1927,10 +2477,14 @@
         </section>
 
 
-        <!-- SYSTEM MONITOR -->
+        <!-- ========================================================
+             SYSTEM MONITOR
+        ======================================================== -->
+
         <section class="section">
 
             <div class="container">
+
 
                 <div class="section-heading">
 
@@ -1956,6 +2510,7 @@
                 <div class="system-card">
 
                     <div class="system-grid">
+
 
                         <div class="system-item">
 
@@ -2017,7 +2572,10 @@
         </section>
 
 
-        <!-- RISK -->
+        <!-- ========================================================
+             RISK
+        ======================================================== -->
+
         <section class="section">
 
             <div class="container">
@@ -2053,12 +2611,16 @@
     </main>
 
 
-    <!-- FOOTER -->
+    <!-- ============================================================
+         FOOTER
+    ============================================================ -->
+
     <footer>
 
         <div class="container">
 
             <div class="footer-inner">
+
 
                 <div>
 
@@ -2120,6 +2682,7 @@
 
 
 <!-- AUTH SCREEN -->
+
 <div
     id="authScreen"
     style="display:none;"
@@ -2127,11 +2690,14 @@
 
 
 <!-- MESSAGE -->
+
 <div id="message"></div>
 
 
 <!-- EXISTING OPTIMIZED JS -->
+
 <script src="/static/script.js?v=1002"></script>
 
 </body>
 </html>
+```
