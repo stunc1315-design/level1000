@@ -3162,4 +3162,10 @@ a {
     .system-panel {
         box-shadow: none;
     }
-}
+    }
+    .brand-mark img {
+    width: 512px;
+    height: 512px;
+    object-fit: contain;
+    display: block;
+    }
