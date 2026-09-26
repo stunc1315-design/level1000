@@ -249,21 +249,19 @@ function showTableLoading() {
         return;
     }
 
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="7" style="text-align:center;padding:30px;">
-                <div style="font-size:28px;">Ã¢ÂÂ³</div>
-                <div style="font-weight:700;margin-top:8px;">
-                    Veriler yÃƒÂ¼kleniyor...
-                </div>
-                <div style="opacity:.7;margin-top:4px;">
-                    Sinyal verisi alÃ„Â±nÃ„Â±yor.
-                </div>
-            </td>
-        </tr>
-    `;
-}
-
+   tbody.innerHTML = `
+    <tr>
+        <td colspan="7" style="text-align:center;padding:30px;">
+            <div style="font-size:28px;">⏳</div>
+            <div style="font-weight:700;margin-top:8px;">
+                SİNYALLER YÜKLENİYOR...
+            </div>
+            <div style="opacity:.7;margin-top:4px;">
+                Piyasa verileri hazırlanıyor.
+            </div>
+        </td>
+    </tr>
+`;
 function showTableError(message) {
     const tbody = getTableBody();
 
