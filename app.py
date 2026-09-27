@@ -5418,127 +5418,19 @@ async def robots():
     robots_text = (
         "User-agent: *\n"
         "Allow: /\n"
+        "Disallow:\n"
         "\n"
-        f"Sitemap: {SEO_BASE_URL}/sitemap.xml\n"
+        "User-agent: Googlebot\n"
+        "Allow: /\n"
+        "\n"
+        "Sitemap: https://level1000-2.onrender.com/sitemap.xml\n"
     )
 
     return PlainTextResponse(
-
         content=robots_text,
-
-        media_type="text/plain",
-
+        media_type="text/plain; charset=utf-8",
         headers={
-
             "Cache-Control":
-                "no-cache, no-store, must-revalidate",
-
-            "Pragma":
-                "no-cache",
-
-            "Expires":
-                "0",
+                "public, max-age=300, must-revalidate",
         },
-    )
-
-
-# ============================================================
-# START
-# ============================================================
-
-if __name__ == "__main__":
-
-    import uvicorn
-
-    port = int(
-        os.environ.get(
-            "PORT",
-            "8000"
-        )
-    )
-
-    host = (
-        "0.0.0.0"
-        if os.environ.get("PORT")
-        else "127.0.0.1"
-    )
-
-    print("")
-    print("=" * 70)
-    print(" LEVEL 1000 AI")
-    print(" PUBLIC / ÜYELİKSİZ SİSTEM")
-    print(" SATIN ALMA ZORUNLULUĞU YOK")
-    print(" TÜM NORMAL ÖZELLİKLER AÇIK")
-    print(" ADMIN SİSTEMİ KORUMALI")
-    print(" CANLI FİYAT + 429 KORUMASI AKTİF")
-    print(" SIGNAL CACHE + PAGINATION AKTİF")
-    print("=" * 70)
-
-    print(
-        "Public Access      :",
-        PUBLIC_ACCESS
-    )
-
-    print(
-        "Membership Required: NO"
-    )
-
-    print(
-        "Payment Required   : NO"
-    )
-
-    print(
-        "Signals            : UNLIMITED"
-    )
-
-    print(
-        "Backtest           : OPEN"
-    )
-
-    print(
-        "Paper Trading      : OPEN"
-    )
-
-    print(
-        "Monte Carlo        : OPEN"
-    )
-
-    print(
-        "Advanced AI        : OPEN"
-    )
-
-    print(
-        "Signal Cache       :",
-        SIGNAL_CACHE_TTL,
-        "saniye"
-    )
-
-    print(
-        "Live Price Cache   :",
-        LIVE_PRICE_CACHE_SECONDS,
-        "saniye"
-    )
-
-    print(
-        "Kaynak             : Yahoo Finance / yfinance"
-    )
-
-    print(
-        "Interval           :",
-        LIVE_INTERVAL
-    )
-
-    print(
-        "Port               :",
-        port
-    )
-
-    print("=" * 70)
-    print("")
-
-    uvicorn.run(
-        "app:app",
-        host=host,
-        port=port,
-        reload=False
     )
