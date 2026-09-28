@@ -5334,75 +5334,101 @@ footer {{
 # SITEMAP
 # ============================================================
 
+SITEMAP_CHUNK_SIZE = 1000
+
+
+def build_sitemap_urls():
+    urls = [
+        f"{SEO_BASE_URL}/",
+        f"{SEO_BASE_URL}/about",
+        f"{SEO_BASE_URL}/guide",
+        f"{SEO_BASE_URL}/risk",
+        f"{SEO_BASE_URL}/privacy",
+        f"{SEO_BASE_URL}/cookies",
+        f"{SEO_BASE_URL}/terms",
+        f"{SEO_BASE_URL}/contact",
+    ]
+
+    for ticker in get_public_tickers():
+        encoded = quote(ticker, safe=".-_")
+        urls.append(
+            f"{SEO_BASE_URL}/hisse/{encoded}"
+        )
+
+    return list(dict.fromkeys(urls))
+
+
+def make_sitemap_xml(urls):
+    xml = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    ]
+
+    for url in urls:
+        xml.append(
+            f"<url><loc>{escape(url)}</loc></url>"
+        )
+
+    xml.append("</urlset>")
+
+    return "\n".join(xml)
+
+
 @app.get(
     "/sitemap.xml",
     response_class=PlainTextResponse
 )
 async def sitemap():
 
-    urls = [
+    urls = build_sitemap_urls()
 
-        f"{SEO_BASE_URL}/",
-
-        f"{SEO_BASE_URL}/about",
-
-        f"{SEO_BASE_URL}/guide",
-
-        f"{SEO_BASE_URL}/risk",
-
-        f"{SEO_BASE_URL}/privacy",
-
-        f"{SEO_BASE_URL}/cookies",
-
-        f"{SEO_BASE_URL}/terms",
-
-        f"{SEO_BASE_URL}/contact"
-
-    ]
-
-    for ticker in get_public_tickers():
-
-        encoded = quote(
-            ticker,
-            safe=".-_"
-        )
-
-        urls.append(
-            f"{SEO_BASE_URL}/hisse/{encoded}"
-        )
-
-    urls = list(
-        dict.fromkeys(
-            urls
-        )
-    )
+    chunk_count = (
+        len(urls) + SITEMAP_CHUNK_SIZE - 1
+    ) // SITEMAP_CHUNK_SIZE
 
     xml = [
-
         '<?xml version="1.0" encoding="UTF-8"?>',
-
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-
+        '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
     ]
 
-    for url in urls:
-
+    for page in range(1, chunk_count + 1):
         xml.append(
-            f"<url>"
-            f"<loc>{escape(url)}</loc>"
-            f"</url>"
+            "<sitemap>"
+            f"<loc>{SEO_BASE_URL}/sitemap-{page}.xml</loc>"
+            "</sitemap>"
         )
 
-    xml.append(
-        "</urlset>"
-    )
+    xml.append("</sitemapindex>")
 
     return PlainTextResponse(
-
         "\n".join(xml),
-
         media_type="application/xml"
     )
+
+
+@app.get(
+    "/sitemap-{page}.xml",
+    response_class=PlainTextResponse
+)
+async def sitemap_page(page: int):
+
+    urls = build_sitemap_urls()
+
+    start = (page - 1) * SITEMAP_CHUNK_SIZE
+    end = start + SITEMAP_CHUNK_SIZE
+
+    if page < 1 or start >= len(urls):
+        raise HTTPException(
+            status_code=404,
+            detail="Sitemap page not found"
+        )
+
+    return PlainTextResponse(
+        make_sitemap_xml(urls[start:end]),
+        media_type="application/xml"
+    )
+
+
 # ============================================================
 # ROBOTS.TXT - GOOGLE SEO
 # ============================================================
