@@ -5403,10 +5403,8 @@ async def sitemap():
 
         media_type="application/xml"
     )
-
-
 # ============================================================
-# ROBOTS
+# ROBOTS.TXT - GOOGLE SEO
 # ============================================================
 
 @app.get(
@@ -5418,19 +5416,20 @@ async def robots():
     robots_text = (
         "User-agent: *\n"
         "Allow: /\n"
-        "Disallow:\n"
         "\n"
-        "User-agent: Googlebot\n"
-        "Allow: /\n"
-        "\n"
-        "Sitemap: https://level1000-2.onrender.com/sitemap.xml\n"
+        "Sitemap: "
+        f"{SEO_BASE_URL}/sitemap.xml\n"
     )
 
     return PlainTextResponse(
         content=robots_text,
-        media_type="text/plain; charset=utf-8",
+        media_type="text/plain",
         headers={
             "Cache-Control":
-                "public, max-age=300, must-revalidate",
+                "no-cache, no-store, must-revalidate",
+            "Pragma":
+                "no-cache",
+            "Expires":
+                "0",
         },
     )
