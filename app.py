@@ -4793,14 +4793,14 @@ async def public_stock_page(
     )
 
     title = (
-        f"{safe_ticker} Hisse Senedi Analizi | "
-        f"Fiyat ve AI Sinyali | LEVEL 1000 AI"
+        f"{safe_ticker} Hisse Fiyatı ve AI Analizi "
+        f"| LEVEL 1000"
     )
 
     description = (
-        f"{safe_ticker} hisse senedi analizi, "
-        f"fiyat, AI sinyali, AI olasılığı ve "
-        f"tahmini getiri bilgilerini inceleyin."
+        f"{safe_ticker} hisse senedinin fiyatını, "
+        f"AI analizini ve piyasa sinyallerini "
+        f"LEVEL 1000 AI ile inceleyin."
     )
 
     return HTMLResponse(
@@ -4860,6 +4860,29 @@ async def public_stock_page(
     property="og:site_name"
     content="LEVEL 1000 AI"
 >
+
+<meta
+    property="og:image"
+    content="https://level1000-2.onrender.com/static/level1000-og.jpg"
+>
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<meta name="twitter:card" content="summary_large_image">
+
+<meta name="twitter:title" content="{title}">
+
+<meta
+    name="twitter:description"
+    content="{escape(description)}"
+>
+
+<meta
+    name="twitter:image"
+    content="https://level1000-2.onrender.com/static/level1000-og.jpg"
+>
+
 
 <script type="application/ld+json">
 
@@ -5459,3 +5482,13 @@ async def robots():
                 "0",
         },
     )
+# LEVEL 1000: Hisse SEO sayfalarını ana sayfaya yönlendir
+from fastapi.responses import RedirectResponse as _StockRedirectResponse
+
+@app.middleware("http")
+async def redirect_stock_pages_to_home(request, call_next):
+    path = request.url.path
+    if path.lower().startswith("/hisse/"):
+        return _StockRedirectResponse(url="/", status_code=301)
+    return await call_next(request)
+
