@@ -5482,13 +5482,3 @@ async def robots():
                 "0",
         },
     )
-# LEVEL 1000: Hisse SEO sayfalarını ana sayfaya yönlendir
-from fastapi.responses import RedirectResponse as _StockRedirectResponse
-
-@app.middleware("http")
-async def redirect_stock_pages_to_home(request, call_next):
-    path = request.url.path
-    if path.lower().startswith("/hisse/"):
-        return _StockRedirectResponse(url="/", status_code=301)
-    return await call_next(request)
-
