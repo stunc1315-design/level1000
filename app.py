@@ -2210,7 +2210,7 @@ def simple_page(
 async def about():
 
     return simple_page(
-        "LEVEL 1000 AI",
+        "Hakkında | LEVEL 1000 AI",
         "Yapay zeka destekli piyasa araştırma ve sinyal analiz platformu."
     )
 
@@ -4697,6 +4697,17 @@ async def public_stock_page(
             detail="Geçersiz sembol."
         )
 
+    valid_tickers = await asyncio.to_thread(
+        get_public_tickers
+    )
+
+    if valid_tickers and ticker not in valid_tickers:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Hisse bulunamadı."
+        )
+
     data = await asyncio.to_thread(
         get_public_signal,
         ticker
@@ -4849,21 +4860,6 @@ async def public_stock_page(
 <meta
     name="description"
     content="{escape(description)}"
->
-
-<meta
-    property="og:title"
-    content="{escape(title)}"
->
-
-<meta
-    property="og:description"
-    content="{escape(description)}"
->
-
-<meta
-    property="og:type"
-    content="website"
 >
 
 <meta
