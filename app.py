@@ -4702,13 +4702,28 @@ async def public_stock_page(
 
     if data is None:
 
+        live_map = {}
+
+        try:
+
+            live_map = await asyncio.to_thread(
+                get_live_prices,
+                [ticker]
+            ) or {}
+
+        except Exception:
+
+            live_map = {}
+
+        live_item = live_map.get(ticker) or {}
+
         data = {
 
             "ticker":
                 ticker,
 
             "signal":
-                "SİNYAL YOK",
+                "ANALİZ BEKLİYOR",
 
             "probability":
                 None,
@@ -4717,10 +4732,10 @@ async def public_stock_page(
                 None,
 
             "price":
-                None,
+                live_item.get("price"),
 
             "date":
-                "-",
+                live_item.get("updated_at_tr") or "-",
 
             "has_signal":
                 False
