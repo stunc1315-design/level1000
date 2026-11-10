@@ -2140,6 +2140,7 @@ async def home(
             <meta name="viewport"
                   content="width=device-width,initial-scale=1">
             <title>LEVEL 1000 AI</title>
+            <link rel="icon" type="image/jpeg" href="/static/favicon.jpg?v=3">
         </head>
         <body>
             <h1>LEVEL 1000 AI</h1>
@@ -2168,6 +2169,7 @@ def simple_page(
         <meta name="viewport"
               content="width=device-width,initial-scale=1">
         <title>{escape(title)}</title>
+        <link rel="icon" type="image/jpeg" href="/static/favicon.jpg?v=3">
         <style>
         body {{
             font-family: Arial, sans-serif;
@@ -4842,9 +4844,26 @@ async def public_stock_page(
 
 <title>{title}</title>
 
+<link rel="icon" type="image/jpeg" href="/static/favicon.jpg?v=3">
+
 <meta
     name="description"
     content="{escape(description)}"
+>
+
+<meta
+    property="og:title"
+    content="{escape(title)}"
+>
+
+<meta
+    property="og:description"
+    content="{escape(description)}"
+>
+
+<meta
+    property="og:type"
+    content="website"
 >
 
 <meta
