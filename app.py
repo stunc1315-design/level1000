@@ -258,6 +258,12 @@ live_price_cache = {}
 
 live_price_cache_lock = threading.Lock()
 
+TECH_METRICS_CACHE_SECONDS = 14400
+
+tech_metrics_cache = {}
+
+tech_metrics_cache_lock = threading.Lock()
+
 
 # ============================================================
 # DATABASE
@@ -1806,6 +1812,110 @@ def _download_live_prices(symbols):
 # ============================================================
 # LIVE PRICE CACHE
 # ============================================================
+
+def get_technical_metrics(ticker):
+
+    ticker = str(ticker).strip().upper()
+
+    if not ticker:
+
+        return None
+
+    now = time.time()
+
+    with tech_metrics_cache_lock:
+
+        item = tech_metrics_cache.get(ticker)
+
+        if item:
+
+            cached_at = float(item.get("_cached_at", 0))
+
+            if now - cached_at <= TECH_METRICS_CACHE_SECONDS:
+
+                return {
+                    k: v
+                    for k, v in item.items()
+                    if k != "_cached_at"
+                }
+
+    result = {
+
+        "rsi": None,
+
+        "change_30d": None
+    }
+
+    try:
+
+        hist = yf.Ticker(ticker).history(period="1mo")
+
+        closes = (
+            hist["Close"].dropna().tolist()
+            if hist is not None
+            and not hist.empty
+            else []
+        )
+
+    except Exception:
+
+        closes = []
+
+    if len(closes) >= 15:
+
+        gains = []
+
+        losses = []
+
+        for i in range(1, len(closes)):
+
+            diff = float(closes[i]) - float(closes[i - 1])
+
+            gains.append(
+                max(diff, 0.0)
+            )
+
+            losses.append(
+                max(-diff, 0.0)
+            )
+
+        avg_gain = sum(gains[-14:]) / 14.0
+
+        avg_loss = sum(losses[-14:]) / 14.0
+
+        if avg_loss == 0:
+
+            rsi = 100.0
+
+        else:
+
+            rs = avg_gain / avg_loss
+
+            rsi = 100.0 - (100.0 / (1.0 + rs))
+
+        result["rsi"] = round(rsi, 2)
+
+        first = float(closes[0])
+
+        last = float(closes[-1])
+
+        if first:
+
+            result["change_30d"] = round(
+                (last - first) / first * 100.0,
+                2
+            )
+
+    with tech_metrics_cache_lock:
+
+        item_copy = dict(result)
+
+        item_copy["_cached_at"] = time.time()
+
+        tech_metrics_cache[ticker] = item_copy
+
+    return result
+
 
 def get_live_prices(symbols):
 
@@ -4760,6 +4870,31 @@ async def public_stock_page(
 
         data["date"] = live_item.get("updated_at_tr") or data["date"]
 
+    probability_title = "AI Olasılığı"
+
+    predicted_title = "Tahmini Getiri"
+
+    if not data.get("has_signal"):
+
+        tech = await asyncio.to_thread(
+            get_technical_metrics,
+            ticker
+        )
+
+        if tech:
+
+            if tech.get("rsi") is not None:
+
+                data["probability"] = tech["rsi"]
+
+                probability_title = "Teknik Güç (RSI)"
+
+            if tech.get("change_30d") is not None:
+
+                data["predicted_return"] = tech["change_30d"]
+
+                predicted_title = "Son 30 Gün Değişimi"
+
     safe_ticker = escape(
         data["ticker"]
     )
@@ -5242,7 +5377,7 @@ footer {{
         <div class="stat">
 
             <div class="stat-title">
-                AI Olasılığı
+                {probability_title}
             </div>
 
             <div class="stat-value">
@@ -5254,7 +5389,7 @@ footer {{
         <div class="stat">
 
             <div class="stat-title">
-                Tahmini Getiri
+                {predicted_title}
             </div>
 
             <div class="stat-value">
