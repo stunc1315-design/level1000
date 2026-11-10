@@ -4702,21 +4702,6 @@ async def public_stock_page(
 
     if data is None:
 
-        live_map = {}
-
-        try:
-
-            live_map = await asyncio.to_thread(
-                get_live_prices,
-                [ticker]
-            ) or {}
-
-        except Exception:
-
-            live_map = {}
-
-        live_item = live_map.get(ticker) or {}
-
         data = {
 
             "ticker":
@@ -4732,14 +4717,35 @@ async def public_stock_page(
                 None,
 
             "price":
-                live_item.get("price"),
+                None,
 
             "date":
-                live_item.get("updated_at_tr") or "-",
+                "-",
 
             "has_signal":
                 False
         }
+
+    live_map = {}
+
+    try:
+
+        live_map = await asyncio.to_thread(
+            get_live_prices,
+            [ticker]
+        ) or {}
+
+    except Exception:
+
+        live_map = {}
+
+    live_item = live_map.get(ticker) or {}
+
+    if live_item.get("price") is not None:
+
+        data["price"] = live_item.get("price")
+
+        data["date"] = live_item.get("updated_at_tr") or data["date"]
 
     safe_ticker = escape(
         data["ticker"]
@@ -5257,7 +5263,7 @@ footer {{
         <div class="stat">
 
             <div class="stat-title">
-                Analiz Tarihi
+                Veri Zamanı
             </div>
 
             <div class="stat-value">
